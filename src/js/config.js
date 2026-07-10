@@ -1,9 +1,9 @@
 // src/js/config.js
-import { createClient } from '@supabase/supabase-js';
 
-// Pakai kredensial langsung biar Vercel nggak bingung!
+// PAKAI LINK CDN KHUSUS ESM BIAR VITE NGGAK NYARI NODE_MODULES!
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
 const supabaseUrl = "https://xwqdkvxythrewgjxhiru.supabase.co";
 const supabaseKey = "sb_publishable_xfjCBEL-Hf77z-ssKaeZbg_-Or1pIML";
 
-// Export sb agar bisa di-import oleh file JS lain
 export const sb = createClient(supabaseUrl, supabaseKey);
