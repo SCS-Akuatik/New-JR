@@ -1,0 +1,41 @@
+/* 1. MANTRA WAJIB TAILWIND */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 2. CUSTOM FONT (Great Vibes untuk Greeting) */
+@layer base {
+  .font-\\[Great\\+Vibes\\] {
+    font-family: 'Great Vibes', cursive;
+  }
+}
+
+/* 3. MENYELAMATKAN CLASS LAMA YANG DIPAKAI DI JAVASCRIPT */
+@layer components {
+  /* Class untuk tombol-tombol merah (Hapus/Void) di JS */
+  .btn-danger {
+    @apply bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-lg shadow-sm transition-colors cursor-pointer text-xs;
+  }
+
+  /* Class untuk tombol-tombol kuning/orange (Edit) di JS */
+  .btn-warning {
+    @apply bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-3 rounded-lg shadow-sm transition-colors cursor-pointer text-xs;
+  }
+
+  /* Class untuk layout list item (Kotak-kotak list di dashboard admin) */
+  .list-item-admin {
+    @apply flex justify-between items-center bg-white border border-slate-200 rounded-xl p-4 mb-3 shadow-sm;
+  }
+
+  /* Class untuk kartu KPI Coach di JS Owner */
+  .kpi-card {
+    @apply flex justify-between items-center bg-slate-50 border border-slate-200 rounded-xl p-4 mb-3;
+  }
+
+  /* Class tambahan untuk tombol biru (Reminder WA) di JS */
+  .btn-chat {
+    @apply bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 rounded-lg shadow-sm transition-colors cursor-pointer text-sm w-full;
+  }
+}
+
+/* 4. CSS TAMBAHAN (Kalau ada styling murni lama yang susah di-Tailwind-kan, taruh di bawah sini) */
