@@ -10,6 +10,8 @@ export async function bukaJadwalUser() {
     const sub = document.getElementById('jadwal-sub');
     if(!container) return;
 
+    container.innerHTML = '<p class="text-slate-400 text-sm">Memuat jadwal...</p>';
+
     try {
         const { data: cfg } = await sb.from('pengaturan').select('nilai').eq('kunci', 'sub_judul_jadwal').single();
         if (cfg && sub) sub.innerText = cfg.nilai;
@@ -20,32 +22,39 @@ export async function bukaJadwalUser() {
         let html = '';
         data.forEach(row => {
             let isKosong = row.peserta.toLowerCase().includes('kosong');
-            let textColor = isKosong ? 'text-emerald-600' : 'text-red-500';
+            let textColor = isKosong ? 'text-emerald-500' : 'text-red-500';
             let statusText = isKosong ? 'Slot Tersedia' : 'Siswa: ' + row.peserta;
 
             html += `
-            <div class="bg-white border border-slate-200 rounded-xl p-4 mb-3 text-left shadow-sm">
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 mb-3 text-left shadow-sm">
                 <div class="flex justify-between items-center mb-2">
                     <span class="bg-sky-600 text-white px-2 py-1 rounded-md text-[11px] font-bold">${row.hari} (${row.jam})</span>
                     <span class="${textColor} text-[11px] font-bold">${statusText}</span>
                 </div>
-                <h3 class="m-0 text-[15px] font-bold text-slate-800">📍 ${row.lokasi}</h3>
+                <h3 class="m-0 text-[15px] font-bold text-white">📍 ${row.lokasi}</h3>
             </div>`;
         });
-        container.innerHTML = html || '<p class="text-slate-500 text-sm">Jadwal kosong.</p>';
+        container.innerHTML = html || '<p class="text-slate-400 text-sm">Jadwal kosong.</p>';
     } catch(e) { 
         container.innerHTML = '<p class="text-red-500">Gagal memuat jadwal.</p>'; 
     }
 }
 
 // ===================================================
-// 2. LOAD JADWAL UNTUK ADMIN
+// 2. LOAD JADWAL & DROPDOWN ADMIN
 // ===================================================
 export async function loadJadwalAdmin() {
     const list = document.getElementById('admin-jadwal-list');
     if(!list) return;
 
-    list.innerHTML = '<p class="text-slate-500 text-sm">Memuat jadwal...</p>';
+    list.innerHTML = '<p class="text-slate-400 text-sm">Memuat jadwal...</p>';
+    
+    // TRICK BIAYA CEPAT: Panggil dropdown berbarengan di sini!
+    loadDropdownMuridBeginner();
+    if (typeof window.loadDaftarKolam === 'function') {
+        window.loadDaftarKolam();
+    }
+
     const { data, error } = await sb.from('jadwal_kelas').select('*').order('id', { ascending: true });
     
     if(error) return list.innerHTML = '<p class="text-red-500">Gagal load data: ' + error.message + '</p>';
@@ -53,23 +62,53 @@ export async function loadJadwalAdmin() {
     let html = '';
     data?.forEach(j => {
         html += `
-        <div class="bg-white border border-slate-200 rounded-xl p-4 mb-3 shadow-sm flex justify-between items-center">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 mb-3 shadow-sm flex justify-between items-center">
             <div>
-                <strong class="text-sky-800 text-sm">${j.hari} - ${j.jam}</strong><br>
-                <span class="text-xs text-slate-600">📍 ${j.lokasi}</span><br>
-                <span class="text-xs font-bold text-slate-700">👤 ${j.peserta}</span>
+                <strong class="text-sky-400 text-sm">${j.hari} - ${j.jam}</strong><br>
+                <span class="text-xs text-slate-300">📍 ${j.lokasi}</span><br>
+                <span class="text-xs font-bold text-slate-200">👤 ${j.peserta}</span>
             </div>
             <div class="flex gap-2">
-                <button class="bg-amber-100 text-amber-700 hover:bg-amber-200 px-3 py-2 rounded-lg text-xs font-bold transition" onclick="editJadwalAdmin('${j.id}', '${j.hari}', '${j.lokasi}', '${j.jam}', '${j.peserta}')">✏️</button>
-                <button class="bg-red-100 text-red-700 hover:bg-red-200 px-3 py-2 rounded-lg text-xs font-bold transition" onclick="hapusData('jadwal_kelas', '${j.id}', loadJadwalAdmin)">❌</button>
+                <button class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer" onclick="editJadwalAdmin('${j.id}', '${j.hari}', '${j.lokasi}', '${j.jam}', '${j.peserta}')">✏️</button>
+                <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer" onclick="hapusData('jadwal_kelas', '${j.id}', loadJadwalAdmin)">❌</button>
             </div>
         </div>`;
     });
-    list.innerHTML = html || '<p class="text-slate-500 text-sm">Belum ada jadwal.</p>';
+    list.innerHTML = html || '<p class="text-slate-400 text-sm">Belum ada jadwal.</p>';
 }
 
 // ===================================================
-// 3. EDIT & SIMPAN JADWAL ADMIN
+// 3. DROPDOWN MURID (SISA SESI > 0)
+// ===================================================
+export async function loadDropdownMuridBeginner() {
+    const select = document.getElementById('dropdown-murid-aktif');
+    if(!select) return;
+    
+    select.innerHTML = '<option value="">Sedang memuat data murid...</option>';
+    
+    // CATATAN: Di kode lama lu pakai 'nama_murid', tapi di DB biasanya 'nama_lengkap'. 
+    // Kita panggil keduanya biar aman nggak error!
+    const { data, error } = await sb.from('murid')
+                           .select('id_murid, nama_lengkap, nama_murid, sisa_sesi')
+                           .gt('sisa_sesi', 0);
+
+    if(error) {
+        select.innerHTML = '<option value="">Gagal muat data</option>';
+        return;
+    }
+
+    select.innerHTML = '<option value="">Pilih Murid (Sisa Sesi > 0)...</option>';
+    data?.forEach(m => {
+        // Handle perbedaan nama kolom dari vanilla ke vite
+        let namaFinal = m.nama_lengkap || m.nama_murid || 'Tanpa Nama';
+        select.innerHTML += `<option value="${m.id_murid}" data-nama="${namaFinal}">
+            ${namaFinal} (Sisa: ${m.sisa_sesi})
+        </option>`;
+    });
+}
+
+// ===================================================
+// 4. EDIT, INSERT & SIMPAN JADWAL ADMIN
 // ===================================================
 export function editJadwalAdmin(id, hari, lokasi, jam, peserta) {
     document.getElementById('jadwal-edit-id').value = id;
@@ -126,6 +165,7 @@ export async function simpanJadwal() {
 
     alert("Jadwal tersimpan & sisa sesi murid otomatis terpotong! 🔥");
 
+    // Reset Form
     document.getElementById('jadwal-edit-id').value = '';
     document.getElementById('form-jam').value = '';
     document.getElementById('form-peserta').value = 'Kosong';
@@ -133,37 +173,6 @@ export async function simpanJadwal() {
     btn.innerText = "⚡ Insert Slot";
 
     loadJadwalAdmin();
-    loadDropdownMuridBeginner();
-}
-
-export async function simpanSubJudul() {
-    const teks = document.getElementById('input-sub-jadwal').value;
-    if(!teks) return alert("Isi teks terlebih dahulu!");
-    const { error } = await sb.from('pengaturan').update({ nilai: teks }).eq('kunci', 'sub_judul_jadwal');
-    if(error) alert('Gagal simpan sub judul: ' + error.message);
-    else alert('Sub judul berhasil diperbarui!');
-}
-
-// ===================================================
-// 4. DROPDOWN MURID & INSERT KE SLOT JADWAL
-// ===================================================
-export async function loadDropdownMuridBeginner() {
-    const select = document.getElementById('dropdown-murid-aktif');
-    if(!select) return;
-    
-    select.innerHTML = '<option value="">Pilih Murid (Sisa Sesi > 0)...</option>';
-    
-    // Perbaikan: Pakai nama_lengkap sesuai skema database di siswa.js
-    const { data } = await sb.from('murid')
-                           .select('id_murid, nama_lengkap, sisa_sesi')
-                           .gt('sisa_sesi', 0)
-                           .order('nama_lengkap');
-
-    data?.forEach(m => {
-        select.innerHTML += `<option value="${m.id_murid}" data-nama="${m.nama_lengkap}">
-            ${m.nama_lengkap} (Sisa: ${m.sisa_sesi})
-        </option>`;
-    });
 }
 
 export function tambahMuridKeJadwal() {
@@ -193,8 +202,16 @@ export function tambahMuridKeJadwal() {
     }
 }
 
+export async function simpanSubJudul() {
+    const teks = document.getElementById('input-sub-jadwal').value;
+    if(!teks) return alert("Isi teks terlebih dahulu!");
+    const { error } = await sb.from('pengaturan').update({ nilai: teks }).eq('kunci', 'sub_judul_jadwal');
+    if(error) alert('Gagal simpan sub judul: ' + error.message);
+    else alert('Sub judul berhasil diperbarui!');
+}
+
 // ==========================================
-// DAFTARKAN KE GLOBAL WINDOW (VITE FIX)
+// 5. DAFTARKAN KE GLOBAL WINDOW (VITE FIX)
 // ==========================================
 window.bukaJadwalUser = bukaJadwalUser;
 window.loadJadwalAdmin = loadJadwalAdmin;
