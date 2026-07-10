@@ -1,13 +1,22 @@
 // Import CSS Tailwind
 import './style.css'; 
 
-// Import Ekosistem JS Jago Renang Academy
+// ==========================================
+// CCTV ERROR (Biar ketahuan kalau ada yg crash)
+// ==========================================
+window.onerror = function(message, source, lineno, colno, error) {
+    alert("🚨 ADA ERROR BRAY!\n\nPesan: " + message + "\nBaris: " + lineno);
+    return true; 
+};
+
+// ==========================================
+// IMPORT EKOSISTEM JS JAGO RENANG ACADEMY
+// ==========================================
 import './js/config.js';
+import './js/helper.js'; // 🔴 INI YANG KELUPAAN BRAY!
 import './js/app.js';
 import './js/login.js';
 import './js/owner.js';
-
-// --- IMPORT FILE YANG BARU SAJA KAMU BUAT ---
 import './js/akunting.js';
 import './js/beginner.js';
 import './js/coach.js';
