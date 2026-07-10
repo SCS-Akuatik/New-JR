@@ -1,8 +1,21 @@
-function chatAdmin() {
+import { sb } from './config.js';
+
+export function formatRupiah(angka) {
+    if (!angka) return "Rp 0";
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+}
+
+export function formatTanggal(tgl) {
+    if (!tgl) return '-';
+    const date = new Date(tgl);
+    return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+export function chatAdmin() {
     window.location.href = "https://wa.me/6289678159835?text=Halo%20Admin%20JR%20Academy";
 }
 
-function hitungKelompokUmur(tanggalLahirStr) {
+export function hitungKelompokUmur(tanggalLahirStr) {
     if (!tanggalLahirStr) return 'KU Belum Set';
     const tahunLahir = new Date(tanggalLahirStr).getFullYear();
     const tahunSekarang = 2026; 
@@ -15,14 +28,15 @@ function hitungKelompokUmur(tanggalLahirStr) {
     return `Senior (${usiaKU} Thn)`;
 }
 
-async function loadDaftarKolam() {
+export async function loadDaftarKolam() {
     const select = document.getElementById('form-lokasi');
+    if(!select) return;
     const { data } = await sb.from('kolam').select('nama_kolam');
     select.innerHTML = '<option value="">Pilih Kolam...</option>';
     data?.forEach(k => { select.innerHTML += `<option value="${k.nama_kolam}">${k.nama_kolam}</option>`; });
 }
 
-async function hapusData(tabel, idData, callback) {
+export async function hapusData(tabel, idData, callback) {
     if(!confirm("Hapus data ini dari database secara permanen?")) return;
     const primaryKey = tabel === 'murid' ? 'id_murid' : 'id';
     const { error } = await sb.from(tabel).delete().eq(primaryKey, idData);
@@ -30,16 +44,16 @@ async function hapusData(tabel, idData, callback) {
         console.error(error);
         alert("Gagal menghapus data: " + error.message);
     } else {
-        callback();
+        if(typeof callback === "function") callback();
     }
 }
+
 // ==========================================
 // DAFTARKAN SEMUA HELPER KE GLOBAL WINDOW
-// Biar nggak "buta" pas di-load modul lain
 // ==========================================
-if (typeof formatRupiah === "function") window.formatRupiah = formatRupiah;
-if (typeof formatTanggal === "function") window.formatTanggal = formatTanggal;
-if (typeof showToast === "function") window.showToast = showToast;
-if (typeof formatWaktu === "function") window.formatWaktu = formatWaktu;
-if (typeof hitungKelompokUmur === "function") window.hitungKelompokUmur = hitungKelompokUmur;
-// (Kalau di helper.js lu ada fungsi lain kayak formatAngka, tambahin juga polanya sama)
+window.formatRupiah = formatRupiah;
+window.formatTanggal = formatTanggal;
+window.chatAdmin = chatAdmin;
+window.hitungKelompokUmur = hitungKelompokUmur;
+window.loadDaftarKolam = loadDaftarKolam;
+window.hapusData = hapusData;
