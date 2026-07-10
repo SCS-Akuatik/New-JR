@@ -50,8 +50,19 @@ export async function tanyaGeminiLangsung() {
 
 // ... (Masukkan fungsi-fungsi Owner lainnya dari source 6 seperti masukRuangDewa, loadLoginLogs, dll)
 
-// Daftarkan SEMUA fungsi ke Global Scope!
+// ===================================================
+// DAFTARKAN SEMUA FUNGSI OWNER KE GLOBAL WINDOW
+// ===================================================
 window.loadSiswaOwner = loadSiswaOwner;
 window.loadCoachKPI = loadCoachKPI;
+window.loadRobotData = loadRobotData;
+window.tanyaRobotTemplate = tanyaRobotTemplate;
 window.tanyaGeminiLangsung = tanyaGeminiLangsung;
-// Lanjutkan mendaftarkan fungsi lain yang ada di file ini...
+window.masukRuangDewa = masukRuangDewa;
+window.loadMataDewaDropdown = loadMataDewaDropdown;
+window.simulasiLoginOrtu = simulasiLoginOrtu;
+window.loadLoginLogs = loadLoginLogs;
+window.loadRahasiaMurid = loadRahasiaMurid;
+window.simpanRahasiaMurid = simpanRahasiaMurid;
+window.loadRahasiaUsers = loadRahasiaUsers;
+window.simpanRahasiaUsers = simpanRahasiaUsers;
