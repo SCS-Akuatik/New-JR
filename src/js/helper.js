@@ -33,3 +33,13 @@ async function hapusData(tabel, idData, callback) {
         callback();
     }
 }
+// ==========================================
+// DAFTARKAN SEMUA HELPER KE GLOBAL WINDOW
+// Biar nggak "buta" pas di-load modul lain
+// ==========================================
+if (typeof formatRupiah === "function") window.formatRupiah = formatRupiah;
+if (typeof formatTanggal === "function") window.formatTanggal = formatTanggal;
+if (typeof showToast === "function") window.showToast = showToast;
+if (typeof formatWaktu === "function") window.formatWaktu = formatWaktu;
+if (typeof hitungKelompokUmur === "function") window.hitungKelompokUmur = hitungKelompokUmur;
+// (Kalau di helper.js lu ada fungsi lain kayak formatAngka, tambahin juga polanya sama)
