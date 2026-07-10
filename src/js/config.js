@@ -1,9 +1,8 @@
 // src/js/config.js
-
-// PAKAI LINK CDN KHUSUS ESM BIAR VITE NGGAK NYARI NODE_MODULES!
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+// Tarik fungsi Supabase dari script HTML (bypass Vercel build error)
 
 const supabaseUrl = "https://xwqdkvxythrewgjxhiru.supabase.co";
 const supabaseKey = "sb_publishable_xfjCBEL-Hf77z-ssKaeZbg_-Or1pIML";
 
-export const sb = createClient(supabaseUrl, supabaseKey);
+// Langsung pakai window.supabase
+export const sb = window.supabase.createClient(supabaseUrl, supabaseKey);
