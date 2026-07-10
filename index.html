@@ -169,5 +169,56 @@
     </div>
 </div>
 
+<!-- ===================================== -->
+<!-- DASHBOARD ADMIN -->
+<!-- ===================================== -->
+<div id="dashboard-admin" class="hidden w-full max-w-3xl mt-5">
+    <div class="bg-white p-6 rounded-2xl shadow-lg border">
+        <h2 class="text-2xl font-bold text-sky-700 mb-4">
+            👨‍💼 Admin Hub
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+            <button onclick="pindahHalaman('admin-modul-beginner'); loadJadwalAdmin();"
+                class="bg-sky-600 text-white p-4 rounded-xl">
+                🏊 Beginner Class
+            </button>
+
+            <button onclick="pindahHalaman('admin-modul-coach'); loadCoachAdmin();"
+                class="bg-slate-700 text-white p-4 rounded-xl">
+                👨‍🏫 Coach
+            </button>
+
+            <button onclick="pindahHalaman('admin-modul-katalog'); loadKatalogAdmin();"
+                class="bg-emerald-600 text-white p-4 rounded-xl">
+                📋 Katalog
+            </button>
+
+            <button onclick="pindahHalaman('admin-modul-siswa'); loadSiswaAdmin();"
+                class="bg-amber-500 text-white p-4 rounded-xl">
+                👨‍🎓 Master Siswa
+            </button>
+
+            <button onclick="pindahHalaman('admin-modul-fee'); loadFeeAdmin();"
+                class="bg-indigo-600 text-white p-4 rounded-xl">
+                💰 Fee Coach
+            </button>
+
+            <button onclick="pindahHalaman('admin-modul-akunting'); loadAkuntingAdmin();"
+                class="bg-red-600 text-white p-4 rounded-xl">
+                📊 Akunting
+            </button>
+
+        </div>
+
+        <button
+            onclick="pindahHalaman('page-login')"
+            class="w-full mt-6 bg-red-500 text-white py-3 rounded-xl">
+            Logout
+        </button>
+    </div>
+</div>
+
 </body>
 </html>
