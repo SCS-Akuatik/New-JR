@@ -34,18 +34,23 @@ export function pindahHalaman(idTarget, pushState = true) {
         target.style.display = ''; 
     }
 
-    // Panggil fungsi spesifik sesuai halaman
-    if (idTarget === 'admin-modul-coach' && typeof loadCoachAdmin === "function") loadCoachAdmin();
-    if (idTarget === 'admin-modul-katalog' && typeof loadKatalogAdmin === "function") loadKatalogAdmin();
-    if (idTarget === 'admin-modul-beginner' && typeof loadJadwalAdmin === "function") {
-        loadJadwalAdmin();
-        if (typeof loadDropdownMuridBeginner === "function") loadDropdownMuridBeginner(); 
+    // ============================================================
+    // 👇👇 FINAL BOSS FIX: WAJIB PAKAI "window." DI VITE! 👇👇
+    // ============================================================
+    if (idTarget === 'admin-modul-coach' && typeof window.loadCoachAdmin === "function") window.loadCoachAdmin();
+    if (idTarget === 'admin-modul-katalog' && typeof window.loadKatalogAdmin === "function") window.loadKatalogAdmin();
+    
+    // Ini yang bikin Beginner Class lu berhasil narik data!
+    if (idTarget === 'admin-modul-beginner' && typeof window.loadJadwalAdmin === "function") {
+        window.loadJadwalAdmin();
     }
+    
     if (idTarget === 'admin-modul-akunting') {
-        if (typeof loadAkuntingAdmin === "function") loadAkuntingAdmin();
-        if (typeof loadRekapAkunting === "function") loadRekapAkunting();
-        if (typeof loadInvoiceTercetak === "function") loadInvoiceTercetak(); 
+        if (typeof window.loadAkuntingAdmin === "function") window.loadAkuntingAdmin();
+        if (typeof window.loadRekapAkunting === "function") window.loadRekapAkunting();
+        if (typeof window.loadInvoiceTercetak === "function") window.loadInvoiceTercetak(); 
     }
+    // 👆👆 ==================================================== 👆👆
 
     // HISTORY API
     if (pushState) {
