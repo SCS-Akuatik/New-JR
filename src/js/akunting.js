@@ -1,11 +1,10 @@
 import { sb } from './config.js';
 
-// MESIN RUPIAH
 const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka || 0);
 
 export async function loadAkuntingAdmin() {
     loadRekapAkunting();
-    loadHistoryInvoice(); // Biar tulisan "Memuat invoice..." ilang
+    loadHistoryInvoice();
 }
 
 export async function loadRekapAkunting() {
@@ -18,10 +17,11 @@ export async function loadRekapAkunting() {
 
         let html = '';
         data?.forEach(a => {
-            // Antisipasi nama kolom: jumlah / nominal / total
-            let uang = a.jumlah || a.nominal || a.total || 0; 
-            let color = (a.tipe === 'Pemasukan' || a.tipe === 'Masuk') ? 'text-emerald-500' : 'text-red-500';
-            let sign = (a.tipe === 'Pemasukan' || a.tipe === 'Masuk') ? '+' : '-';
+            // Pakai kolom JENIS dan JUMLAH sesuai screenshot lu!
+            let uang = a.jumlah || 0; 
+            let isMasuk = a.jenis === 'Pemasukan';
+            let color = isMasuk ? 'text-emerald-500' : 'text-red-500';
+            let sign = isMasuk ? '+' : '-';
             
             html += `
             <div class="bg-slate-800 p-3 mb-2 rounded border border-slate-700 flex justify-between items-center text-xs">
@@ -32,8 +32,7 @@ export async function loadRekapAkunting() {
                 <div class="${color} font-bold">${sign} ${formatRp(uang)}</div>
             </div>`;
         });
-        
-        // Hapus teks loading nyangkut
+
         document.querySelectorAll('div, p, span').forEach(el => {
             if(el.textContent.trim() === 'Memuat rekap...') el.style.display = 'none';
         });
@@ -43,17 +42,26 @@ export async function loadRekapAkunting() {
 }
 
 export async function loadHistoryInvoice() {
-    const list = document.getElementById('admin-invoice-list'); // Sesuaikan ID di HTML lu
+    const list = document.getElementById('admin-invoice-list'); // Pastikan ID ini ada di HTML lu
     if(!list) return;
     
     try {
-        const { data, error } = await sb.from('invoice').select('*').order('id', { ascending: false }).limit(5);
+        // Panggil tabel 'invoices' pakai S
+        const { data, error } = await sb.from('invoices').select('*').order('id', { ascending: false }).limit(5);
         if(error || !data) throw error;
         
         let html = '';
         data.forEach(inv => {
-            html += `<div class="text-xs text-slate-300 p-2 border-b border-slate-700">${inv.nomor_invoice || '-'} | ${inv.nama_murid || '-'} | <span class="text-emerald-400 font-bold">${formatRp(inv.total)}</span></div>`;
+            let nama = inv.nama_murid || inv.nama || 'Tanpa Nama';
+            let total = inv.total || inv.jumlah || inv.total_tagihan || 0;
+            html += `<div class="text-xs text-slate-300 p-2 border-b border-slate-700">${inv.nomor_invoice || inv.no_invoice || '-'} | ${nama} | <span class="text-emerald-400 font-bold">${formatRp(total)}</span></div>`;
         });
+        
+        // Hapus teks loading nyangkut
+        document.querySelectorAll('div, p, span').forEach(el => {
+            if(el.textContent.trim() === 'Memuat invoice...') el.style.display = 'none';
+        });
+
         list.innerHTML = html || '<span class="text-xs text-slate-500">Belum ada history invoice.</span>';
     } catch(e) {
         list.innerHTML = '<span class="text-xs text-slate-500">History kosong.</span>';
