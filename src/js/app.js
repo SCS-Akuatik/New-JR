@@ -1,7 +1,7 @@
 import { sb } from './config.js';
 
 // ===================================================
-// FASE 2: NAVIGASI DASAR & FUNGSI TOMBOL UI
+// FASE 3: NAVIGASI DASAR + SENSOR PEMATIK ADMIN
 // ===================================================
 export function pindahHalaman(idTarget, pushState = true) {
     document.querySelectorAll('.dashboard, .card, .dashboard-wide, [id^="page-"], [id^="dashboard-"], [id^="admin-modul-"], [id^="owner-modul-"], [id^="coach-modul-"], [id^="parent-modul-"]')
@@ -16,10 +16,18 @@ export function pindahHalaman(idTarget, pushState = true) {
         target.style.display = ''; 
     }
 
+    // 👇👇 INI YANG TADI ILANG BRAY! (SENSOR PEMATIK) 👇👇
+    if (idTarget === 'admin-modul-beginner') {
+        if (typeof window.loadJadwalAdmin === "function") {
+            window.loadJadwalAdmin();
+        }
+    }
+    // 👆👆 ========================================= 👆👆
+
     if (pushState) history.pushState({ page: idTarget }, "", "#" + idTarget);
 }
 
-// FUNGSI TOMBOL ETALASE (Biar nggak gagal klik!)
+// FUNGSI TOMBOL ETALASE
 export function bukaKatalog() {
     pindahHalaman('page-katalog');
     const kat = document.getElementById('katalog-container');
