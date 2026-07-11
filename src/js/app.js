@@ -1,7 +1,7 @@
 import { sb } from './config.js';
 
 // ===================================================
-// FASE 3: NAVIGASI DASAR + SENSOR PEMATIK ADMIN
+// FASE 3: NAVIGASI + SENSOR PEMATIK ADMIN
 // ===================================================
 export function pindahHalaman(idTarget, pushState = true) {
     document.querySelectorAll('.dashboard, .card, .dashboard-wide, [id^="page-"], [id^="dashboard-"], [id^="admin-modul-"], [id^="owner-modul-"], [id^="coach-modul-"], [id^="parent-modul-"]')
@@ -16,13 +16,15 @@ export function pindahHalaman(idTarget, pushState = true) {
         target.style.display = ''; 
     }
 
-    // 👇👇 INI YANG TADI ILANG BRAY! (SENSOR PEMATIK) 👇👇
-    if (idTarget === 'admin-modul-beginner') {
-        if (typeof window.loadJadwalAdmin === "function") {
-            window.loadJadwalAdmin();
-        }
+    // 👇 SENSOR PEMATIK BEGINNER & COACH 👇
+    if (idTarget === 'admin-modul-beginner' && typeof window.loadJadwalAdmin === "function") {
+        window.loadJadwalAdmin();
     }
-    // 👆👆 ========================================= 👆👆
+    if (idTarget === 'admin-modul-coach' && typeof window.loadCoachAdmin === "function") {
+        window.loadCoachAdmin();
+        if(typeof window.initDropdownCoach === "function") window.initDropdownCoach();
+    }
+    // 👆 ================================ 👆
 
     if (pushState) history.pushState({ page: idTarget }, "", "#" + idTarget);
 }
