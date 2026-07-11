@@ -1,65 +1,47 @@
-// src/js/login.js
 import { sb } from './config.js';
-import { pindahHalaman } from './app.js'; // Import fungsi routing
 
 export async function prosesLogin() {
-    const user = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value.trim();
-    
-    if (!user || !pass) return alert("Isi form login!");
-    
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    const btn = document.querySelector('button[onclick="prosesLogin()"]');
+
+    if (!user || !pass) return alert("Isi username dan password dulu, Jagoan!");
+
+    // Efek loading di tombol
+    const oriText = btn.innerText;
+    btn.innerText = "⏳ Mengecek data...";
+    btn.disabled = true;
+
     try {
         const { data, error } = await sb.from('users')
-            .select('role')
+            .select('*')
             .eq('username', user)
             .eq('password', pass)
             .single();
 
-        if (error || !data) return alert("Kombinasi User/Pass salah!");
-
-        let primaryRole = "unknown";
-        if (Array.isArray(data.role)) {
-            primaryRole = data.role[0];
-        } else if (typeof data.role === 'string') {
-            try {
-                let parsed = JSON.parse(data.role);
-                primaryRole = Array.isArray(parsed) ? parsed[0] : parsed;
-            } catch(e) {
-                primaryRole = data.role;
-            }
+        if (error || !data) {
+            alert("❌ Login Gagal! Username atau Password salah.");
         } else {
-            primaryRole = String(data.role);
+            // Simpan KTP (Sesi) di memori HP
+            localStorage.setItem('userRole', data.role[0]);
+            localStorage.setItem('username', data.username);
+
+            // Arahkan ke ruangan masing-masing
+            if (data.role.includes('owner')) window.pindahHalaman('page-owner');
+            else if (data.role.includes('admin')) window.pindahHalaman('dashboard-admin');
+            else if (data.role.includes('coach')) window.pindahHalaman('dashboard-coach');
+            else if (data.role.includes('parent')) window.pindahHalaman('dashboard-parent');
+            else alert("Role tidak dikenali!");
         }
-
-        localStorage.setItem('userRole', primaryRole); 
-        localStorage.setItem('loggedInUser', user);
-
-        const { error: logErr } = await sb.from('login_logs').insert([{ 
-            username: user,
-            role: primaryRole
-        }]);
-        
-        if (logErr) console.error("Gagal merekam CCTV:", logErr.message);
-
-        // Logic Redirect Terpadu
-        if (primaryRole === 'owner') {
-            pindahHalaman('page-owner');
-            if (typeof window.loadSiswaOwner === "function") window.loadSiswaOwner();
-        } else if (primaryRole === 'admin') {
-            pindahHalaman('dashboard-admin');
-        } else if (primaryRole === 'coach') {
-            pindahHalaman('dashboard-coach');
-        } else if (primaryRole === 'parent' || primaryRole === 'ortu' || primaryRole === 'walimurid') {
-            pindahHalaman('dashboard-parent');
-        } else {
-            alert("Akun terdaftar, tapi tidak punya akses ke dashboard!");
-        }
-
-    } catch (err) { 
-        console.error(err);
-        alert("Gangguan sistem, coba lagi nanti."); 
+    } catch (e) {
+        alert("🚨 Terjadi kesalahan sistem saat ngecek akun!");
+        console.error(e);
+    } finally {
+        // Balikin kondisi tombol
+        btn.innerText = oriText;
+        btn.disabled = false;
     }
 }
 
-// Daftarkan ke Global Scope!
+// Daftarkan ke Mandor (Window)
 window.prosesLogin = prosesLogin;
