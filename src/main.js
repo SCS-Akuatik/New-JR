@@ -1,16 +1,14 @@
 // Import CSS Tailwind
 import './style.css'; 
 
-// FASE 1 & 2: DASAR & ETALASE
+// FASE 1, 2, & 3: DASAR, ETALASE, HELPER, LOGIN
 import './js/config.js';
+import './js/helper.js'; // 👈 INI KITA BANGUNIN BRAY!
 import './js/app.js';
 import './js/beginner.js'; 
-
-// FASE 3: BANGUNIN KULI LOGIN 👇
 import './js/login.js';
 
-// Sisanya biarin tidur dulu bosku...
-// import './js/helper.js';
+// Kuli modul lain masih tidur...
 // import './js/owner.js';
 // import './js/akunting.js';
 // import './js/coach.js';
