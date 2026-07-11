@@ -1,9 +1,13 @@
 // Import CSS Tailwind
 import './style.css'; 
 
-// IMPORT DASAR AJA (FASE 1)
+// FASE 2: IMPORT DASAR & KULI JADWAL
 import './js/config.js';
 import './js/app.js';
+import './js/beginner.js'; 
+
+// Modul lain masih kita tidurin dulu...
+
 
 // ==========================================
 // KULI-KULI LAIN KITA ISTIRAHATKAN DULU BUAT FASE 1
