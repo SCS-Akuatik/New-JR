@@ -1,23 +1,18 @@
 // Import CSS Tailwind
 import './style.css'; 
 
-// FASE 2: IMPORT DASAR & KULI JADWAL
+// FASE 1 & 2: DASAR & ETALASE
 import './js/config.js';
 import './js/app.js';
 import './js/beginner.js'; 
 
-// Modul lain masih kita tidurin dulu...
+// FASE 3: BANGUNIN KULI LOGIN 👇
+import './js/login.js';
 
-
-// ==========================================
-// KULI-KULI LAIN KITA ISTIRAHATKAN DULU BUAT FASE 1
-// Nanti kita nyalain satu per satu kalau navigasi udah sukses.
-// ==========================================
+// Sisanya biarin tidur dulu bosku...
 // import './js/helper.js';
-// import './js/login.js';
 // import './js/owner.js';
 // import './js/akunting.js';
-// import './js/beginner.js';
 // import './js/coach.js';
 // import './js/fee.js';
 // import './js/katalog.js';
