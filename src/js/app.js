@@ -1,45 +1,57 @@
 import { sb } from './config.js';
 
 // ===================================================
-// FASE 1: NAVIGASI MURNI (Hanya Pindah Halaman)
+// FASE 2: NAVIGASI DASAR & FUNGSI TOMBOL UI
 // ===================================================
 export function pindahHalaman(idTarget, pushState = true) {
-    // 1. SEMBUNYIKAN SEMUA HALAMAN
     document.querySelectorAll('.dashboard, .card, .dashboard-wide, [id^="page-"], [id^="dashboard-"], [id^="admin-modul-"], [id^="owner-modul-"], [id^="coach-modul-"], [id^="parent-modul-"]')
         .forEach(el => {
             el.classList.add('hidden');
             el.style.display = 'none'; 
         });
 
-    // 2. TAMPILKAN HALAMAN TARGET
     const target = document.getElementById(idTarget);
     if (target) {
         target.classList.remove('hidden');
         target.style.display = ''; 
     }
 
-    // 3. HISTORY API (Biar tombol back HP berfungsi)
-    if (pushState) {
-        history.pushState({ page: idTarget }, "", "#" + idTarget);
-    }
+    if (pushState) history.pushState({ page: idTarget }, "", "#" + idTarget);
 }
 
-// ===================================================
-// EVENT LISTENER BROWSER (Tombol Back/Forward)
-// ===================================================
-window.addEventListener('popstate', function(event) {
-    if (event.state && event.state.page) {
-        pindahHalaman(event.state.page, false);
-    } else {
-        pindahHalaman('page-login', false);
-    }
-});
+// FUNGSI TOMBOL ETALASE (Biar nggak gagal klik!)
+export function bukaKatalog() {
+    pindahHalaman('page-katalog');
+    const kat = document.getElementById('katalog-container');
+    if(kat) kat.innerHTML = '<p class="text-sky-600 font-bold p-4">⏳ Sabar bosku, modul Katalog segera menyusul!</p>';
+}
 
+export function bukaModalDaftarBeginner() {
+    const modal = document.getElementById('modal-daftar-beginner');
+    if(modal) modal.classList.remove('hidden');
+}
+
+export function tutupModalDaftarBeginner() {
+    const modal = document.getElementById('modal-daftar-beginner');
+    if(modal) modal.classList.add('hidden');
+}
+
+export function chatAdmin() {
+    window.location.href = "https://wa.me/6289678159835?text=Halo%20Admin%20JR%20Academy";
+}
+
+// EVENT LISTENER BROWSER
+window.addEventListener('popstate', function(event) {
+    if (event.state && event.state.page) pindahHalaman(event.state.page, false);
+    else pindahHalaman('page-login', false);
+});
 document.addEventListener("DOMContentLoaded", () => {
     history.replaceState({ page: 'page-login' }, "", "#page-login");
 });
 
-// ===================================================
-// DAFTARKAN KE GLOBAL WINDOW
-// ===================================================
+// DAFTARKAN SEMUA KE WINDOW
 window.pindahHalaman = pindahHalaman;
+window.bukaKatalog = bukaKatalog;
+window.bukaModalDaftarBeginner = bukaModalDaftarBeginner;
+window.tutupModalDaftarBeginner = tutupModalDaftarBeginner;
+window.chatAdmin = chatAdmin;
