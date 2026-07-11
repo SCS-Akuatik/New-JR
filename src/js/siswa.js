@@ -1,199 +1,115 @@
 import { sb } from './config.js';
 
-// ==========================================
-// 1. FUNGSI LOAD DATA MURID DARI SUPABASE
-// ==========================================
 export async function loadSiswaAdmin() {
     const list = document.getElementById('admin-siswa-list');
     if(!list) return;
-    
-    list.innerHTML = "<p class='text-center p-4 text-slate-500'>Memuat data murid dari server...</p>";
-    
-    const { data, error } = await sb.from('murid').select('*').order('created_at', { ascending: false });
-    
-    if (error) {
-        list.innerHTML = `<p class='text-red-500 font-bold'>Gagal mengambil data: ${error.message}</p>`;
-        return;
-    }
+    list.innerHTML = '<p class="text-sky-600 text-sm font-bold animate-pulse">⏳ Memuat data master siswa...</p>';
 
-    window.dataMuridGlobal = data; // Simpan untuk fitur Search (Filter)
-    renderSiswa(data);
+    try {
+        const { data, error } = await sb.from('murid').select('*').order('id_murid', { ascending: false });
+        if(error) throw error;
+        
+        // Simpan data di memory biar bisa dicari (fitur search)
+        window.tempDataSiswa = data; 
+        renderListSiswa(data);
+    } catch(e) {
+        list.innerHTML = `<p class="text-red-500">Gagal: ${e.message}</p>`;
+    }
 }
 
-export function renderSiswa(data) {
+export function renderListSiswa(data) {
     const list = document.getElementById('admin-siswa-list');
-    if (!data || data.length === 0) { 
-        list.innerHTML = "<p class='text-center text-slate-500'>Belum ada data murid yang terdaftar.</p>"; 
-        return; 
-    }
-
     let html = '';
-    data.forEach(m => {
-        let statusColor = m.status === 'Aktif' ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-red-100 text-red-700 border-red-300';
+    data?.forEach(s => {
+        const isAktif = s.status_murid === 'Aktif';
+        const statusColor = isAktif ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700';
+        const warningSesi = s.sisa_sesi <= 1 ? 'text-red-600 font-bold bg-red-100 px-1 rounded' : 'text-slate-700';
+        
         html += `
-        <div class="bg-white p-3 border rounded-xl shadow-sm flex flex-col mb-2">
-            <div class="flex justify-between items-center mb-2">
-                <div>
-                    <div class="font-bold text-sky-800">${m.nama_lengkap}</div>
-                    <div class="text-xs text-slate-500">${m.paket || '-'} | Sisa Sesi: <b class="text-sky-600">${m.sisa_sesi || 0}</b></div>
-                </div>
-                <span class="text-[10px] px-2 py-1 rounded-full border font-bold ${statusColor}">${m.status || 'Aktif'}</span>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 mb-3 shadow-sm relative">
+            <div class="absolute top-3 right-3">
+                <button class="bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded text-[10px] font-bold" onclick="hapusData('murid', '${s.id_murid}', loadSiswaAdmin)">❌ Hapus</button>
             </div>
-            <div class="flex gap-2 border-t pt-2 mt-1">
-                <button onclick="editSiswa('${m.id_murid}')" class="flex-1 bg-amber-100 hover:bg-amber-200 text-amber-700 text-xs font-bold py-2 rounded-lg transition">✏️ Edit</button>
-                <button onclick="bukaModalInvoice('${m.id_murid}', '${m.nama_lengkap}')" class="flex-1 bg-sky-100 hover:bg-sky-200 text-sky-700 text-xs font-bold py-2 rounded-lg transition">🧾 Tagih</button>
-                <button onclick="hapusData('murid', '${m.id_murid}', loadSiswaAdmin)" class="flex-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold py-2 rounded-lg transition">🗑️ Hapus</button>
+            <h4 class="font-bold text-sky-800 m-0 text-sm pr-16">${s.nama_lengkap || s.nama_murid || 'Tanpa Nama'}</h4>
+            <span class="inline-block mt-1 text-[10px] ${statusColor} px-2 py-0.5 rounded-md font-bold">${s.status_murid || 'Aktif'}</span>
+            
+            <div class="mt-2 text-xs text-slate-500 space-y-1">
+                <p>📞 WA Ortu: <span class="font-bold text-slate-700">${s.no_wa_ortu || '-'}</span></p>
+                <p>🏊 Sisa Sesi: <span class="${warningSesi}">${s.sisa_sesi || 0}</span></p>
+                <p>📦 Paket: <span class="font-bold text-slate-700">${s.jenis_paket || '-'}</span></p>
+                <p>⏳ Expired: <span class="font-bold text-slate-700">${s.tgl_expired || '-'}</span></p>
             </div>
         </div>`;
     });
-    list.innerHTML = html;
+    list.innerHTML = html || '<p class="text-sm text-slate-400">Belum ada murid di database.</p>';
 }
 
-// ==========================================
-// 2. FUNGSI FILTER PENCARIAN MURID
-// ==========================================
 export function filterMurid() {
-    const search = document.getElementById('search-murid').value.toLowerCase();
-    if (!window.dataMuridGlobal) return;
-    const filtered = window.dataMuridGlobal.filter(m => m.nama_lengkap.toLowerCase().includes(search));
-    renderSiswa(filtered);
+    const input = document.getElementById('search-murid').value.toLowerCase();
+    if(!window.tempDataSiswa) return;
+    
+    const filtered = window.tempDataSiswa.filter(s => {
+        const nama = (s.nama_lengkap || s.nama_murid || '').toLowerCase();
+        return nama.includes(input);
+    });
+    renderListSiswa(filtered);
 }
 
-// ==========================================
-// 3. FUNGSI SIMPAN & EDIT SISWA
-// ==========================================
 export async function simpanSiswa() {
-    const btn = document.getElementById('btn-simpan-siswa');
-    btn.innerHTML = "Menyimpan Data...";
-    
     const id = document.getElementById('sis-edit-id').value;
-    const payload = {
+    const btn = document.getElementById('btn-simpan-siswa');
+    
+    const dataObj = {
         nama_lengkap: document.getElementById('sis-nama').value,
-        nama_panggilan: document.getElementById('sis-panggilan').value,
-        no_wa: document.getElementById('sis-wa').value,
+        nama_murid: document.getElementById('sis-panggilan').value,
+        no_wa_ortu: document.getElementById('sis-wa').value,
         tgl_lahir: document.getElementById('sis-tgl-lahir').value,
-        status: document.getElementById('sis-status').value,
-        paket: document.getElementById('sis-paket').value,
-        sisa_sesi: document.getElementById('sis-sesi').value || 0,
-        mulai_sesi_1: document.getElementById('sis-sesi-1').value || null,
-        tgl_expired: document.getElementById('sis-expired').value || null
+        status_murid: document.getElementById('sis-status').value,
+        jenis_paket: document.getElementById('sis-paket').value,
+        sisa_sesi: parseInt(document.getElementById('sis-sesi').value) || 0,
+        tgl_mulai_sesi_1: document.getElementById('sis-sesi-1').value,
+        tgl_expired: document.getElementById('sis-expired').value,
     };
 
-    let req = id ? sb.from('murid').update(payload).eq('id_murid', id) : sb.from('murid').insert([payload]);
-    const { error } = await req;
-    
-    btn.innerHTML = "⚡ Simpan Siswa";
+    if(!dataObj.nama_lengkap) return alert("Nama lengkap wajib diisi bos!");
+    btn.innerText = "⏳ Menyimpan...";
+    btn.disabled = true;
 
-    if (error) return alert("Gagal simpan: " + error.message);
-
-    alert("Data murid sukses tersimpan!");
-    
-    // Bersihkan form setelah sukses
-    document.getElementById('sis-edit-id').value = '';
-    document.getElementById('sis-nama').value = '';
-    document.getElementById('sis-panggilan').value = '';
-    document.getElementById('sis-wa').value = '';
-    document.getElementById('sis-tgl-lahir').value = '';
-    document.getElementById('sis-paket').value = '';
-    document.getElementById('sis-sesi').value = '';
-    document.getElementById('sis-sesi-1').value = '';
-    document.getElementById('sis-expired').value = '';
-
-    loadSiswaAdmin();
-    if(typeof loadDropdownMuridForWali === 'function') loadDropdownMuridForWali();
-}
-
-export async function editSiswa(id) {
-    const { data, error } = await sb.from('murid').select('*').eq('id_murid', id).single();
-    if (error || !data) return alert("Gagal mengambil data murid.");
-    
-    document.getElementById('sis-edit-id').value = data.id_murid;
-    document.getElementById('sis-nama').value = data.nama_lengkap;
-    document.getElementById('sis-panggilan').value = data.nama_panggilan;
-    document.getElementById('sis-wa').value = data.no_wa;
-    document.getElementById('sis-tgl-lahir').value = data.tgl_lahir;
-    document.getElementById('sis-status').value = data.status || 'Aktif';
-    document.getElementById('sis-paket').value = data.paket;
-    document.getElementById('sis-sesi').value = data.sisa_sesi;
-    document.getElementById('sis-sesi-1').value = data.mulai_sesi_1 || '';
-    document.getElementById('sis-expired').value = data.tgl_expired || '';
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    try {
+        if(id) {
+            const { error } = await sb.from('murid').update(dataObj).eq('id_murid', id);
+            if(error) throw error;
+        } else {
+            const { error } = await sb.from('murid').insert([dataObj]);
+            if(error) throw error;
+        }
+        alert("Data Jagoan berhasil ditambahkan!");
+        
+        // Bersihkan Form
+        document.getElementById('sis-edit-id').value = '';
+        document.getElementById('sis-nama').value = '';
+        document.getElementById('sis-panggilan').value = '';
+        document.getElementById('sis-wa').value = '';
+        document.getElementById('sis-paket').value = '';
+        document.getElementById('sis-sesi').value = '';
+        
+        loadSiswaAdmin();
+    } catch(e) { alert("Gagal simpan: " + e.message); } 
+    finally { btn.innerText = "⚡ Simpan Siswa"; btn.disabled = false; }
 }
 
 export function autoHitungExpiredSiswa() {
-    const mulai = document.getElementById('sis-sesi-1').value;
-    if(!mulai) return;
-    const date = new Date(mulai);
-    date.setDate(date.getDate() + 35); // Set expired otomatis 35 hari
-    document.getElementById('sis-expired').value = date.toISOString().split('T')[0];
-}
-
-// ==========================================
-// 4. FUNGSI WALI MURID & PRESTASI (BASIC)
-// ==========================================
-export async function loadDropdownMuridForWali() {
-    const { data } = await sb.from('murid').select('id_murid, nama_lengkap').eq('status', 'Aktif');
-    const sel1 = document.getElementById('form-wali-murid');
-    const sel2 = document.getElementById('prestasi-murid');
-    
-    let html = '<option value="">Pilih Murid...</option>';
-    data?.forEach(m => html += `<option value="${m.id_murid}">${m.nama_lengkap}</option>`);
-    
-    if(sel1) sel1.innerHTML = html;
-    if(sel2) sel2.innerHTML = html;
-}
-
-export async function buatAkunWali() {
-    alert("Proses buat akun wali murid berjalan...");
-}
-
-export async function simpanPrestasiAdmin() {
-    alert("Prestasi tersimpan!");
-}
-
-// ==========================================
-// 5. MODAL INVOICE TRIGGER
-// ==========================================
-export function bukaModalInvoice(id, nama) {
-    const modal = document.getElementById('modal-invoice');
-    if (modal) {
-        modal.classList.remove('hidden');
-        document.getElementById('inv-input-nama').value = nama;
-        document.getElementById('hidden-inv-murid-id').value = id;
-        document.getElementById('inv-nomor').innerText = "INV-" + Date.now().toString().slice(-6);
-        document.getElementById('inv-tanggal').innerText = new Date().toLocaleDateString('id-ID');
+    const tglMulai = document.getElementById('sis-sesi-1').value;
+    if(tglMulai) {
+        let d = new Date(tglMulai);
+        d.setMonth(d.getMonth() + 1); // Otomatis +1 Bulan
+        document.getElementById('sis-expired').value = d.toISOString().split('T')[0];
     }
 }
 
-export function tutupModalInvoice() {
-    const modal = document.getElementById('modal-invoice');
-    if (modal) modal.classList.add('hidden');
-}
-
-export function hitungTotalInvoice() {
-    const biaya = parseFloat(document.getElementById('inv-input-biaya').value) || 0;
-    const diskon = parseFloat(document.getElementById('inv-input-diskon').value) || 0;
-    document.getElementById('inv-total-display').innerText = formatRupiah(biaya - diskon);
-}
-
-export async function submitInvoiceDatabase() {
-    alert("Invoice berhasil dibuat dan tersimpan!");
-    tutupModalInvoice();
-}
-
-// ==========================================
-// DAFTARKAN SEMUA FUNGSI KE GLOBAL WINDOW (VITE FIX)
-// ==========================================
+// Daftarkan ke Mandor
 window.loadSiswaAdmin = loadSiswaAdmin;
-window.simpanSiswa = simpanSiswa;
-window.editSiswa = editSiswa;
+window.renderListSiswa = renderListSiswa;
 window.filterMurid = filterMurid;
+window.simpanSiswa = simpanSiswa;
 window.autoHitungExpiredSiswa = autoHitungExpiredSiswa;
-window.loadDropdownMuridForWali = loadDropdownMuridForWali;
-window.buatAkunWali = buatAkunWali;
-window.simpanPrestasiAdmin = simpanPrestasiAdmin;
-window.bukaModalInvoice = bukaModalInvoice;
-window.tutupModalInvoice = tutupModalInvoice;
-window.hitungTotalInvoice = hitungTotalInvoice;
-window.submitInvoiceDatabase = submitInvoiceDatabase;
