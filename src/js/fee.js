@@ -3,8 +3,35 @@ import { sb } from './config.js';
 const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka || 0);
 
 export async function loadFeeAdmin() {
-    if(typeof window.initDropdownCoach === "function") window.initDropdownCoach();
+    initDropdownFee(); 
     loadRekapFee();
+}
+
+// MESIN PEMUTAR DROPDOWN
+export async function initDropdownFee() {
+    const selCoach = document.querySelector('select[id*="coach"]'); 
+    const selMurid = document.querySelector('select[id*="murid"]');
+
+    if (selCoach) {
+        try {
+            const { data } = await sb.from('users').select('username').eq('role', 'coach');
+            let opts = '<option value="">Pilih Coach</option>';
+            data?.forEach(c => opts += `<option value="${c.username}">${c.username}</option>`);
+            selCoach.innerHTML = opts;
+        } catch(e) { console.error(e); }
+    }
+
+    if (selMurid) {
+        try {
+            const { data } = await sb.from('murid').select('nama_lengkap, nama_murid');
+            let opts = '<option value="">Pilih Murid</option>';
+            data?.forEach(m => {
+                let n = m.nama_lengkap || m.nama_murid;
+                opts += `<option value="${n}">${n}</option>`;
+            });
+            selMurid.innerHTML = opts;
+        } catch(e) { console.error(e); }
+    }
 }
 
 export async function loadRekapFee() {
@@ -12,13 +39,8 @@ export async function loadRekapFee() {
     if(!list) return;
 
     try {
-        // Panggil tabel fee_coach sesuai screenshot lu
         const { data, error } = await sb.from('fee_coach').select('*').order('id', { ascending: false });
-        
-        if (error) {
-            list.innerHTML = `<p class="text-red-400 text-xs">Gagal load data: ${error.message}</p>`;
-            return;
-        }
+        if (error) throw error;
 
         let html = '';
         data?.forEach(f => {
@@ -34,9 +56,10 @@ export async function loadRekapFee() {
             </div>`;
         });
         
-        list.innerHTML = html || '<p class="text-xs text-slate-400">Belum ada rekap fee terbaru.</p>';
-    } catch(e) { console.error(e); }
+        list.innerHTML = html || '<p class="text-xs text-slate-400">Belum ada rekap fee.</p>';
+    } catch(e) { console.error("Error Fee:", e); }
 }
 
 window.loadFeeAdmin = loadFeeAdmin;
 window.loadRekapFee = loadRekapFee;
+window.initDropdownFee = initDropdownFee;

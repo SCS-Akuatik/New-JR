@@ -8,18 +8,25 @@ export async function loadAkuntingAdmin() {
 }
 
 export async function loadRekapAkunting() {
-    const list = document.getElementById('admin-akunting-list');
-    if(!list) return;
-
+    // Cari wadah list kas
+    const list = document.getElementById('admin-akunting-list') || document.querySelector('[id*="jurnal"]');
+    
     try {
         const { data, error } = await sb.from('akunting').select('*').order('id', { ascending: false });
         if(error) throw error;
 
         let html = '';
+        let totalMasuk = 0;
+        let totalKeluar = 0;
+
         data?.forEach(a => {
-            // Pakai kolom JENIS dan JUMLAH sesuai screenshot lu!
-            let uang = a.jumlah || 0; 
-            let isMasuk = a.jenis === 'Pemasukan';
+            let uang = Number(a.jumlah) || 0; 
+            let isMasuk = a.jenis === 'Pemasukan' || a.jenis === 'Masuk';
+            
+            // MESIN HITUNG
+            if (isMasuk) totalMasuk += uang;
+            else totalKeluar += uang;
+
             let color = isMasuk ? 'text-emerald-500' : 'text-red-500';
             let sign = isMasuk ? '+' : '-';
             
@@ -33,42 +40,63 @@ export async function loadRekapAkunting() {
             </div>`;
         });
 
-        document.querySelectorAll('div, p, span').forEach(el => {
-            if(el.textContent.trim() === 'Memuat rekap...') el.style.display = 'none';
-        });
+        if(list) list.innerHTML = html || '<p class="text-xs text-slate-400">Belum ada catatan jurnal.</p>';
 
-        list.innerHTML = html || '<p class="text-xs text-slate-400">Belum ada catatan jurnal.</p>';
-    } catch(e) { console.error(e); }
+        // UPDATE UI STATISTIK KAS
+        let saldoAkhir = totalMasuk - totalKeluar;
+        
+        // Target ID di HTML lu
+        const elMasuk = document.getElementById('text-pemasukan') || document.querySelector('[id*="pemasukan"]');
+        const elKeluar = document.getElementById('text-pengeluaran') || document.querySelector('[id*="pengeluaran"]');
+        const elSaldo = document.getElementById('text-saldo-akhir') || document.querySelector('[id*="saldo-akhir"]');
+
+        if (elMasuk) elMasuk.innerText = formatRp(totalMasuk);
+        if (elKeluar) elKeluar.innerText = formatRp(totalKeluar);
+        if (elSaldo) elSaldo.innerText = formatRp(saldoAkhir);
+
+    } catch(e) { console.error("Error Akunting:", e); }
 }
 
 export async function loadHistoryInvoice() {
-    const list = document.getElementById('admin-invoice-list'); // Pastikan ID ini ada di HTML lu
-    if(!list) return;
+    // Cari wadah invoice
+    const list = document.getElementById('admin-invoice-list') || document.getElementById('history-invoice-list') || document.querySelector('.invoice-list-container');
+    if(!list) return; // Kalau ID HTML ga ada, dia brenti.
     
     try {
-        // Panggil tabel 'invoices' pakai S
-        const { data, error } = await sb.from('invoices').select('*').order('id', { ascending: false }).limit(5);
-        if(error || !data) throw error;
+        const { data, error } = await sb.from('invoices').select('*').order('id', { ascending: false }).limit(10);
+        if(error) throw error;
         
         let html = '';
-        data.forEach(inv => {
+        data?.forEach(inv => {
             let nama = inv.nama_murid || inv.nama || 'Tanpa Nama';
             let total = inv.total || inv.jumlah || inv.total_tagihan || 0;
-            html += `<div class="text-xs text-slate-300 p-2 border-b border-slate-700">${inv.nomor_invoice || inv.no_invoice || '-'} | ${nama} | <span class="text-emerald-400 font-bold">${formatRp(total)}</span></div>`;
+            let status = inv.status || 'Lunas';
+            let statusColor = status.toLowerCase() === 'void' ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600';
+
+            // Desain Putih ala Vanilla
+            html += `
+            <div class="bg-white rounded-xl p-3 mb-3 border border-slate-200 shadow-sm text-xs">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-2 mb-2">
+                    <strong class="text-sky-700">${inv.nomor_invoice || inv.no_invoice || '-'}</strong>
+                    <span class="px-2 py-0.5 rounded-full font-bold text-[10px] ${statusColor}">${status}</span>
+                </div>
+                <div class="flex justify-between items-end">
+                    <div class="text-slate-500">
+                        <p class="m-0 font-bold">👨‍🎓 ${nama}</p>
+                        <p class="m-0 mt-1">📅 ${inv.tanggal_invoice || inv.created_at ? inv.created_at.split('T')[0] : '-'}</p>
+                    </div>
+                    <strong class="text-slate-800 text-sm">${formatRp(total)}</strong>
+                </div>
+            </div>`;
         });
         
-        // Hapus teks loading nyangkut
-        document.querySelectorAll('div, p, span').forEach(el => {
-            if(el.textContent.trim() === 'Memuat invoice...') el.style.display = 'none';
-        });
-
-        list.innerHTML = html || '<span class="text-xs text-slate-500">Belum ada history invoice.</span>';
+        list.innerHTML = html || '<p class="text-xs text-slate-500">History kosong.</p>';
     } catch(e) {
-        list.innerHTML = '<span class="text-xs text-slate-500">History kosong.</span>';
+        console.error("Error Invoice:", e);
+        list.innerHTML = '<p class="text-xs text-red-500">Gagal memuat history.</p>';
     }
 }
 
-// Daftarkan ke mandor
 window.loadAkuntingAdmin = loadAkuntingAdmin;
 window.loadRekapAkunting = loadRekapAkunting;
 window.loadHistoryInvoice = loadHistoryInvoice;
