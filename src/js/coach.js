@@ -712,19 +712,25 @@ export async function loadCoachFee() {
     const listEl = document.getElementById('coach-fee-list');
     if (!totalEl || !listEl) return;
 
-    const namaCoach = localStorage.getItem("loggedInUser");
-    if (!namaCoach) return listEl.innerHTML = "Coach belum login.";
+    let user = localStorage.getItem("loggedInUser");
+    if (!user) return listEl.innerHTML = "Coach belum login.";
+    
+    // 🔥 PEMBUNUH HANTU KUTIP
+    user = user.replace(/['"]/g, '').trim();
 
-    // 🔥 TRIK SAPU JAGAT: Tarik semua fee, biarin JS yang filter!
     const { data, error } = await sb.from("fee_coach").select("*").order("tanggal", { ascending: false });
 
-    if (error) return listEl.innerHTML = "Gagal memuat data.";
+    if (error) return listEl.innerHTML = "Gagal memuat data fee.";
 
-    // JS nyari nama yang persis sama (kebal huruf besar/kecil & kebal spasi nyangkut)
-    const myFees = data.filter(item => 
-        item.nama_coach && 
-        item.nama_coach.trim().toLowerCase() === namaCoach.trim().toLowerCase()
-    );
+    // Pakai patokan nama asli dari profil (kalau ada), atau pakai username login
+    const namaPatokan = window.activeNamaCoach ? window.activeNamaCoach.toLowerCase() : user.toLowerCase();
+
+    // Filter yang super longgar pakai .includes()
+    const myFees = data.filter(item => {
+        if (!item.nama_coach) return false;
+        const namaDiDB = item.nama_coach.toLowerCase();
+        return namaDiDB.includes(user.toLowerCase()) || namaDiDB.includes(namaPatokan);
+    });
 
     let totalFee = 0;
     let html = "";
@@ -755,23 +761,29 @@ export async function loadCoachFee() {
 
 
 
+
 export async function loadProfilCoach() {
-    const user = localStorage.getItem('loggedInUser');
+    let user = localStorage.getItem('loggedInUser');
     if (!user) return;
+    
+    // 🔥 PEMBUNUH HANTU KUTIP: Bersihin username dari tanda kutip nyangkut
+    user = user.replace(/['"]/g, '').trim();
 
     try {
-        // 🔥 TRIK SAPU JAGAT: Tarik semua master coach, biar JS yang nentuin punya siapa
         const { data, error } = await sb.from('coach').select('*');
 
-        if (error || !data) throw new Error("Gagal akses tabel coach.");
+        if (error || !data) throw new Error("Gagal akses tabel coach di Supabase.");
 
-        // Cari profil tunggal (kebal data ganda, huruf besar/kecil, & spasi)
+        // Cari profil tunggal (kebal huruf besar/kecil & kebal spasi)
         const myProfile = data.find(c => 
-            (c.username && c.username.trim().toLowerCase() === user.trim().toLowerCase()) || 
-            (c.nama_coach && c.nama_coach.trim().toLowerCase() === user.trim().toLowerCase())
+            (c.username && c.username.trim().toLowerCase() === user.toLowerCase()) || 
+            (c.nama_coach && c.nama_coach.trim().toLowerCase() === user.toLowerCase())
         );
 
-        if (!myProfile) throw new Error("Data master coach tidak ditemukan untuk akun ini.");
+        if (!myProfile) {
+            // Alert ini bakal munculin username yg dicari biar lu gampang ngeceknya
+            return alert(`INFO DEBUG: Profil '${user}' ga ketemu! Coba cek tabel 'coach' di Supabase, pastikan username/namanya ada.`);
+        }
 
         const namaDisplay = document.getElementById('coach-nama-display');
         const infoSpesialisasi = document.getElementById('coach-info-spesialisasi');
@@ -787,13 +799,16 @@ export async function loadProfilCoach() {
             else img.src = 'images/default-avatar.png'; 
         }
 
+        // Simpan ID & Nama asli buat dipakai fitur lain
         window.activeCoachDbId = myProfile.id;
+        window.activeNamaCoach = myProfile.nama_coach;
 
     } catch (err) {
         console.error(err);
-        alert("Gagal memuat profil. Pastikan Admin sudah membuatkan Master Data Coach untuk akun ini.");
+        alert(err.message);
     }
 }
+
 
 
 export async function simpanProfilCoach() {
