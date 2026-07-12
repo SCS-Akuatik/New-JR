@@ -715,9 +715,10 @@ export async function loadCoachFee() {
     const namaCoach = localStorage.getItem("loggedInUser");
     if (!namaCoach) return listEl.innerHTML = "Coach belum login.";
 
+    // 🔥 FIX: Pakai .ilike() biar huruf besar/kecil gak ngaruh
     const { data, error } = await sb.from("fee_coach")
         .select("*")
-        .eq("nama_coach", namaCoach) 
+        .ilike("nama_coach", `%${namaCoach}%`) 
         .order("tanggal", { ascending: false });
 
     if (error) return listEl.innerHTML = "Gagal memuat data.";
@@ -749,12 +750,19 @@ export async function loadCoachFee() {
     listEl.innerHTML = html || "<p style='color:#64748b;'>Belum ada data rekapan mengajar.</p>";
 }
 
+
 export async function loadProfilCoach() {
     const user = localStorage.getItem('loggedInUser');
     if (!user) return;
 
     try {
-        const { data, error } = await sb.from('coach').select('*').eq('username', user).single();
+        // 🔥 FIX: Cari di kolom username ATAU nama_coach, dan abaikan huruf besar/kecil
+        const { data, error } = await sb.from('coach')
+            .select('*')
+            .or(`username.ilike.%${user}%,nama_coach.ilike.%${user}%`)
+            .limit(1)
+            .maybeSingle();
+
         if (error || !data) throw new Error("Data master coach tidak ditemukan.");
 
         const namaDisplay = document.getElementById('coach-nama-display');
@@ -778,6 +786,7 @@ export async function loadProfilCoach() {
         alert("Gagal memuat profil. Pastikan Admin sudah membuatkan Master Data Coach untuk akun ini.");
     }
 }
+
 
 export async function simpanProfilCoach() {
     const uploadFoto = document.getElementById('coach-upload-foto');
