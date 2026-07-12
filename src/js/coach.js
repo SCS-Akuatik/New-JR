@@ -198,6 +198,7 @@ export async function loadCoachAdmin() {
 export async function loadCoachJadwal() {
     const activeCoach = localStorage.getItem('loggedInUser');
     
+    // KEMBALI KE ASAL: Query ilike standar untuk jadwal
     const { data: jadwalTugas } = await sb.from('jadwal_coach')
         .select('*')
         .ilike('nama_coach', `%${activeCoach}%`)
@@ -259,7 +260,7 @@ export async function loadCoachJadwal() {
 }
 
 export async function coachInsertMurid(event) {
-    const btn = event.target || document.querySelector('button[onclick="coachInsertMurid(event)"]');
+    const btn = event ? event.target : document.querySelector('button[onclick="coachInsertMurid(event)"]');
     const selectJadwal = document.getElementById('coach-pilih-jadwal');
     const selectMurid = document.getElementById('coach-pilih-murid');
 
@@ -705,136 +706,84 @@ export async function loadRiwayatAssessment() {
 }
 
 /* =========================================================
-   MODUL FEE & PROFIL
+   MODUL FEE & PROFIL (KEMBALI KE 100% VANILLA)
 ========================================================= */
+
 export async function loadCoachFee() {
     const totalEl = document.getElementById('coach-total-fee');
     const listEl = document.getElementById('coach-fee-list');
     if (!totalEl || !listEl) return;
 
-    let user = localStorage.getItem("loggedInUser");
-    if (!user) return listEl.innerHTML = "Coach belum login.";
-    
-    // Bersihin kutip dan ubah ke huruf kecil semua
-    user = user.replace(/['"]/g, '').trim().toLowerCase();
+    // Persis cetak biru lu: ambil string dari local storage lalu gunakan EXACT MATCH
+    const namaCoach = localStorage.getItem("loggedInUser");
+    if (!namaCoach) return listEl.innerHTML = "Coach belum login.";
 
-    listEl.innerHTML = "Mencari kecocokan data...";
+    // 100% VANILLA: Cuma pakai .eq() buat nyari nama kapital lu!
+    const { data, error } = await sb.from("fee_coach")
+        .select("*")
+        .eq("nama_coach", namaCoach)
+        .order("tanggal", { ascending: false });
 
-    try {
-        // 1. CARI NAMA ASLI DULU KE TABEL MASTER
-        // Biar halaman Fee nggak bergantung sama halaman Profil
-        let namaAsliCoach = user; 
-        const { data: masterCoach } = await sb.from('coach').select('nama_coach, username');
-        
-        if (masterCoach) {
-            const myProfile = masterCoach.find(c => 
-                (c.username && c.username.toLowerCase() === user) || 
-                (c.nama_coach && c.nama_coach.toLowerCase() === user)
-            );
-            if (myProfile && myProfile.nama_coach) {
-                namaAsliCoach = myProfile.nama_coach.toLowerCase(); // Dapat nama aslinya (misal: "adit")
-            }
-        }
+    if (error) return listEl.innerHTML = "Gagal memuat data.";
 
-        // 2. TARIK SEMUA DATA FEE
-        const { data, error } = await sb.from("fee_coach").select("*").order("tanggal", { ascending: false });
-        if (error) throw error;
+    let totalFee = 0;
+    let html = "";
 
-        // 3. FILTER SUPER FLEKSIBEL (Bolak-balik dicek biar pasti kena)
-        const myFees = data.filter(item => {
-            if (!item.nama_coach) return false;
-            const namaDiDB = item.nama_coach.toLowerCase();
-            
-            return namaDiDB.includes(user) || 
-                   user.includes(namaDiDB) || 
-                   namaDiDB.includes(namaAsliCoach) || 
-                   namaAsliCoach.includes(namaDiDB);
-        });
+    data.forEach(item => {
+        const fee = parseInt(item.total_fee) || 0;
+        totalFee += fee;
 
-        let totalFee = 0;
-        let html = "";
+        html += `
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                <strong style="color:#0369a1; font-size:14px;">${item.jenis_sesi}</strong>
+                <span style="font-size:12px; color:#64748b;">${item.tanggal}</span>
+            </div>
+            <div style="font-size:13px; color:#334155; margin-bottom:6px;">
+                Murid: <b>${item.nama_murid || 'Belum di-set'}</b><br>
+                Jumlah: ${item.total_sesi} Sesi
+            </div>
+            <div style="font-size:15px; font-weight:bold; color:#10b981;">
+                Rp ${fee.toLocaleString('id-ID')}
+            </div>
+        </div>`;
+    });
 
-        myFees.forEach(item => {
-            const fee = parseInt(item.total_fee) || 0;
-            totalFee += fee;
-
-            html += `
-            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:10px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                    <strong style="color:#0369a1; font-size:14px;">${item.jenis_sesi}</strong>
-                    <span style="font-size:12px; color:#64748b;">${item.tanggal}</span>
-                </div>
-                <div style="font-size:13px; color:#334155; margin-bottom:6px;">
-                    Murid: <b>${item.nama_murid || 'Belum di-set'}</b><br>
-                    Jumlah: ${item.total_sesi} Sesi
-                </div>
-                <div style="font-size:15px; font-weight:bold; color:#10b981;">
-                    Rp ${fee.toLocaleString('id-ID')}
-                </div>
-            </div>`;
-        });
-
-        totalEl.innerHTML = `Total Fee: Rp ${totalFee.toLocaleString('id-ID')}`;
-        listEl.innerHTML = html || "<p style='color:#64748b;'>Belum ada data rekapan mengajar.</p>";
-
-    } catch (err) {
-        console.error(err);
-        listEl.innerHTML = "Terjadi kesalahan saat memuat data.";
-    }
+    totalEl.innerHTML = `Total Fee: Rp ${totalFee.toLocaleString('id-ID')}`;
+    listEl.innerHTML = html || "<p style='color:#64748b;'>Belum ada data rekapan mengajar.</p>";
 }
 
-
-
-
-
 export async function loadProfilCoach() {
-    let user = localStorage.getItem('loggedInUser');
+    // Persis cetak biru lu: ambil string dari local storage
+    const user = localStorage.getItem('loggedInUser');
     if (!user) return;
-    
-    // 🔥 PEMBUNUH HANTU KUTIP: Bersihin username dari tanda kutip nyangkut
-    user = user.replace(/['"]/g, '').trim();
 
     try {
-        const { data, error } = await sb.from('coach').select('*');
-
-        if (error || !data) throw new Error("Gagal akses tabel coach di Supabase.");
-
-        // Cari profil tunggal (kebal huruf besar/kecil & kebal spasi)
-        const myProfile = data.find(c => 
-            (c.username && c.username.trim().toLowerCase() === user.toLowerCase()) || 
-            (c.nama_coach && c.nama_coach.trim().toLowerCase() === user.toLowerCase())
-        );
-
-        if (!myProfile) {
-            // Alert ini bakal munculin username yg dicari biar lu gampang ngeceknya
-            return alert(`INFO DEBUG: Profil '${user}' ga ketemu! Coba cek tabel 'coach' di Supabase, pastikan username/namanya ada.`);
-        }
+        // 100% VANILLA: Cuma pakai .eq() lalu single match!
+        const { data, error } = await sb.from('coach').select('*').eq('username', user).single();
+        if (error || !data) throw new Error("Data master coach tidak ditemukan.");
 
         const namaDisplay = document.getElementById('coach-nama-display');
         const infoSpesialisasi = document.getElementById('coach-info-spesialisasi');
         const infoWa = document.getElementById('coach-info-wa');
         const img = document.getElementById('coach-view-foto');
 
-        if(namaDisplay) namaDisplay.innerText = myProfile.nama_coach;
-        if(infoSpesialisasi) infoSpesialisasi.innerText = `Spesialisasi: ${myProfile.spesialisasi || '-'}`;
-        if(infoWa) infoWa.innerText = `WhatsApp: ${myProfile.no_wa || '-'}`;
+        if(namaDisplay) namaDisplay.innerText = data.nama_coach;
+        if(infoSpesialisasi) infoSpesialisasi.innerText = `Spesialisasi: ${data.spesialisasi || '-'}`;
+        if(infoWa) infoWa.innerText = `WhatsApp: ${data.no_wa || '-'}`;
         
         if(img) {
-            if (myProfile.foto_profil) img.src = myProfile.foto_profil;
+            if (data.foto_profil) img.src = data.foto_profil;
             else img.src = 'images/default-avatar.png'; 
         }
 
-        // Simpan ID & Nama asli buat dipakai fitur lain
-        window.activeCoachDbId = myProfile.id;
-        window.activeNamaCoach = myProfile.nama_coach;
+        window.activeCoachDbId = data.id;
 
     } catch (err) {
         console.error(err);
-        alert(err.message);
+        alert("Gagal memuat profil. Pastikan Admin sudah membuatkan Master Data Coach untuk akun ini.");
     }
 }
-
-
 
 export async function simpanProfilCoach() {
     const uploadFoto = document.getElementById('coach-upload-foto');
