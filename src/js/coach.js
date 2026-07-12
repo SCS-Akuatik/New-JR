@@ -715,18 +715,21 @@ export async function loadCoachFee() {
     const namaCoach = localStorage.getItem("loggedInUser");
     if (!namaCoach) return listEl.innerHTML = "Coach belum login.";
 
-    // 🔥 FIX: Pakai .ilike() biar huruf besar/kecil gak ngaruh
-    const { data, error } = await sb.from("fee_coach")
-        .select("*")
-        .ilike("nama_coach", `%${namaCoach}%`) 
-        .order("tanggal", { ascending: false });
+    // 🔥 TRIK SAPU JAGAT: Tarik semua fee, biarin JS yang filter!
+    const { data, error } = await sb.from("fee_coach").select("*").order("tanggal", { ascending: false });
 
     if (error) return listEl.innerHTML = "Gagal memuat data.";
+
+    // JS nyari nama yang persis sama (kebal huruf besar/kecil & kebal spasi nyangkut)
+    const myFees = data.filter(item => 
+        item.nama_coach && 
+        item.nama_coach.trim().toLowerCase() === namaCoach.trim().toLowerCase()
+    );
 
     let totalFee = 0;
     let html = "";
 
-    data.forEach(item => {
+    myFees.forEach(item => {
         const fee = parseInt(item.total_fee) || 0;
         totalFee += fee;
 
@@ -751,35 +754,40 @@ export async function loadCoachFee() {
 }
 
 
+
 export async function loadProfilCoach() {
     const user = localStorage.getItem('loggedInUser');
     if (!user) return;
 
     try {
-        // 🔥 FIX: Cari di kolom username ATAU nama_coach, dan abaikan huruf besar/kecil
-        const { data, error } = await sb.from('coach')
-            .select('*')
-            .or(`username.ilike.%${user}%,nama_coach.ilike.%${user}%`)
-            .limit(1)
-            .maybeSingle();
+        // 🔥 TRIK SAPU JAGAT: Tarik semua master coach, biar JS yang nentuin punya siapa
+        const { data, error } = await sb.from('coach').select('*');
 
-        if (error || !data) throw new Error("Data master coach tidak ditemukan.");
+        if (error || !data) throw new Error("Gagal akses tabel coach.");
+
+        // Cari profil tunggal (kebal data ganda, huruf besar/kecil, & spasi)
+        const myProfile = data.find(c => 
+            (c.username && c.username.trim().toLowerCase() === user.trim().toLowerCase()) || 
+            (c.nama_coach && c.nama_coach.trim().toLowerCase() === user.trim().toLowerCase())
+        );
+
+        if (!myProfile) throw new Error("Data master coach tidak ditemukan untuk akun ini.");
 
         const namaDisplay = document.getElementById('coach-nama-display');
         const infoSpesialisasi = document.getElementById('coach-info-spesialisasi');
         const infoWa = document.getElementById('coach-info-wa');
         const img = document.getElementById('coach-view-foto');
 
-        if(namaDisplay) namaDisplay.innerText = data.nama_coach;
-        if(infoSpesialisasi) infoSpesialisasi.innerText = `Spesialisasi: ${data.spesialisasi || '-'}`;
-        if(infoWa) infoWa.innerText = `WhatsApp: ${data.no_wa || '-'}`;
+        if(namaDisplay) namaDisplay.innerText = myProfile.nama_coach;
+        if(infoSpesialisasi) infoSpesialisasi.innerText = `Spesialisasi: ${myProfile.spesialisasi || '-'}`;
+        if(infoWa) infoWa.innerText = `WhatsApp: ${myProfile.no_wa || '-'}`;
         
         if(img) {
-            if (data.foto_profil) img.src = data.foto_profil;
+            if (myProfile.foto_profil) img.src = myProfile.foto_profil;
             else img.src = 'images/default-avatar.png'; 
         }
 
-        window.activeCoachDbId = data.id;
+        window.activeCoachDbId = myProfile.id;
 
     } catch (err) {
         console.error(err);
