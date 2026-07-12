@@ -35,6 +35,16 @@ export function pindahHalaman(idTarget, pushState = true) {
         window.loadAkuntingAdmin();
         if(typeof window.loadRekapAkunting === "function") window.loadRekapAkunting();
     }
+    
+    if (idTarget === 'coach-modul-jadwal' && typeof window.loadCoachJadwal === "function") window.loadCoachJadwal();
+    
+    if (idTarget === 'coach-modul-assessment' && typeof window.loadCoachAssessment === "function") window.loadCoachAssessment();
+    
+    if (idTarget === 'coach-modul-fee' && typeof window.loadCoachFee === "function") window.loadCoachFee();
+    
+    if (idTarget === 'coach-modul-profil' && typeof window.loadProfilCoach === "function") window.loadProfilCoach();
+    // 👆 ================================ 👆
+
     // 👆 ================================ 👆
 
     if (pushState) history.pushState({ page: idTarget }, "", "#" + idTarget);
