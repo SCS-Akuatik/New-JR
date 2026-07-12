@@ -712,66 +712,103 @@ export async function loadCoachFee() {
     const listEl = document.getElementById('coach-fee-list');
     if (!totalEl || !listEl) return;
 
-    const namaCoach = localStorage.getItem("loggedInUser");
-    if (!namaCoach) return listEl.innerHTML = "Coach belum login.";
+    let user = localStorage.getItem("loggedInUser");
+    if (!user) return listEl.innerHTML = "Coach belum login.";
+    
+    // Bersihin kutip dan ubah ke huruf kecil semua
+    user = user.replace(/['"]/g, '').trim().toLowerCase();
 
-    // 🔥 TRIK SAPU JAGAT: Tarik semua fee, biarin JS yang filter!
-    const { data, error } = await sb.from("fee_coach").select("*").order("tanggal", { ascending: false });
+    listEl.innerHTML = "Mencari kecocokan data...";
 
-    if (error) return listEl.innerHTML = "Gagal memuat data.";
+    try {
+        // 1. CARI NAMA ASLI DULU KE TABEL MASTER
+        // Biar halaman Fee nggak bergantung sama halaman Profil
+        let namaAsliCoach = user; 
+        const { data: masterCoach } = await sb.from('coach').select('nama_coach, username');
+        
+        if (masterCoach) {
+            const myProfile = masterCoach.find(c => 
+                (c.username && c.username.toLowerCase() === user) || 
+                (c.nama_coach && c.nama_coach.toLowerCase() === user)
+            );
+            if (myProfile && myProfile.nama_coach) {
+                namaAsliCoach = myProfile.nama_coach.toLowerCase(); // Dapat nama aslinya (misal: "adit")
+            }
+        }
 
-    // JS nyari nama yang persis sama (kebal huruf besar/kecil & kebal spasi nyangkut)
-    const myFees = data.filter(item => 
-        item.nama_coach && 
-        item.nama_coach.trim().toLowerCase() === namaCoach.trim().toLowerCase()
-    );
+        // 2. TARIK SEMUA DATA FEE
+        const { data, error } = await sb.from("fee_coach").select("*").order("tanggal", { ascending: false });
+        if (error) throw error;
 
-    let totalFee = 0;
-    let html = "";
+        // 3. FILTER SUPER FLEKSIBEL (Bolak-balik dicek biar pasti kena)
+        const myFees = data.filter(item => {
+            if (!item.nama_coach) return false;
+            const namaDiDB = item.nama_coach.toLowerCase();
+            
+            return namaDiDB.includes(user) || 
+                   user.includes(namaDiDB) || 
+                   namaDiDB.includes(namaAsliCoach) || 
+                   namaAsliCoach.includes(namaDiDB);
+        });
 
-    myFees.forEach(item => {
-        const fee = parseInt(item.total_fee) || 0;
-        totalFee += fee;
+        let totalFee = 0;
+        let html = "";
 
-        html += `
-        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:10px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                <strong style="color:#0369a1; font-size:14px;">${item.jenis_sesi}</strong>
-                <span style="font-size:12px; color:#64748b;">${item.tanggal}</span>
-            </div>
-            <div style="font-size:13px; color:#334155; margin-bottom:6px;">
-                Murid: <b>${item.nama_murid || 'Belum di-set'}</b><br>
-                Jumlah: ${item.total_sesi} Sesi
-            </div>
-            <div style="font-size:15px; font-weight:bold; color:#10b981;">
-                Rp ${fee.toLocaleString('id-ID')}
-            </div>
-        </div>`;
-    });
+        myFees.forEach(item => {
+            const fee = parseInt(item.total_fee) || 0;
+            totalFee += fee;
 
-    totalEl.innerHTML = `Total Fee: Rp ${totalFee.toLocaleString('id-ID')}`;
-    listEl.innerHTML = html || "<p style='color:#64748b;'>Belum ada data rekapan mengajar.</p>";
+            html += `
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                    <strong style="color:#0369a1; font-size:14px;">${item.jenis_sesi}</strong>
+                    <span style="font-size:12px; color:#64748b;">${item.tanggal}</span>
+                </div>
+                <div style="font-size:13px; color:#334155; margin-bottom:6px;">
+                    Murid: <b>${item.nama_murid || 'Belum di-set'}</b><br>
+                    Jumlah: ${item.total_sesi} Sesi
+                </div>
+                <div style="font-size:15px; font-weight:bold; color:#10b981;">
+                    Rp ${fee.toLocaleString('id-ID')}
+                </div>
+            </div>`;
+        });
+
+        totalEl.innerHTML = `Total Fee: Rp ${totalFee.toLocaleString('id-ID')}`;
+        listEl.innerHTML = html || "<p style='color:#64748b;'>Belum ada data rekapan mengajar.</p>";
+
+    } catch (err) {
+        console.error(err);
+        listEl.innerHTML = "Terjadi kesalahan saat memuat data.";
+    }
 }
 
 
 
+
+
 export async function loadProfilCoach() {
-    const user = localStorage.getItem('loggedInUser');
+    let user = localStorage.getItem('loggedInUser');
     if (!user) return;
+    
+    // 🔥 PEMBUNUH HANTU KUTIP: Bersihin username dari tanda kutip nyangkut
+    user = user.replace(/['"]/g, '').trim();
 
     try {
-        // 🔥 TRIK SAPU JAGAT: Tarik semua master coach, biar JS yang nentuin punya siapa
         const { data, error } = await sb.from('coach').select('*');
 
-        if (error || !data) throw new Error("Gagal akses tabel coach.");
+        if (error || !data) throw new Error("Gagal akses tabel coach di Supabase.");
 
-        // Cari profil tunggal (kebal data ganda, huruf besar/kecil, & spasi)
+        // Cari profil tunggal (kebal huruf besar/kecil & kebal spasi)
         const myProfile = data.find(c => 
-            (c.username && c.username.trim().toLowerCase() === user.trim().toLowerCase()) || 
-            (c.nama_coach && c.nama_coach.trim().toLowerCase() === user.trim().toLowerCase())
+            (c.username && c.username.trim().toLowerCase() === user.toLowerCase()) || 
+            (c.nama_coach && c.nama_coach.trim().toLowerCase() === user.toLowerCase())
         );
 
-        if (!myProfile) throw new Error("Data master coach tidak ditemukan untuk akun ini.");
+        if (!myProfile) {
+            // Alert ini bakal munculin username yg dicari biar lu gampang ngeceknya
+            return alert(`INFO DEBUG: Profil '${user}' ga ketemu! Coba cek tabel 'coach' di Supabase, pastikan username/namanya ada.`);
+        }
 
         const namaDisplay = document.getElementById('coach-nama-display');
         const infoSpesialisasi = document.getElementById('coach-info-spesialisasi');
@@ -787,13 +824,16 @@ export async function loadProfilCoach() {
             else img.src = 'images/default-avatar.png'; 
         }
 
+        // Simpan ID & Nama asli buat dipakai fitur lain
         window.activeCoachDbId = myProfile.id;
+        window.activeNamaCoach = myProfile.nama_coach;
 
     } catch (err) {
         console.error(err);
-        alert("Gagal memuat profil. Pastikan Admin sudah membuatkan Master Data Coach untuk akun ini.");
+        alert(err.message);
     }
 }
+
 
 
 export async function simpanProfilCoach() {
