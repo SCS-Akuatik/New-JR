@@ -196,9 +196,9 @@ export async function loadCoachAdmin() {
    MODUL COACH (DASHBOARD PELATIH)
 ========================================================= */
 export async function loadCoachJadwal() {
-    const activeCoach = localStorage.getItem('loggedInUser');
+    let activeCoach = localStorage.getItem('loggedInUser');
+    if (activeCoach) activeCoach = activeCoach.replace(/['"]/g, '').trim();
     
-    // KEMBALI KE ASAL: Query ilike standar untuk jadwal
     const { data: jadwalTugas } = await sb.from('jadwal_coach')
         .select('*')
         .ilike('nama_coach', `%${activeCoach}%`)
@@ -274,7 +274,9 @@ export async function coachInsertMurid(event) {
     const namaMurid = selectMurid.options[selectMurid.selectedIndex].getAttribute('data-nama');
     let pesertaSaatIni = selectJadwal.options[selectJadwal.selectedIndex].getAttribute('data-peserta');
     
-    const activeCoach = localStorage.getItem('loggedInUser');
+    let activeCoach = localStorage.getItem('loggedInUser');
+    if (activeCoach) activeCoach = activeCoach.replace(/['"]/g, '').trim();
+    
     const teksJadwal = selectJadwal.options[selectJadwal.selectedIndex].text;
     let lokasiKelas = teksJadwal.split('|')[2] ? teksJadwal.split('|')[2].trim() : 'Kolam Beginner';
 
@@ -706,7 +708,7 @@ export async function loadRiwayatAssessment() {
 }
 
 /* =========================================================
-   MODUL FEE & PROFIL (KEMBALI KE 100% VANILLA)
+   MODUL FEE & PROFIL (FIX HURUF KAPITAL)
 ========================================================= */
 
 export async function loadCoachFee() {
@@ -714,14 +716,16 @@ export async function loadCoachFee() {
     const listEl = document.getElementById('coach-fee-list');
     if (!totalEl || !listEl) return;
 
-    // Persis cetak biru lu: ambil string dari local storage lalu gunakan EXACT MATCH
-    const namaCoach = localStorage.getItem("loggedInUser");
-    if (!namaCoach) return listEl.innerHTML = "Coach belum login.";
+    let user = localStorage.getItem("loggedInUser");
+    if (!user) return listEl.innerHTML = "Coach belum login.";
 
-    // 100% VANILLA: Cuma pakai .eq() buat nyari nama kapital lu!
+    // 🔥 KUNCI RAHASIA: Paksa username jadi HURUF KAPITAL SEMUA biar match sama database!
+    const namaCoachKapital = user.replace(/['"]/g, '').trim().toUpperCase();
+
+    // 100% Vanilla JS .eq() exact match
     const { data, error } = await sb.from("fee_coach")
         .select("*")
-        .eq("nama_coach", namaCoach)
+        .eq("nama_coach", namaCoachKapital)
         .order("tanggal", { ascending: false });
 
     if (error) return listEl.innerHTML = "Gagal memuat data.";
@@ -754,13 +758,16 @@ export async function loadCoachFee() {
 }
 
 export async function loadProfilCoach() {
-    // Persis cetak biru lu: ambil string dari local storage
-    const user = localStorage.getItem('loggedInUser');
+    let user = localStorage.getItem('loggedInUser');
     if (!user) return;
 
+    // 🔥 KUNCI RAHASIA: Paksa username jadi HURUF KAPITAL SEMUA
+    const userKapital = user.replace(/['"]/g, '').trim().toUpperCase();
+
     try {
-        // 100% VANILLA: Cuma pakai .eq() lalu single match!
-        const { data, error } = await sb.from('coach').select('*').eq('username', user).single();
+        // 100% Vanilla JS .eq() exact match
+        const { data, error } = await sb.from('coach').select('*').eq('username', userKapital).single();
+        
         if (error || !data) throw new Error("Data master coach tidak ditemukan.");
 
         const namaDisplay = document.getElementById('coach-nama-display');
