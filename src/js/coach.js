@@ -45,7 +45,7 @@ export async function buatAkunCoach() {
         document.getElementById('form-coach-user').value = "";
         document.getElementById('form-coach-pass').value = "";
         
-        if (typeof window.initDropdownCoach === "function") window.initDropdownCoach();
+        if (typeof initDropdownCoach === "function") initDropdownCoach();
 
     } catch (err) {
         console.error(err);
@@ -105,6 +105,7 @@ export function resetListCoach() {
     document.getElementById('coach-list-id').value = "";
 }
 
+// SIMPAN JADWAL (Sesi AMAN, belum dipotong, masuk antrean dulu)
 export async function simpanJadwalCoach() {
     const id = document.getElementById('coach-edit-id').value;
     const listNama = document.getElementById('coach-list-nama').value; 
@@ -160,7 +161,6 @@ export function editJadwalCoach(id, nama, hari, lokasi, jam, tipe, murid) {
 
 export async function loadCoachAdmin() {
     const list = document.getElementById('admin-coach-list');
-    if (!list) return;
     list.innerHTML = '<p style="text-align:center;">Memuat data...</p>';
     
     if (document.getElementById('coach-murid') && document.getElementById('coach-murid').options.length <= 1) {
@@ -196,9 +196,9 @@ export async function loadCoachAdmin() {
    MODUL COACH (DASHBOARD PELATIH)
 ========================================================= */
 export async function loadCoachJadwal() {
-    let activeCoach = localStorage.getItem('loggedInUser');
-    if (activeCoach) activeCoach = activeCoach.replace(/['"]/g, '').trim();
+    const activeCoach = localStorage.getItem('loggedInUser');
     
+    // FILTER: Hanya tampilkan jadwal untuk Coach yang login
     const { data: jadwalTugas } = await sb.from('jadwal_coach')
         .select('*')
         .ilike('nama_coach', `%${activeCoach}%`)
@@ -218,17 +218,11 @@ export async function loadCoachJadwal() {
             </div>
         </div>`).join('');
     }
-    
-    const targetPenugasan = document.getElementById('coach-jadwal-penugasan');
-    if(targetPenugasan) targetPenugasan.innerHTML = htmlTugas;
+    document.getElementById('coach-jadwal-penugasan').innerHTML = htmlTugas;
 
     const { data: jadwal, error: errJadwal } = await sb.from('jadwal_kelas').select('*').order('id', { ascending: true });
-    
-    const targetBeginner = document.getElementById('coach-jadwal-beginner');
-    const targetPilihJadwal = document.getElementById('coach-pilih-jadwal');
-
     if (errJadwal) {
-        if(targetBeginner) targetBeginner.innerHTML = '<p style="color:red;">Gagal memuat jadwal beginner.</p>';
+        document.getElementById('coach-jadwal-beginner').innerHTML = '<p style="color:red;">Gagal memuat jadwal beginner.</p>';
     } else {
         let htmlBeginner = '';
         let optJadwal = '<option value="">-- Pilih Slot Jadwal --</option>';
@@ -243,8 +237,8 @@ export async function loadCoachJadwal() {
         } else {
             htmlBeginner = '<p>Belum ada jadwal kelas beginner aktif.</p>';
         }
-        if(targetBeginner) targetBeginner.innerHTML = htmlBeginner;
-        if(targetPilihJadwal) targetPilihJadwal.innerHTML = optJadwal;
+        document.getElementById('coach-jadwal-beginner').innerHTML = htmlBeginner;
+        document.getElementById('coach-pilih-jadwal').innerHTML = optJadwal;
     }
 
     const { data: murid } = await sb.from('murid').select('id_murid, nama_murid, nama_panggilan, sisa_sesi').gt('sisa_sesi', 0);
@@ -255,12 +249,15 @@ export async function loadCoachJadwal() {
             optMurid += `<option value="${m.id_murid}" data-nama="${namaTampil}">[Sisa ${m.sisa_sesi}] ${namaTampil}</option>`;
         });
     }
-    const targetPilihMurid = document.getElementById('coach-pilih-murid');
-    if(targetPilihMurid) targetPilihMurid.innerHTML = optMurid;
+    document.getElementById('coach-pilih-murid').innerHTML = optMurid;
 }
 
+/* =========================================================
+   FITUR INSERT MURID BEGINNER & AUTO KIRIM FEE KE ADMIN
+========================================================= */
 export async function coachInsertMurid(event) {
-    const btn = event ? event.target : document.querySelector('button[onclick="coachInsertMurid(event)"]');
+    // Vite fix: Tangkap event jika di-pass dari HTML, atau fallback
+    const btn = event ? event.target : document.querySelector('button[onclick*="coachInsertMurid"]');
     const selectJadwal = document.getElementById('coach-pilih-jadwal');
     const selectMurid = document.getElementById('coach-pilih-murid');
 
@@ -274,12 +271,12 @@ export async function coachInsertMurid(event) {
     const namaMurid = selectMurid.options[selectMurid.selectedIndex].getAttribute('data-nama');
     let pesertaSaatIni = selectJadwal.options[selectJadwal.selectedIndex].getAttribute('data-peserta');
     
-    let activeCoach = localStorage.getItem('loggedInUser');
-    if (activeCoach) activeCoach = activeCoach.replace(/['"]/g, '').trim();
-    
+    // Tarik nama coach yang lagi login & teks lokasi
+    const activeCoach = localStorage.getItem('loggedInUser');
     const teksJadwal = selectJadwal.options[selectJadwal.selectedIndex].text;
     let lokasiKelas = teksJadwal.split('|')[2] ? teksJadwal.split('|')[2].trim() : 'Kolam Beginner';
 
+    // Logika nambahin nama (koma) kalau pesertanya udah ada isinya
     if (pesertaSaatIni && pesertaSaatIni !== 'Kosong') {
         if (pesertaSaatIni.includes(namaMurid)) {
             if(btn) { btn.innerText = "⚡ Masukkan Murid & Kurangi Sesi"; btn.disabled = false; }
@@ -313,7 +310,7 @@ export async function coachInsertMurid(event) {
 
         alert("✅ Sukses! Nama masuk jadwal, sesi terpotong, dan Laporan Fee masuk ke Inbox Admin.");
         
-        loadCoachJadwal(); 
+        if (typeof loadCoachJadwal === "function") loadCoachJadwal(); 
     } catch (error) {
         console.error("Gagal insert murid:", error);
         alert("Terjadi kesalahan sistem saat memproses data: " + error.message);
@@ -322,6 +319,9 @@ export async function coachInsertMurid(event) {
     }
 }
 
+/* =========================================================
+   FITUR EKSEKUTOR SELESAI & BATAL PENUGASAN COACH
+========================================================= */
 export async function selesaiTugasJadwal(idJadwal, namaMuridStr, source) {
     if (!confirm(`🚀 Tandai kelas ini SELESAI?\nSisa sesi murid akan dipotong 1 dan laporan akan masuk ke Inbox Admin untuk pencairan Fee.`)) return;
 
@@ -357,8 +357,8 @@ export async function selesaiTugasJadwal(idJadwal, namaMuridStr, source) {
         
         alert("✅ Kelas Selesai! Sesi terpotong & Laporan dikirim ke Admin untuk pencairan Fee.");
 
-        if (source === 'coach') loadCoachJadwal();
-        if (source === 'admin') loadCoachAdmin();
+        if (source === 'coach' && typeof loadCoachJadwal === 'function') loadCoachJadwal();
+        if (source === 'admin' && typeof loadCoachAdmin === 'function') loadCoachAdmin();
 
     } catch (error) {
         console.error(error);
@@ -372,14 +372,17 @@ export async function batalTugasJadwal(idJadwal, source) {
     try {
         await sb.from('jadwal_coach').delete().eq('id', idJadwal);
         
-        if (source === 'coach') loadCoachJadwal();
-        if (source === 'admin') loadCoachAdmin();
+        if (source === 'coach' && typeof loadCoachJadwal === 'function') loadCoachJadwal();
+        if (source === 'admin' && typeof loadCoachAdmin === 'function') loadCoachAdmin();
     } catch (error) {
         console.error(error);
         alert("Gagal membatalkan jadwal.");
     }
 }
 
+/* =========================================================
+   FITUR ANTREAN FEE COACH (ADMIN DASHBOARD)
+========================================================= */
 export async function loadAntreanFeeAdmin() {
     const list = document.getElementById('admin-antrean-fee-list');
     if(!list) return;
@@ -455,8 +458,8 @@ export async function loadCoachAssessment() {
     let opt = '<option value="">-- Pilih Murid --</option>';
     if(murid) murid.forEach(m => opt += `<option value="${m.id_murid}">${m.nama_murid}</option>`);
     
-    const targetAssess = document.getElementById('assess-murid');
-    if(targetAssess) targetAssess.innerHTML = opt;
+    const assessMuridEl = document.getElementById('assess-murid');
+    if(assessMuridEl) assessMuridEl.innerHTML = opt;
 
     loadRiwayatAssessment();
     loadBelumAssessment(); 
@@ -483,7 +486,7 @@ export async function loadBelumAssessment() {
 
         let html = '';
         muridBelumDinilai.forEach(m => {
-            html += `<button onclick="pilihAnakBelumDinilai(${m.id_murid})" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:bold; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.05); margin-right:5px; margin-bottom:5px; transition:0.2s;">
+            html += `<button onclick="pilihAnakBelumDinilai(${m.id_murid})" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:bold; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.05); transition:0.2s;">
                 + ${m.nama_murid}
             </button>`;
         });
@@ -504,7 +507,9 @@ export function pilihAnakBelumDinilai(idMurid) {
 }
 
 export async function loadAssessmentDetail() {
-    const idMurid = document.getElementById('assess-murid').value;
+    const dropdown = document.getElementById('assess-murid');
+    if(!dropdown) return;
+    const idMurid = dropdown.value;
     if(!idMurid) return;
 
     let hiddenId = document.getElementById('ass-edit-id');
@@ -537,7 +542,7 @@ export async function loadAssessmentDetail() {
         document.getElementById('ass-catatan').value = '';
     }
 
-    const btn = document.querySelector('button[onclick="simpanAssessment()"]');
+    const btn = document.querySelector('button[onclick*="simpanAssessment"]');
     if (btn) btn.innerHTML = "💾 Simpan Assessment";
 }
 
@@ -567,7 +572,7 @@ export async function editAssessmentLog(idAssessment, idMurid) {
     }
 
     window.scrollTo({ top: 0, behavior: "smooth" });
-    const btn = document.querySelector('button[onclick="simpanAssessment()"]');
+    const btn = document.querySelector('button[onclick*="simpanAssessment"]');
     if (btn) btn.innerHTML = "💾 Update Assessment";
 }
 
@@ -597,7 +602,7 @@ export async function simpanAssessment() {
         catatan_coach: document.getElementById('ass-catatan').value
     };
 
-    const btn = document.querySelector('button[onclick="simpanAssessment()"]');
+    const btn = document.querySelector('button[onclick*="simpanAssessment"]');
     if(btn) { btn.innerHTML = "⏳ Menganalisis Kelulusan & Menyimpan Data..."; btn.disabled = true; }
 
     let hiddenId = document.getElementById('ass-edit-id');
@@ -651,8 +656,8 @@ export async function simpanAssessment() {
         if (hiddenId) hiddenId.value = ""; 
         document.getElementById('ass-catatan').value = ""; 
         
-        loadRiwayatAssessment(); 
-        loadBelumAssessment(); 
+        if (typeof loadRiwayatAssessment === "function") loadRiwayatAssessment(); 
+        if (typeof loadBelumAssessment === "function") loadBelumAssessment(); 
 
     } catch (err) {
         alert("Gagal memproses data: " + err.message);
@@ -708,24 +713,48 @@ export async function loadRiwayatAssessment() {
 }
 
 /* =========================================================
-   MODUL FEE & PROFIL (FIX HURUF KAPITAL)
+   MODUL FEE, AKUNTING, & PROFIL
 ========================================================= */
+export async function tambahAkunting() {
+    const tgl = document.getElementById('akun-tanggal').value;
+    const ket = document.getElementById('akun-ket').value;
+    const jenis = document.getElementById('akun-jenis').value;
+    const jumlah = document.getElementById('akun-jumlah').value;
+
+    if (!tgl || !ket || !jumlah) return alert("Isi tanggal, keterangan, dan jumlah!");
+
+    const { error } = await sb.from('akunting').insert([{ 
+        tanggal: tgl,
+        keterangan: ket, 
+        jenis: jenis, 
+        jumlah: parseFloat(jumlah)
+    }]);
+
+    if (error) {
+        console.error("Error Detail:", error);
+        alert("Gagal simpan: " + error.message);
+    } else {
+        document.getElementById('akun-tanggal').value = '';
+        document.getElementById('akun-ket').value = '';
+        document.getElementById('akun-jumlah').value = '';
+        
+        if (typeof window.loadAkuntingAdmin === "function") window.loadAkuntingAdmin(); 
+        if (typeof window.loadRekapAkunting === "function") window.loadRekapAkunting(); 
+    }
+}
 
 export async function loadCoachFee() {
     const totalEl = document.getElementById('coach-total-fee');
     const listEl = document.getElementById('coach-fee-list');
     if (!totalEl || !listEl) return;
 
-    let user = localStorage.getItem("loggedInUser");
-    if (!user) return listEl.innerHTML = "Coach belum login.";
+    // 100% Vanilla Logic yang udah terbukti jalan[span_2](start_span)[span_2](end_span)
+    const namaCoach = localStorage.getItem("loggedInUser");
+    if (!namaCoach) return listEl.innerHTML = "Coach belum login.";
 
-    // 🔥 KUNCI RAHASIA: Paksa username jadi HURUF KAPITAL SEMUA biar match sama database!
-    const namaCoachKapital = user.replace(/['"]/g, '').trim().toUpperCase();
-
-    // 100% Vanilla JS .eq() exact match
     const { data, error } = await sb.from("fee_coach")
         .select("*")
-        .eq("nama_coach", namaCoachKapital)
+        .eq("nama_coach", namaCoach) 
         .order("tanggal", { ascending: false });
 
     if (error) return listEl.innerHTML = "Gagal memuat data.";
@@ -758,16 +787,11 @@ export async function loadCoachFee() {
 }
 
 export async function loadProfilCoach() {
-    let user = localStorage.getItem('loggedInUser');
+    const user = localStorage.getItem('loggedInUser');
     if (!user) return;
 
-    // 🔥 KUNCI RAHASIA: Paksa username jadi HURUF KAPITAL SEMUA
-    const userKapital = user.replace(/['"]/g, '').trim().toUpperCase();
-
     try {
-        // 100% Vanilla JS .eq() exact match
-        const { data, error } = await sb.from('coach').select('*').eq('username', userKapital).single();
-        
+        const { data, error } = await sb.from('coach').select('*').eq('username', user).single();
         if (error || !data) throw new Error("Data master coach tidak ditemukan.");
 
         const namaDisplay = document.getElementById('coach-nama-display');
@@ -829,7 +853,7 @@ export async function simpanProfilCoach() {
 }
 
 // =========================================================
-// REGISTER TO WINDOW
+// REGISTER TO WINDOW (BIAR ONCLICK HTML TETAP JALAN)
 // =========================================================
 window.buatAkunCoach = buatAkunCoach;
 window.loadDropdownMuridCoach = loadDropdownMuridCoach;
@@ -851,6 +875,7 @@ window.loadAssessmentDetail = loadAssessmentDetail;
 window.editAssessmentLog = editAssessmentLog;
 window.simpanAssessment = simpanAssessment;
 window.loadRiwayatAssessment = loadRiwayatAssessment;
+window.tambahAkunting = tambahAkunting;
 window.loadCoachFee = loadCoachFee;
 window.loadProfilCoach = loadProfilCoach;
 window.simpanProfilCoach = simpanProfilCoach;

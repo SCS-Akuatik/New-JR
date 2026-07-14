@@ -34,10 +34,7 @@ export async function tambahAkunting() {
 }
 
 export async function loadAkuntingAdmin() {
-    loadInvoiceTercetak(); // Nyalain sekalian invoice-nya[span_4](start_span)[span_4](end_span)
-    
     const list = document.getElementById('admin-akunting-list');
-    if(!list) return;
     list.innerHTML = 'Memuat...';
 
     const { data, error } = await sb.from('akunting').select('*').order('tanggal', { ascending: false });
@@ -54,7 +51,7 @@ export async function loadAkuntingAdmin() {
         let val = parseFloat(a.jumlah);
         totalSaldo += (a.jenis === 'Pemasukan' ? val : -val);
         
-        // 🔴 MANUAL SPLIT STRING (Anti Zona Waktu Mundur)[span_5](start_span)[span_5](end_span)
+        // 🔴 MANUAL SPLIT STRING (Anti Zona Waktu Mundur)
         let tglIndo = 'Tanpa Tanggal';
         if (a.tanggal) {
             const parts = a.tanggal.split('T')[0].split('-');
@@ -64,19 +61,18 @@ export async function loadAkuntingAdmin() {
             }
         }
         
-        html += `<div class="list-item-admin" style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+        html += `<div class="list-item-admin">
             <div>
                 <span style="font-size:10px; color:#94a3b8; font-weight:bold;">📅 ${tglIndo}</span><br>
                 <strong>${a.keterangan}</strong><br>
                 <span style="color:${a.jenis === 'Pemasukan' ? '#10b981' : '#ef4444'}">${a.jenis}: Rp ${val.toLocaleString('id-ID')}</span>
             </div>
-            <button class="btn-danger" style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:5px;" onclick="hapusData('akunting', ${a.id}, function(){ loadAkuntingAdmin(); loadRekapAkunting(); })">❌</button>
+            <button class="btn-danger" onclick="hapusData('akunting', ${a.id}, function(){ loadAkuntingAdmin(); loadRekapAkunting(); })">❌</button>
         </div>`;
     });
 
     list.innerHTML = html || 'Belum ada transaksi.';
-    const elSaldo = document.getElementById('saldo-terkini');
-    if(elSaldo) elSaldo.innerText = 'Rp ' + totalSaldo.toLocaleString('id-ID');
+    document.getElementById('saldo-terkini').innerText = 'Rp ' + totalSaldo.toLocaleString('id-ID');
 }
 
 export async function loadRekapAkunting() {
@@ -104,14 +100,14 @@ export async function loadRekapAkunting() {
     data.forEach(item => {
         if (!item.tanggal) return;
         
-        // 🔴 MANUAL SPLIT STRING (Anti Zona Waktu Mundur)[span_6](start_span)[span_6](end_span)
+        // 🔴 MANUAL SPLIT STRING (Anti Zona Waktu Mundur)
         const parts = item.tanggal.split('T')[0].split('-');
         const itemTahun = parseInt(parts[0]);
         const itemBulan = parseInt(parts[1]);
         
         let val = parseFloat(item.jumlah) || 0;
 
-        // LOGIKA TUTUP BUKU[span_7](start_span)[span_7](end_span)
+        // LOGIKA TUTUP BUKU
         if (itemTahun < tahun || (itemTahun === tahun && itemBulan < bulan)) {
             if (item.jenis === 'Pemasukan') saldoBulanSebelumnya += val;
             if (item.jenis === 'Pengeluaran') saldoBulanSebelumnya -= val;
@@ -129,34 +125,33 @@ export async function loadRekapAkunting() {
     }
 
     let html = `
-    <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:15px; margin-bottom:15px;">
-        <div style="margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #cbd5e1;">
-            <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-                <strong style="margin-right:5px; color:#334155;">📅 Rekap Arus Kas</strong>
-                <select id="filter-akun-bulan" style="padding:6px; font-size:12px; width:auto; border-radius:6px; border:1px solid #cbd5e1;" onchange="loadRekapAkunting()">
-                    <option value="1" ${bulan==1?"selected":""}>Jan</option>
-                    <option value="2" ${bulan==2?"selected":""}>Feb</option>
-                    <option value="3" ${bulan==3?"selected":""}>Mar</option>
-                    <option value="4" ${bulan==4?"selected":""}>Apr</option>
-                    <option value="5" ${bulan==5?"selected":""}>Mei</option>
-                    <option value="6" ${bulan==6?"selected":""}>Jun</option>
-                    <option value="7" ${bulan==7?"selected":""}>Jul</option>
-                    <option value="8" ${bulan==8?"selected":""}>Ags</option>
-                    <option value="9" ${bulan==9?"selected":""}>Sep</option>
-                    <option value="10" ${bulan==10?"selected":""}>Okt</option>
-                    <option value="11" ${bulan==11?"selected":""}>Nov</option>
-                    <option value="12" ${bulan==12?"selected":""}>Des</option>
-                </select>
-                <select id="filter-akun-tahun" style="padding:6px; font-size:12px; width:auto; border-radius:6px; border:1px solid #cbd5e1;" onchange="loadRekapAkunting()">
-                    ${opsiTahun}
-                </select>
-                <select id="filter-akun-jenis" style="padding:6px; font-size:12px; width:auto; border-radius:6px; border:1px solid #cbd5e1;" onchange="loadRekapAkunting()">
-                    <option value="Semua" ${filterJenis=='Semua'?"selected":""}>Semua</option>
-                    <option value="Pemasukan" ${filterJenis=='Pemasukan'?"selected":""}>Pemasukan</option>
-                    <option value="Pengeluaran" ${filterJenis=='Pengeluaran'?"selected":""}>Pengeluaran</option>
-                </select>
-            </div>
+    <div style="margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #cbd5e1;">
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+            <strong style="margin-right:5px;">📅 Rekap Arus Kas</strong>
+            <select id="filter-akun-bulan" style="padding:6px; font-size:12px; width:auto; border-radius:6px;" onchange="loadRekapAkunting()">
+                <option value="1" ${bulan==1?"selected":""}>Jan</option>
+                <option value="2" ${bulan==2?"selected":""}>Feb</option>
+                <option value="3" ${bulan==3?"selected":""}>Mar</option>
+                <option value="4" ${bulan==4?"selected":""}>Apr</option>
+                <option value="5" ${bulan==5?"selected":""}>Mei</option>
+                <option value="6" ${bulan==6?"selected":""}>Jun</option>
+                <option value="7" ${bulan==7?"selected":""}>Jul</option>
+                <option value="8" ${bulan==8?"selected":""}>Ags</option>
+                <option value="9" ${bulan==9?"selected":""}>Sep</option>
+                <option value="10" ${bulan==10?"selected":""}>Okt</option>
+                <option value="11" ${bulan==11?"selected":""}>Nov</option>
+                <option value="12" ${bulan==12?"selected":""}>Des</option>
+            </select>
+            <select id="filter-akun-tahun" style="padding:6px; font-size:12px; width:auto; border-radius:6px;" onchange="loadRekapAkunting()">
+                ${opsiTahun}
+            </select>
+            <select id="filter-akun-jenis" style="padding:6px; font-size:12px; width:auto; border-radius:6px;" onchange="loadRekapAkunting()">
+                <option value="Semua" ${filterJenis=='Semua'?"selected":""}>Semua</option>
+                <option value="Pemasukan" ${filterJenis=='Pemasukan'?"selected":""}>Pemasukan</option>
+                <option value="Pengeluaran" ${filterJenis=='Pengeluaran'?"selected":""}>Pengeluaran</option>
+            </select>
         </div>
+    </div>
     `;
 
     let tampilPemasukan = (filterJenis === 'Semua' || filterJenis === 'Pemasukan');
@@ -194,7 +189,7 @@ export async function loadRekapAkunting() {
                     <span>💰 SALDO AKHIR AKTIF</span><strong>Rp ${saldoAkhir.toLocaleString('id-ID')}</strong>
                  </div>`;
     }
-    html += `</div></div>`;
+    html += `</div>`;
 
     container.innerHTML = html;
 }
@@ -235,13 +230,13 @@ export async function loadInvoiceTercetak() {
                 badgeText = 'Void';
             }
 
-            // UI Tombol Reminder Sejajar dengan Badge[span_8](start_span)[span_8](end_span)
+            // UI Tombol Reminder Sejajar dengan Badge
             if (inv.status === 'Unpaid' || !inv.status) {
                 reminderBtn = `<button onclick="kirimReminder('${inv.no_invoice}', '${inv.nama_murid}', '${inv.paket}', ${inv.total})" style="display:flex; align-items:center; justify-content:center; height:24px; box-sizing:border-box; margin:0; background:#3b82f6; color:white; border:none; padding:0 10px; border-radius:12px; font-size:10px; font-weight:bold; cursor:pointer; line-height:1; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">🔔 WA</button>`;
             }
 
             let totalRp = inv.total ? inv.total.toLocaleString('id-ID') : 0;
-            let tglFormat = inv.tanggal_terbit ? inv.tanggal_terbit.split('-').reverse().join('/') : (inv.created_at ? inv.created_at.split('T')[0] : '-');
+            let tglFormat = inv.tanggal_terbit ? inv.tanggal_terbit.split('-').reverse().join('/') : '-';
 
             let actionButtons = '';
             if (inv.status === 'Unpaid' || !inv.status) {
@@ -256,10 +251,10 @@ export async function loadInvoiceTercetak() {
             let strikeStyle = (inv.status === 'Batal' || inv.status === 'Void') ? 'text-decoration: line-through;' : '';
 
             html += `
-            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin-bottom:10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); ${opacityStyle}">
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin-bottom:10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); ${opacityStyle}">
                 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px;">
-                    <strong style="color:#0369a1; font-size:12px; ${strikeStyle}">${inv.no_invoice || inv.nomor_invoice || '-'}</strong>
+                    <strong style="color:#0369a1; font-size:12px; ${strikeStyle}">${inv.no_invoice}</strong>
                     
                     <div style="display:flex; align-items:center; gap:5px;">
                         ${reminderBtn}
@@ -268,7 +263,7 @@ export async function loadInvoiceTercetak() {
                 </div>
 
                 <div style="font-size:12px; color:#334155; line-height: 1.5;">
-                    👨‍🎓 <b>${inv.nama_murid || inv.nama || 'Tanpa Nama'}</b><br>
+                    👨‍🎓 <b>${inv.nama_murid || 'Tanpa Nama'}</b><br>
                     📦 ${inv.paket || '-'}<br>
                     <div style="display:flex; justify-content:space-between; margin-top:4px;">
                         <span>📅 ${tglFormat}</span>
@@ -290,23 +285,29 @@ export async function loadInvoiceTercetak() {
 // ========================================================
 // FUNGSI AKSI INVOICE (LUNAS, VOID, & REMINDER)
 // ========================================================
+
 export async function batalkanInvoice(idInvoice, noInvoice) {
     if (!confirm(`⚠️ Yakin ingin membatalkan (Void) Invoice ${noInvoice}? Data akan disembunyikan dari daftar aktif.`)) return;
 
     try {
         const { error } = await sb.from('invoices').update({ status: 'Batal' }).eq('id', idInvoice);
         if (error) throw error;
+        
         loadInvoiceTercetak(); 
-    } catch (err) { alert("Gagal membatalkan invoice: " + err.message); }
+    } catch (err) {
+        alert("Gagal membatalkan invoice: " + err.message);
+    }
 }
 
 export async function lunasiInvoice(idInvoice, noInvoice, namaSiswa, total) {
     if (!confirm(`✅ Tandai Invoice ${noInvoice} (${namaSiswa}) sebagai LUNAS?\n\nNominal Rp ${total.toLocaleString('id-ID')} akan OTOMATIS masuk ke Catatan Pemasukan Arus Kas!`)) return;
 
     try {
+        // 1. Ubah status invoice jadi Paid
         const { error: errInv } = await sb.from('invoices').update({ status: 'Paid' }).eq('id', idInvoice);
         if (errInv) throw errInv;
 
+        // 2. Insert langsung ke Akunting (Arus Kas) dengan waktu lokal komputer/HP
         const now = new Date();
         const tglHariIni = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
         
@@ -320,18 +321,26 @@ export async function lunasiInvoice(idInvoice, noInvoice, namaSiswa, total) {
 
         alert("Berhasil! Invoice Lunas & Arus Kas otomatis bertambah! 💰");
         
+        // Refresh tabel tampilan
         loadInvoiceTercetak(); 
-        if (typeof loadAkuntingAdmin === "function") loadAkuntingAdmin(); 
-        if (typeof loadRekapAkunting === "function") loadRekapAkunting(); 
+        if (typeof window.loadAkuntingAdmin === "function") window.loadAkuntingAdmin(); 
+        if (typeof window.loadRekapAkunting === "function") window.loadRekapAkunting(); 
         
-    } catch (err) { alert("Gagal memproses pembayaran: " + err.message); }
+    } catch (err) {
+        alert("Gagal memproses pembayaran: " + err.message);
+    }
 }
 
 export function kirimReminder(noInvoice, namaMurid, paket, total) {
     const teksWA = `Halo Ayah/Bunda dari *${namaMurid}*! 👋%0A%0AMohon izin menginformasikan dari Admin *Jago Renang Academy*. Mengingatkan kembali terdapat tagihan yang masih *pending/belum diselesaikan* dengan rincian berikut:%0A%0A🧾 *No Invoice:* ${noInvoice}%0A📦 *Paket:* ${paket}%0A💰 *Total Tagihan:* Rp ${total.toLocaleString('id-ID')}%0A%0AApakah ada kendala terkait pembayaran? Jika sudah melakukan transfer, mohon berkenan mengirimkan bukti pembayarannya ya Ayah/Bunda untuk segera kami proses pembaruan sisa sesi ananda.%0A%0ATerima kasih banyak atas kerjasamanya! 🙏`;
+    
+    // Buka WhatsApp web/app
     window.open(`https://wa.me/?text=${teksWA}`, '_blank');
 }
 
+// =========================================================
+// REGISTER TO WINDOW
+// =========================================================
 window.tambahAkunting = tambahAkunting;
 window.loadAkuntingAdmin = loadAkuntingAdmin;
 window.loadRekapAkunting = loadRekapAkunting;
