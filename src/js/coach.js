@@ -105,7 +105,6 @@ export function resetListCoach() {
     document.getElementById('coach-list-id').value = "";
 }
 
-// SIMPAN JADWAL (Sesi AMAN, belum dipotong, masuk antrean dulu)
 export async function simpanJadwalCoach() {
     const id = document.getElementById('coach-edit-id').value;
     const listNama = document.getElementById('coach-list-nama').value; 
@@ -193,15 +192,24 @@ export async function loadCoachAdmin() {
 }
 
 /* =========================================================
-   MODUL COACH (DASHBOARD PELATIH)
+   MODUL COACH (DASHBOARD PELATIH) - FIXED IDENTITAS
 ========================================================= */
 export async function loadCoachJadwal() {
-    const activeCoach = localStorage.getItem('loggedInUser');
+    // FIX: Ambil dari localStorage
+    const userSesi = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
     
-    // FILTER: Hanya tampilkan jadwal untuk Coach yang login
+    // FIX: Jemput nama asli dulu dari tabel master coach
+    const { data: masterCoach } = await sb.from('coach')
+        .select('nama_coach')
+        .eq('username', userSesi)
+        .maybeSingle();
+        
+    const namaAsliCoach = masterCoach ? masterCoach.nama_coach : userSesi;
+
+    // FILTER: Tampilkan jadwal pakai Nama Asli
     const { data: jadwalTugas } = await sb.from('jadwal_coach')
         .select('*')
-        .ilike('nama_coach', `%${activeCoach}%`)
+        .ilike('nama_coach', `%${namaAsliCoach}%`)
         .order('id', { ascending: false });
 
     let htmlTugas = 'Belum ada penugasan.';
@@ -220,6 +228,7 @@ export async function loadCoachJadwal() {
     }
     document.getElementById('coach-jadwal-penugasan').innerHTML = htmlTugas;
 
+    // Load Jadwal Beginner
     const { data: jadwal, error: errJadwal } = await sb.from('jadwal_kelas').select('*').order('id', { ascending: true });
     if (errJadwal) {
         document.getElementById('coach-jadwal-beginner').innerHTML = '<p style="color:red;">Gagal memuat jadwal beginner.</p>';
@@ -241,6 +250,7 @@ export async function loadCoachJadwal() {
         document.getElementById('coach-pilih-jadwal').innerHTML = optJadwal;
     }
 
+    // Load Murid Beginner
     const { data: murid } = await sb.from('murid').select('id_murid, nama_murid, nama_panggilan, sisa_sesi').gt('sisa_sesi', 0);
     let optMurid = '<option value="">-- Pilih Murid Aktif --</option>';
     if(murid) {
@@ -256,7 +266,6 @@ export async function loadCoachJadwal() {
    FITUR INSERT MURID BEGINNER & AUTO KIRIM FEE KE ADMIN
 ========================================================= */
 export async function coachInsertMurid(event) {
-    // Vite fix: Tangkap event jika di-pass dari HTML, atau fallback
     const btn = event ? event.target : document.querySelector('button[onclick*="coachInsertMurid"]');
     const selectJadwal = document.getElementById('coach-pilih-jadwal');
     const selectMurid = document.getElementById('coach-pilih-murid');
@@ -271,12 +280,13 @@ export async function coachInsertMurid(event) {
     const namaMurid = selectMurid.options[selectMurid.selectedIndex].getAttribute('data-nama');
     let pesertaSaatIni = selectJadwal.options[selectJadwal.selectedIndex].getAttribute('data-peserta');
     
-    // Tarik nama coach yang lagi login & teks lokasi
-    const activeCoach = localStorage.getItem('loggedInUser');
+    const userSesi = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
+    const { data: masterCoach } = await sb.from('coach').select('nama_coach').eq('username', userSesi).maybeSingle();
+    const namaAsliCoach = masterCoach ? masterCoach.nama_coach : userSesi;
+
     const teksJadwal = selectJadwal.options[selectJadwal.selectedIndex].text;
     let lokasiKelas = teksJadwal.split('|')[2] ? teksJadwal.split('|')[2].trim() : 'Kolam Beginner';
 
-    // Logika nambahin nama (koma) kalau pesertanya udah ada isinya
     if (pesertaSaatIni && pesertaSaatIni !== 'Kosong') {
         if (pesertaSaatIni.includes(namaMurid)) {
             if(btn) { btn.innerText = "⚡ Masukkan Murid & Kurangi Sesi"; btn.disabled = false; }
@@ -301,7 +311,7 @@ export async function coachInsertMurid(event) {
 
         const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
         await sb.from('antrean_fee').insert([{
-            nama_coach: activeCoach,
+            nama_coach: namaAsliCoach,
             nama_murid: namaMurid,
             tipe_class: 'Beginner',
             lokasi: lokasiKelas,
@@ -713,7 +723,7 @@ export async function loadRiwayatAssessment() {
 }
 
 /* =========================================================
-   MODUL FEE, AKUNTING, & PROFIL
+   MODUL FEE, AKUNTING, & PROFIL - FIXED IDENTITAS
 ========================================================= */
 export async function tambahAkunting() {
     const tgl = document.getElementById('akun-tanggal').value;
@@ -748,46 +758,61 @@ export async function loadCoachFee() {
     const listEl = document.getElementById('coach-fee-list');
     if (!totalEl || !listEl) return;
 
-    // 100% Vanilla Logic yang udah terbukti jalan[span_2](start_span)[span_2](end_span)
-    const namaCoach = localStorage.getItem("loggedInUser");
-    if (!namaCoach) return listEl.innerHTML = "Coach belum login.";
+    // FIX: Ambil dari localStorage
+    const userSesi = localStorage.getItem("loggedInUser") || localStorage.getItem("username");
+    if (!userSesi) return listEl.innerHTML = "Coach belum login.";
 
-    const { data, error } = await sb.from("fee_coach")
-        .select("*")
-        .eq("nama_coach", namaCoach) 
-        .order("tanggal", { ascending: false });
+    try {
+        // FIX: Jemput nama asli dulu dari tabel master coach
+        const { data: masterCoach } = await sb.from('coach')
+            .select('nama_coach')
+            .eq('username', userSesi)
+            .maybeSingle();
 
-    if (error) return listEl.innerHTML = "Gagal memuat data.";
+        const namaAsli = masterCoach ? masterCoach.nama_coach : userSesi;
 
-    let totalFee = 0;
-    let html = "";
+        // FILTER: Tampilkan fee pakai Nama Asli
+        const { data, error } = await sb.from("fee_coach")
+            .select("*")
+            .eq("nama_coach", namaAsli) 
+            .order("tanggal", { ascending: false });
 
-    data.forEach(item => {
-        const fee = parseInt(item.total_fee) || 0;
-        totalFee += fee;
+        if (error) return listEl.innerHTML = "Gagal memuat data.";
 
-        html += `
-        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:10px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                <strong style="color:#0369a1; font-size:14px;">${item.jenis_sesi}</strong>
-                <span style="font-size:12px; color:#64748b;">${item.tanggal}</span>
-            </div>
-            <div style="font-size:13px; color:#334155; margin-bottom:6px;">
-                Murid: <b>${item.nama_murid || 'Belum di-set'}</b><br>
-                Jumlah: ${item.total_sesi} Sesi
-            </div>
-            <div style="font-size:15px; font-weight:bold; color:#10b981;">
-                Rp ${fee.toLocaleString('id-ID')}
-            </div>
-        </div>`;
-    });
+        let totalFee = 0;
+        let html = "";
 
-    totalEl.innerHTML = `Total Fee: Rp ${totalFee.toLocaleString('id-ID')}`;
-    listEl.innerHTML = html || "<p style='color:#64748b;'>Belum ada data rekapan mengajar.</p>";
+        data.forEach(item => {
+            const fee = parseInt(item.total_fee) || 0;
+            totalFee += fee;
+
+            html += `
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                    <strong style="color:#0369a1; font-size:14px;">${item.jenis_sesi}</strong>
+                    <span style="font-size:12px; color:#64748b;">${item.tanggal}</span>
+                </div>
+                <div style="font-size:13px; color:#334155; margin-bottom:6px;">
+                    Murid: <b>${item.nama_murid || 'Belum di-set'}</b><br>
+                    Jumlah: ${item.total_sesi} Sesi
+                </div>
+                <div style="font-size:15px; font-weight:bold; color:#10b981;">
+                    Rp ${fee.toLocaleString('id-ID')}
+                </div>
+            </div>`;
+        });
+
+        totalEl.innerHTML = `Total Fee: Rp ${totalFee.toLocaleString('id-ID')}`;
+        listEl.innerHTML = html || "<p style='color:#64748b;'>Belum ada data rekapan mengajar.</p>";
+
+    } catch (err) {
+        console.error(err);
+        listEl.innerHTML = "Terjadi kesalahan sistem.";
+    }
 }
 
 export async function loadProfilCoach() {
-    const user = localStorage.getItem('loggedInUser');
+    const user = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
     if (!user) return;
 
     try {
