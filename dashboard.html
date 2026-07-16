@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Katalog | SaaS Klub Renang</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0B1120; color: #e2e8f0; }
+  </style>
+</head>
+<body class="min-h-screen p-6 lg:p-12">
+
+  <!-- Header Dashboard -->
+  <header class="max-w-5xl mx-auto mb-12 text-center">
+    <div class="inline-block p-3 bg-blue-900/30 rounded-full mb-4 border border-blue-500/30">
+      <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+    </div>
+    <h1 class="text-3xl lg:text-4xl font-extrabold text-white mb-2">Pilih Modul Sistem Anda</h1>
+    <p class="text-slate-400">Data dummy klub Anda sudah siap. Pilih kerangka yang ingin di-preview.</p>
+  </header>
+
+  <!-- Katalog 4 Modul -->
+  <main class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+    
+    <!-- Modul 1 -->
+    <div class="bg-[#151E32] border border-slate-700 p-8 rounded-3xl shadow-xl flex flex-col hover:border-blue-500 transition-colors">
+      <h2 class="text-2xl font-bold text-white mb-2">Modul 1: The Starter</h2>
+      <p class="text-slate-400 text-sm mb-6 flex-grow">Informasi basic club, profil pelatih, lokasi, dan tombol WhatsApp. Cocok untuk awalan.</p>
+      <!-- Tombol ini langsung ngarah ke template-1.html -->
+      <a href="/template-1.html" class="block w-full text-center bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-[0_0_15px_rgba(37,99,235,0.4)]">
+        Lihat Preview Dummy
+      </a>
+    </div>
+
+    <!-- Modul 2 -->
+    <div class="bg-[#151E32] border border-slate-700 p-8 rounded-3xl shadow-xl flex flex-col opacity-75 grayscale hover:grayscale-0 transition-all">
+      <h2 class="text-2xl font-bold text-white mb-2">Modul 2: The Registration</h2>
+      <p class="text-slate-400 text-sm mb-6 flex-grow">Tambah jadwal interaktif dan form pendaftaran online otomatis.</p>
+      <button class="w-full bg-slate-700 text-slate-300 cursor-not-allowed font-bold py-3 rounded-xl">Segera Hadir</button>
+    </div>
+
+    <!-- Modul 3 -->
+    <div class="bg-[#151E32] border border-slate-700 p-8 rounded-3xl shadow-xl flex flex-col opacity-75 grayscale hover:grayscale-0 transition-all">
+      <h2 class="text-2xl font-bold text-white mb-2">Modul 3: The Academy</h2>
+      <p class="text-slate-400 text-sm mb-6 flex-grow">Tambah Leaderboard (Personal Best), galeri latihan, dan absensi atlet.</p>
+      <button class="w-full bg-slate-700 text-slate-300 cursor-not-allowed font-bold py-3 rounded-xl">Segera Hadir</button>
+    </div>
+
+    <!-- Modul 4 (Raja Terakhir) -->
+    <div class="bg-gradient-to-br from-[#1E293B] to-[#0F172A] border border-yellow-500/50 p-8 rounded-3xl shadow-xl flex flex-col relative overflow-hidden opacity-75 grayscale hover:grayscale-0 transition-all">
+      <div class="absolute top-0 right-0 bg-yellow-500 text-yellow-950 text-[10px] font-extrabold px-3 py-1 rounded-bl-lg tracking-wider">RAJA TERAKHIR</div>
+      <h2 class="text-2xl font-bold text-yellow-500 mb-2">Modul 4: Final Boss</h2>
+      <p class="text-slate-400 text-sm mb-6 flex-grow">All-in-one system. Member area murid, rapor evaluasi, e-commerce merchandise custom klub.</p>
+      <button class="w-full bg-slate-700 text-slate-300 cursor-not-allowed font-bold py-3 rounded-xl">Segera Hadir</button>
+    </div>
+
+  </main>
+</body>
+</html>
