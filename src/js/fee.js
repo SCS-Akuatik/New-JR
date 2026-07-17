@@ -9,14 +9,23 @@ export async function initDropdownCoach() {
     const selectFee = document.getElementById('fee-nama');
     
     try {
-        // Ambil data asli dari master data Coach
-        const { data } = await sb.from('users').select('username').eq('role', 'coach');
-        let options = '<option value="">Pilih Coach...</option>';
-        data?.forEach(c => { options += `<option value="${c.username}">${c.username}</option>`; });
+        // FIX: Tarik data langsung dari tabel master 'coach', bukan 'users'
+        const { data, error } = await sb.from('coach')
+            .select('nama_coach')
+            .order('nama_coach', { ascending: true });
 
-        if(selectCoach) selectCoach.innerHTML = options;
-        if(selectFee) selectFee.innerHTML = options;
-    } catch(e) { console.error(e); }
+        if (error) throw error;
+
+        let options = '<option value="">Pilih Coach...</option>';
+        data?.forEach(c => { 
+            options += `<option value="${c.nama_coach}">${c.nama_coach}</option>`; 
+        });
+
+        if (selectCoach) selectCoach.innerHTML = options;
+        if (selectFee) selectFee.innerHTML = options;
+    } catch(e) { 
+        console.error("Gagal muat dropdown coach:", e); 
+    }
 }
 
 export async function loadFeeAdmin() {

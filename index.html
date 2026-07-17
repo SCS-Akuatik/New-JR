@@ -51,9 +51,14 @@
     <!-- ========================================== -->
     <div id="page-login" class="min-h-screen bg-slate-50 flex items-center justify-center p-4 relative overflow-hidden transition-all duration-300">
         
-        <!-- DECORATIVE BACKGROUND OMBAK (UDAH MUNCUL) -->
-        <div class="absolute inset-0 w-full h-full overflow-hidden z-0 opacity-10 pointer-events-none">
-            <svg viewBox="0 0 1440 320" preserveAspectRatio="none" class="absolute top-0 w-full h-full text-sky-600 fill-current">
+        <!-- DECORATIVE BACKGROUND OMBAK & LOGO RAKSASA -->
+        <div class="absolute inset-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+            
+            <!-- LOGO JR RAKSASA TRANSPARAN -->
+            <img src="/images/logo.png" alt="Background Logo" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[150%] md:w-[80%] max-w-[900px] opacity-[0.03] object-contain">
+
+            <!-- SVG OMBAK BIRU -->
+            <svg viewBox="0 0 1440 320" preserveAspectRatio="none" class="absolute top-0 w-full h-full text-sky-600 fill-current opacity-10">
                 <path d="M0,192L48,176C96,160,192,128,288,138.7C384,149,480,203,576,213.3C672,224,768,192,864,165.3C960,139,1056,117,1152,128C1248,139,1344,181,1392,202.7L1440,224L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
             </svg>
         </div>
@@ -223,10 +228,12 @@
                 <button onclick="pindahHalaman('admin-modul-coach'); loadCoachAdmin(); if(typeof initDropdownCoach === 'function') initDropdownCoach();" class="bg-slate-700 hover:bg-slate-800 text-white p-4 rounded-xl font-bold text-left shadow-sm">👔 2. Jadwal Coach</button>
                 <button onclick="pindahHalaman('admin-modul-katalog'); loadKatalogAdmin();" class="bg-emerald-600 hover:bg-emerald-700 text-white p-4 rounded-xl font-bold text-left shadow-sm">📋 3. Katalog Program</button>
                 <button onclick="pindahHalaman('admin-modul-siswa'); loadSiswaAdmin(); if(typeof loadDropdownMuridForWali === 'function') loadDropdownMuridForWali();" class="bg-amber-500 hover:bg-amber-600 text-white p-4 rounded-xl font-bold text-left shadow-sm">👥 4. Data Master Siswa</button>
-                <button onclick="pindahHalaman('admin-modul-fee'); loadFeeAdmin(); if(typeof initDropdownCoach === 'function') initDropdownCoach(); loadRekapFee();" class="bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-xl font-bold text-left shadow-sm">💰 5. Manajemen Fee</button>
+                <button onclick="pindahHalaman('admin-modul-fee'); loadAntreanFeeAdmin(); loadFeeAdmin(); if(typeof initDropdownCoach === 'function') initDropdownCoach(); loadRekapFee();" class="bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-xl font-bold text-left shadow-sm">💰 5. Manajemen Fee</button>
                 <button onclick="pindahHalaman('admin-modul-akunting'); loadAkuntingAdmin();" class="bg-red-600 hover:bg-red-700 text-white p-4 rounded-xl font-bold text-left shadow-sm">📊 6. Arus Kas (Akunting)</button>
             </div>
-            <button onclick="pindahHalaman('page-login')" class="w-full mt-6 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold shadow-md">🚪 Logout Sistem</button>
+            
+            <!-- TOMBOL LOGOUT FIX CACHE -->
+            <button onclick="localStorage.clear(); pindahHalaman('page-login')" class="w-full mt-6 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold shadow-md">🚪 Logout Sistem</button>
         </div>
     </div>
 
@@ -384,6 +391,17 @@
     <div id="admin-modul-fee" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
         <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Manajemen Coach & Rekap Fee</h2>
         
+        <!-- INBOX ANTREAN FEE (BARU DITAMBAHKAN) -->
+        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl mb-4 shadow-sm">
+            <div class="flex justify-between items-center mb-3">
+                <label class="block text-xs font-bold text-emerald-800">📥 INBOX LAPORAN KELAS SELESAI:</label>
+                <button onclick="loadAntreanFeeAdmin()" class="bg-emerald-200 hover:bg-emerald-300 text-emerald-800 text-[10px] font-bold px-2 py-1 rounded">🔄 Refresh</button>
+            </div>
+            <div id="admin-antrean-fee-list" class="max-h-60 overflow-y-auto space-y-2">
+                <p class="text-center text-xs text-slate-500 italic">Memuat laporan masuk...</p>
+            </div>
+        </div>
+
         <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl mb-4">
             <label class="block text-xs font-bold text-amber-800 mb-2">👨‍🏫 REGISTRASI MASTER COACH:</label>
             <div class="grid grid-cols-2 gap-2 mb-2">
@@ -475,7 +493,9 @@
                 <button onclick="pindahHalaman('coach-modul-assessment'); loadCoachAssessment();" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-4 rounded-xl text-left border border-slate-200">📝 3. Assessment Siswa</button>
                 <button onclick="pindahHalaman('coach-modul-profil'); loadProfilCoach();" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-4 rounded-xl text-left border border-slate-200">👤 4. Profil & Foto Coach</button>
             </div>
-            <button onclick="pindahHalaman('page-login')" class="w-full mt-6 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold">Logout ⬅</button>
+            
+            <!-- TOMBOL LOGOUT FIX CACHE -->
+            <button onclick="localStorage.clear(); pindahHalaman('page-login')" class="w-full mt-6 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold">Logout ⬅</button>
         </div>
     </div>
 
@@ -587,7 +607,8 @@
             
             <div id="parent-area-sertifikat" class="mt-4"></div>
 
-            <button onclick="pindahHalaman('page-login')" class="w-full mt-6 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold">Logout Sistem ⬅</button>
+            <!-- TOMBOL LOGOUT FIX CACHE -->
+            <button onclick="localStorage.clear(); pindahHalaman('page-login')" class="w-full mt-6 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold">Logout Sistem ⬅</button>
         </div>
     </div>
 
@@ -669,7 +690,8 @@
                     <button onclick="masukRuangDewa('dashboard-coach')" class="bg-sky-600 hover:bg-sky-700 text-white font-bold p-3 rounded-xl shadow-sm">🚪 Coach Master</button>
                 </div>
                 
-                <button onclick="pindahHalaman('page-login')" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl mt-6 shadow-md">🚪 Logout Sistem ⬅</button>
+                <!-- TOMBOL LOGOUT FIX CACHE -->
+                <button onclick="localStorage.clear(); pindahHalaman('page-login')" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl mt-6 shadow-md">🚪 Logout Sistem ⬅</button>
             </div>
         </div>
     </div>
