@@ -22,11 +22,10 @@
     <meta property="og:image:height" content="800">
     <!-- ========================================================== -->
     
-    <!-- 1. Panggil library Supabase -->
+    <!-- 1. Panggil library Supabase dari CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- 2. Panggil file JS utama lu yang nyimpen variabel 'sb' -->
-    <script src="js/config.js"></script>
+    <!-- HAPUS SCRIPT config.js AGAR TIDAK ERROR 404 DI PUBLIC FOLDER -->
 
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #e0f2fe; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; box-sizing: border-box; }
@@ -92,7 +91,16 @@
     </div>
 
     <script>
+        // =========================================================
+        // 1. INISIALISASI KONEKSI SUPABASE HARDCODE (TANPA .ENV)
+        // =========================================================
+        const supabaseUrl = "https://xwqdkvxythrewgjxhiru.supabase.co";
+        const supabaseKey = "sb_publishable_xfjCBEL-Hf77z-ssKaeZbg_-Or1pIML";
+        const sb = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // =========================================================
         // FUNGSI TAMBAH KOLOM ANAK DINAMIS
+        // =========================================================
         function tambahKolomAnak() {
             const container = document.getElementById('container-anak');
             const total = container.querySelectorAll('.box-anak').length + 1;
@@ -114,6 +122,9 @@
             container.insertAdjacentHTML('beforeend', html);
         }
 
+        // =========================================================
+        // FUNGSI KIRIM DATA KE SUPABASE
+        // =========================================================
         async function kirimData() {
             // Kumpulkan data semua anak
             const container = document.getElementById('container-anak');

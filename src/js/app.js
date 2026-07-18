@@ -97,6 +97,13 @@ export function pindahHalaman(idTarget, pushState = true) {
     }
 
     // 👇 SENSOR PEMATIK SEMUA MODUL ADMIN 👇
+    
+    // --- TRIGGER BARU DITAMBAHKAN DI SINI ---
+    if (idTarget === 'dashboard-admin' && typeof window.loadPendingPendaftaran === "function") {
+        window.loadPendingPendaftaran();
+    }
+    // ----------------------------------------
+
     if (idTarget === 'admin-modul-beginner' && typeof window.loadJadwalAdmin === "function") window.loadJadwalAdmin();
     
     if (idTarget === 'admin-modul-coach' && typeof window.loadCoachAdmin === "function") {
