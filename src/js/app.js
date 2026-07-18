@@ -18,16 +18,82 @@ if ('serviceWorker' in navigator) {
 }
 
 export function pindahHalaman(idTarget, pushState = true) {
+    // 1. Sembunyikan semua halaman terlebih dahulu
     document.querySelectorAll('.dashboard, .card, .dashboard-wide, [id^="page-"], [id^="dashboard-"], [id^="admin-modul-"], [id^="owner-modul-"], [id^="coach-modul-"], [id^="parent-modul-"]')
         .forEach(el => {
             el.classList.add('hidden');
             el.style.display = 'none'; 
         });
 
+    // 2. Tampilkan halaman target
     const target = document.getElementById(idTarget);
     if (target) {
         target.classList.remove('hidden');
         target.style.display = ''; 
+
+        // ===================================================
+        // 🪄 GSAP MAGIC ANIMATION (SUNTIKAN VISUAL PREMIUM)
+        // ===================================================
+        if (typeof gsap !== 'undefined') {
+            
+            // Animasi untuk Halaman Utama Non-Member
+            if (idTarget === 'page-nonmember') {
+                gsap.killTweensOf("#page-nonmember, #page-nonmember .gsap-item"); 
+                gsap.set("#page-nonmember .gsap-item", { opacity: 0, y: 35 });
+                
+                gsap.timeline()
+                    .fromTo("#page-nonmember", 
+                        { scale: 0.94, opacity: 0 }, 
+                        { scale: 1, opacity: 1, duration: 0.45, ease: "power3.out" }
+                    )
+                    .to("#page-nonmember .gsap-item", {
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.4,
+                        stagger: 0.08, // Efek berjatuhan satu per satu
+                        ease: "power2.out"
+                    }, "-=0.25");
+            }
+            
+            // Animasi untuk Halaman Katalog
+            else if (idTarget === 'page-katalog') {
+                gsap.killTweensOf("#page-katalog, #page-katalog .gsap-katalog-item");
+                gsap.set("#page-katalog .gsap-katalog-item", { opacity: 0, y: 25 });
+                
+                gsap.timeline()
+                    .fromTo("#page-katalog", 
+                        { scale: 0.96, opacity: 0 }, 
+                        { scale: 1, opacity: 1, duration: 0.4, ease: "power2.out" }
+                    )
+                    .to("#page-katalog .gsap-katalog-item", { 
+                        opacity: 1, 
+                        y: 0, 
+                        duration: 0.35, 
+                        stagger: 0.1, 
+                        ease: "power1.out" 
+                    }, "-=0.2");
+            }
+            
+            // Animasi untuk Halaman Jadwal (jika ada id page-jadwal nantinya)
+            else if (idTarget === 'page-jadwal') {
+                gsap.killTweensOf("#page-jadwal, #page-jadwal .gsap-jadwal-item");
+                gsap.set("#page-jadwal .gsap-jadwal-item", { opacity: 0, y: 25 });
+                
+                gsap.timeline()
+                    .fromTo("#page-jadwal", 
+                        { scale: 0.96, opacity: 0 }, 
+                        { scale: 1, opacity: 1, duration: 0.4, ease: "power2.out" }
+                    )
+                    .to("#page-jadwal .gsap-jadwal-item", { 
+                        opacity: 1, 
+                        y: 0, 
+                        duration: 0.35, 
+                        stagger: 0.1, 
+                        ease: "power1.out" 
+                    }, "-=0.2");
+            }
+        }
+        // ===================================================
     }
 
     // 👇 SENSOR PEMATIK SEMUA MODUL ADMIN 👇
