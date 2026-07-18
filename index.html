@@ -50,91 +50,89 @@
     <!-- ========================================== -->
     <!-- 1. LANDING PAGE & LOGIN PORTAL             -->
     <!-- ========================================== -->
-    <!-- Menambahkan h-[100dvh] dan snap-y snap-mandatory khusus di mobile untuk efek pindah halaman -->
-    <div id="page-login" class="h-[100dvh] md:h-auto md:min-h-screen bg-slate-50 overflow-y-auto overflow-x-hidden md:overflow-visible snap-y snap-mandatory md:snap-none relative transition-all duration-300">
+    <div id="page-login" class="h-[100dvh] md:h-auto md:min-h-screen bg-slate-50 overflow-y-auto overflow-x-hidden md:overflow-visible snap-y snap-mandatory md:snap-none relative transition-all duration-300 scroll-smooth">
         
         <!-- DECORATIVE BACKGROUND OMBAK & LOGO RAKSASA -->
-        <!-- Mengubah absolute menjadi fixed di mobile agar ombak tetap diam saat di-scroll -->
         <div class="fixed md:absolute inset-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-            
             <!-- LOGO JR RAKSASA TRANSPARAN -->
             <img src="/images/logo.png" alt="Background Logo" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[150%] md:w-[80%] max-w-[900px] opacity-[0.03] object-contain">
-
             <!-- SVG OMBAK BIRU -->
             <svg viewBox="0 0 1440 320" preserveAspectRatio="none" class="absolute top-0 w-full h-full text-sky-600 fill-current opacity-10">
                 <path d="M0,192L48,176C96,160,192,128,288,138.7C384,149,480,203,576,213.3C672,224,768,192,864,165.3C960,139,1056,117,1152,128C1248,139,1344,181,1392,202.7L1440,224L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
             </svg>
-            
             <!-- BLUR CIRCLES -->
             <div class="absolute -top-24 -right-24 w-96 h-96 bg-sky-200 rounded-full blur-3xl opacity-50 -z-10"></div>
             <div class="absolute bottom-10 -left-20 w-72 h-72 bg-blue-100 rounded-full blur-3xl opacity-60 -z-10"></div>
         </div>
 
         <!-- SPLIT CONTAINER -->
-        <div class="max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-0 md:gap-16 items-stretch md:items-center z-10 relative">
+        <!-- Menghapus h-full di mobile agar Flexbox tidak memaksa menyusut -->
+        <div class="max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-0 md:gap-16 items-stretch md:items-center z-10 relative md:h-full">
 
-            <!-- PAGE 1: MARKETING AREA -->
-            <!-- Tinggi diset min-h-[100dvh] di mobile agar ambil 1 layar penuh, ditambah snap-center -->
-            <div class="w-full md:w-1/2 min-h-[100dvh] md:min-h-0 flex flex-col justify-center snap-center md:snap-align-none text-center md:text-left px-4 py-8 relative">
+            <!-- PAGE 1: MARKETING AREA (100% FIX 1 PAGE) -->
+            <!-- Tambah shrink-0 & snap-always agar tinggi mutlak 100dvh tanpa kompromi -->
+            <div class="w-full md:w-1/2 h-[100dvh] md:h-auto shrink-0 flex flex-col justify-center snap-always snap-center md:snap-align-none text-center md:text-left px-5 relative z-10 box-border">
                 
-                <div class="inline-flex mx-auto md:mx-0 items-center gap-2 bg-white border border-sky-200 text-sky-700 px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wide shadow-sm mb-4">
+                <div class="inline-flex mx-auto md:mx-0 items-center gap-1.5 bg-white border border-sky-200 text-sky-700 px-3 py-1 rounded-full text-[10px] md:text-[11px] font-bold tracking-wide shadow-sm mb-3">
                     <span class="animate-pulse">📍</span> TERSEDIA DI SURABAYA & SIDOARJO
                 </div>
                 
-                <!-- LOGO JR BARU DITAMBAHKAN -->
-                <img src="/images/logo.png" alt="Logo JR" class="w-16 md:w-20 mx-auto md:mx-0 mb-4 drop-shadow-md">
+                <!-- LOGO JR -->
+                <img src="/images/logo.png" alt="Logo JR" class="w-20 md:w-32 mx-auto md:mx-0 mb-3 drop-shadow-md">
                 
-                <h1 class="text-4xl md:text-[2.75rem] font-extrabold text-slate-800 leading-tight">
+                <h1 class="text-3xl md:text-[2.75rem] font-extrabold text-slate-800 leading-tight mb-2 md:mb-0">
                     Berenang Lebih <br class="hidden md:block">
                     <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-blue-700">Aman</span> & Menyenangkan!
                 </h1>
                 
-                <p class="mt-4 text-slate-600 text-sm md:text-base leading-relaxed max-w-md mx-auto md:mx-0">
-                    Les renang terpercaya untuk mencetak jagoan kecil berprestasi. Kami mengutamakan kenyamanan dan kemajuan setiap murid dengan metode personal dari pelatih profesional.
+                <p class="text-slate-600 text-[11px] md:text-base leading-snug max-w-sm mx-auto md:mx-0 px-2 md:px-0 mb-4 mt-1">
+                    Les renang terpercaya mencetak jagoan kecil berprestasi. Mengutamakan kenyamanan dengan metode personal dari pelatih profesional.
                 </p>
 
-                <!-- DUA TOMBOL BARU -->
-                <div class="mt-6 flex flex-row gap-3 max-w-sm mx-auto md:mx-0 w-full">
-                    <!-- Tombol Kiri (Member) -> Memicu Auto-Scroll ke Halaman Login -->
-                    <button onclick="document.getElementById('login-section').scrollIntoView({behavior: 'smooth'})" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-2 rounded-xl shadow-lg transition-all text-xs sm:text-sm flex items-center justify-center gap-1.5 active:scale-95 border border-slate-800">
+                <!-- DUA TOMBOL -->
+                <div class="flex flex-row gap-2 md:gap-3 max-w-sm mx-auto md:mx-0 w-full mb-4 md:mb-8 relative z-20">
+                    <button onclick="document.getElementById('login-section').scrollIntoView({behavior: 'smooth'})" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-2 rounded-xl shadow-lg transition-all text-xs md:text-sm flex items-center justify-center gap-1.5 active:scale-95 border border-slate-800">
                         👤 Member JR
                     </button>
-                    <!-- Tombol Kanan (Non Member) -> Memicu Pindah Halaman Non Member -->
-                    <button onclick="pindahHalaman('page-nonmember')" class="flex-1 bg-white hover:bg-slate-50 text-slate-700 font-bold py-3 px-2 rounded-xl shadow-sm transition-all text-xs sm:text-sm flex items-center justify-center gap-1.5 active:scale-95 border border-slate-200">
+                    <button onclick="pindahHalaman('page-nonmember')" class="flex-1 bg-white hover:bg-slate-50 text-slate-700 font-bold py-3 px-2 rounded-xl shadow-sm transition-all text-xs md:text-sm flex items-center justify-center gap-1.5 active:scale-95 border border-slate-200">
                         👥 Non Member
                     </button>
                 </div>
 
                 <!-- STATISTICS GRID -->
-                <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 border-t border-slate-200 pt-6 max-w-lg mx-auto md:mx-0">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-6 border-t border-slate-200 pt-4 md:pt-6 max-w-lg mx-auto md:mx-0 relative z-0">
                     <div class="bg-white/50 md:bg-transparent rounded-xl p-2 md:p-0">
-                        <strong class="text-2xl md:text-3xl font-black text-slate-800 block">420<span class="text-sky-500">+</span></strong>
-                        <span class="text-[10px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Siswa Aktif</span>
+                        <strong class="text-xl md:text-3xl font-black text-slate-800 block leading-none mb-1">420<span class="text-sky-500">+</span></strong>
+                        <span class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Siswa Aktif</span>
                     </div>
                     <div class="bg-white/50 md:bg-transparent rounded-xl p-2 md:p-0">
-                        <strong class="text-2xl md:text-3xl font-black text-slate-800 flex items-center justify-center md:justify-start gap-1">4.9<span class="text-amber-400 text-xl md:text-2xl pb-1 drop-shadow-sm">★</span></strong>
-                        <span class="text-[10px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Ulasan Ortu</span>
+                        <strong class="text-xl md:text-3xl font-black text-slate-800 flex items-center justify-center md:justify-start gap-0.5 leading-none mb-1">4.9<span class="text-amber-400 text-sm md:text-2xl drop-shadow-sm">★</span></strong>
+                        <span class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Ulasan Ortu</span>
                     </div>
                     <div class="bg-white/50 md:bg-transparent rounded-xl p-2 md:p-0">
-                        <strong class="text-2xl md:text-3xl font-black text-slate-800 block">12<span class="text-sky-500">+</span></strong>
-                        <span class="text-[10px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Coach Ahli</span>
+                        <strong class="text-xl md:text-3xl font-black text-slate-800 block leading-none mb-1">12<span class="text-sky-500">+</span></strong>
+                        <span class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Coach Ahli</span>
                     </div>
                     <div class="bg-white/50 md:bg-transparent rounded-xl p-2 md:p-0">
-                        <strong class="text-2xl md:text-3xl font-black text-slate-800 block">5<span class="text-sky-500">+</span></strong>
-                        <span class="text-[10px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Lokasi Kolam</span>
+                        <strong class="text-xl md:text-3xl font-black text-slate-800 block leading-none mb-1">5<span class="text-sky-500">+</span></strong>
+                        <span class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Lokasi Kolam</span>
                     </div>
                 </div>
-                
-                <!-- Indikator panah bawah yang berkedip, khusus view mobile -->
-                <div class="md:hidden absolute bottom-6 left-1/2 transform -translate-x-1/2 animate-bounce text-slate-400 text-2xl cursor-pointer" onclick="document.getElementById('login-section').scrollIntoView({behavior: 'smooth'})">
-                    <span class="block rotate-90 leading-none">👉</span>
+
+                <!-- PANAH MENGAMBANG DI POJOK KANAN BAWAH -->
+                <div class="md:hidden absolute bottom-6 right-5 z-30 animate-bounce cursor-pointer opacity-90" onclick="document.getElementById('login-section').scrollIntoView({behavior: 'smooth'})">
+                    <div class="bg-slate-800/90 p-2.5 rounded-full shadow-lg backdrop-blur-md border border-slate-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                    </div>
                 </div>
 
             </div>
 
-            <!-- PAGE 2: LOGIN PORTAL -->
-            <!-- Tinggi diset min-h-[100dvh] agar snap-center me-lock kotak ini di tengah persis pada mobile -->
-            <div id="login-section" class="w-full md:w-1/2 min-h-[100dvh] md:min-h-0 flex flex-col justify-center snap-center md:snap-align-none px-4 py-8 relative">
+            <!-- PAGE 2: LOGIN PORTAL (FIX 1 PAGE JUGA) -->
+            <!-- Tambah shrink-0 & snap-always agar tidak ngintip ke halaman 1 -->
+            <div id="login-section" class="w-full md:w-1/2 h-[100dvh] md:min-h-0 shrink-0 flex flex-col justify-center snap-always snap-center md:snap-align-none px-4 relative z-20 box-border">
                 <div class="bg-white px-8 pb-8 pt-12 rounded-[2rem] shadow-xl w-full max-w-md mx-auto border border-slate-100 relative">
                     
                     <div class="absolute top-0 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] font-bold uppercase tracking-widest px-8 py-2 rounded-b-xl shadow-sm z-20 whitespace-nowrap">
@@ -185,6 +183,7 @@
 
         </div>
     </div>
+
 
     <!-- ========================================== -->
     <!-- 2. GUEST / NON-MEMBER AREA                 -->
