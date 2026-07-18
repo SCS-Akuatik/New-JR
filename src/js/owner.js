@@ -450,6 +450,32 @@ export async function simpanRahasiaUsers(uid) {
         btn.innerText = "💾";
     }
 }
+// =========================================================
+// FUNGSI BERSIHKAN CCTV / LOG
+// =========================================================
+export async function bersihkanLog() {
+    // Kasih peringatan dulu biar nggak kepencet ga sengaja
+    if (!confirm("🚨 PERINGATAN! Anda yakin ingin menghapus SELURUH riwayat CCTV? Data tidak bisa dikembalikan!")) return;
+
+    const tbody = document.getElementById('tabel-body-owner-log');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="3" class="text-center p-4">⏳ Sedang membumihanguskan data...</td></tr>';
+
+    try {
+        // Trik Supabase: Untuk hapus semua isi tabel, kita filter "waktu_login yang tidak null" (berlaku untuk semua data)
+        const { error } = await sb.from('login_logs')
+                                  .delete()
+                                  .not('waktu_login', 'is', null);
+        
+        if (error) throw error;
+        
+        alert("✅ Riwayat CCTV berhasil dibersihkan tanpa sisa!");
+        loadLoginLogs(); // Otomatis refresh tabel biar langsung kelihatan kosong
+    } catch (err) {
+        console.error("Gagal bersihkan log:", err);
+        alert("Gagal membersihkan log: " + err.message);
+        loadLoginLogs(); // Refresh untuk balikin data kalau ternyata gagal
+    }
+}
 
 // ==========================================
 // DAFTARKAN SEMUA KE GLOBAL WINDOW
@@ -467,3 +493,4 @@ window.loadRahasiaMurid = loadRahasiaMurid;
 window.simpanRahasiaMurid = simpanRahasiaMurid;
 window.loadRahasiaUsers = loadRahasiaUsers;
 window.simpanRahasiaUsers = simpanRahasiaUsers;
+window.bersihkanLog = bersihkanLog;

@@ -162,7 +162,24 @@ window.addEventListener('popstate', function(event) {
     if (event.state && event.state.page) pindahHalaman(event.state.page, false);
     else pindahHalaman('page-login', false);
 });
-document.addEventListener("DOMContentLoaded", () => { history.replaceState({ page: 'page-login' }, "", "#page-login"); });
+
+// SAAT WEB PERTAMA KALI DIBUKA (SUNTIKAN DETEKSI LINK DIRECT)
+document.addEventListener("DOMContentLoaded", () => { 
+    // Tangkap kalau ada link pakai hashtag (contoh: #page-nonmember atau #page-katalog)
+    let hash = window.location.hash.replace('#', '');
+    
+    if (hash) {
+        // Kalau ada hashtag, langsung arahkan ke halaman tersebut 
+        // (Tenang, kalau ada yg iseng nembak #dashboard-admin tetep bakal ke-blokir sama sistem keamanan kasta di atas)
+        pindahHalaman(hash, false);
+        history.replaceState({ page: hash }, "", "#" + hash);
+    } else {
+        // Kalau url bersih tanpa hashtag, default masuk ke landing page login
+        history.replaceState({ page: 'page-login' }, "", "#page-login"); 
+        pindahHalaman('page-login', false);
+    }
+});
+
 
 // DAFTARKAN SEMUA KE WINDOW
 window.pindahHalaman = pindahHalaman;
