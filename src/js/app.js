@@ -3,17 +3,15 @@ import { sb } from './config.js';
 // ===================================================
 // MANTRA PEMBUNUH SERVICE WORKER LAMA (AUTO-CLEAR CACHE)
 // ===================================================
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for (let registration of registrations) {
-            registration.unregister().then(function(boolean) {
-                if (boolean) {
-                    console.log("💀 Service Worker versi lawas berhasil dibunuh paksa!");
-                    // Paksa browser muat ulang dari server, bukan dari cache
-                    window.location.reload(true); 
-                }
-            });
-        }
+// ===================================================
+// PEMBERSIH CACHE LAMA (SILUMAN - ANTI RELOAD LOOP)
+// ===================================================
+// Menghapus sisa cache/memori dari web lama tanpa membunuh Service Worker baru
+if ('caches' in window) {
+    caches.keys().then(function(cacheNames) {
+        cacheNames.forEach(function(cacheName) {
+            caches.delete(cacheName); // Hapus semua ingatan masa lalu
+        });
     });
 }
 
