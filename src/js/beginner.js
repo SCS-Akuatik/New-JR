@@ -14,9 +14,40 @@ export async function bukaJadwalUser() {
         const { data: cfg } = await sb.from('pengaturan').select('nilai').eq('kunci', 'sub_judul_jadwal').single();
         if (cfg && sub) sub.innerText = cfg.nilai;
         
-        // 1. Tarik semua jadwal
-        const { data, error } = await sb.from('jadwal_kelas').select('*').order('hari', { ascending: true });
+        // 1. Tarik semua jadwal (biarkan Supabase tanpa order, kita order di JS)
+        const { data, error } = await sb.from('jadwal_kelas').select('*');
         if (error) throw error;
+
+        // =========================================================
+        // 🪄 SUNTIKAN SORTING JADWAL (HARI & JAM)
+        // =========================================================
+        if (data && data.length > 0) {
+            const urutanHari = {
+                "Senin": 1,
+                "Selasa": 2,
+                "Rabu": 3,
+                "Kamis": 4,
+                "Jumat": 5,
+                "Sabtu": 6,
+                "Minggu": 7
+            };
+
+            data.sort((a, b) => {
+                // 1. Urutkan berdasarkan Hari dulu
+                const indexHariA = urutanHari[a.hari] || 99;
+                const indexHariB = urutanHari[b.hari] || 99;
+
+                if (indexHariA !== indexHariB) {
+                    return indexHariA - indexHariB; // Senin akan selalu di atas Selasa dst.
+                }
+
+                // 2. Jika Harinya sama (misal sama-sama Jumat), urutkan berdasarkan Jam
+                const jamA = a.jam || "00.00";
+                const jamB = b.jam || "00.00";
+                return jamA.localeCompare(jamB); // 08.00 akan di atas 15.00
+            });
+        }
+        // =========================================================
 
         // 2. KELOMPOKKAN BERDASARKAN LOKASI KOLAM (Otak Grouping)
         const jadwalPerKolam = {};
@@ -67,6 +98,7 @@ export async function bukaJadwalUser() {
         container.innerHTML = '<p class="text-red-500 font-bold">🚨 Gagal narik data: ' + e.message + '</p>'; 
     }
 }
+
 
 
 // ===================================================
