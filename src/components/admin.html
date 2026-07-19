@@ -1,0 +1,271 @@
+    <!-- ===================================== -->
+    <!-- 3. DASHBOARD ADMIN & MODULNYA         -->
+    <!-- ===================================== -->
+    <div id="dashboard-admin" class="hidden w-full max-w-2xl mt-5">
+        <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100">
+            <h2 class="text-2xl font-bold text-sky-700 mb-2">👨‍💼 Admin Hub</h2>
+            <p class="text-slate-500 mb-4 text-sm">Silakan pilih modul manajemen:</p>
+
+            <div id="admin-notif-pending" class="hidden bg-red-50 border border-red-200 p-4 rounded-xl mb-4">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-red-600 font-bold text-xs">🚨 CALON JAGOAN BARU:</label>
+                    <button onclick="loadPendingPendaftaran()" class="text-red-500 hover:text-red-700 font-bold">🔄 Refresh</button>
+                </div>
+                <div id="list-pendaftar-pending" class="max-h-60 overflow-y-auto space-y-2"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <button onclick="pindahHalaman('admin-modul-beginner');" class="bg-sky-600 hover:bg-sky-700 text-white p-4 rounded-xl font-bold text-left shadow-sm">🏊‍♂️ 1. Jadwal Beginner</button>
+                <button onclick="pindahHalaman('admin-modul-coach'); loadCoachAdmin(); if(typeof initDropdownCoach === 'function') initDropdownCoach();" class="bg-slate-700 hover:bg-slate-800 text-white p-4 rounded-xl font-bold text-left shadow-sm">👔 2. Jadwal Coach</button>
+                <button onclick="pindahHalaman('admin-modul-katalog'); loadKatalogAdmin();" class="bg-emerald-600 hover:bg-emerald-700 text-white p-4 rounded-xl font-bold text-left shadow-sm">📋 3. Katalog Program</button>
+                <button onclick="pindahHalaman('admin-modul-siswa'); loadSiswaAdmin(); if(typeof loadDropdownMuridForWali === 'function') loadDropdownMuridForWali();" class="bg-amber-500 hover:bg-amber-600 text-white p-4 rounded-xl font-bold text-left shadow-sm">👥 4. Data Master Siswa</button>
+                <button onclick="pindahHalaman('admin-modul-fee'); loadAntreanFeeAdmin(); loadFeeAdmin(); if(typeof initDropdownCoach === 'function') initDropdownCoach(); loadRekapFee();" class="bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-xl font-bold text-left shadow-sm">💰 5. Manajemen Fee</button>
+                <button onclick="pindahHalaman('admin-modul-akunting'); loadAkuntingAdmin();" class="bg-red-600 hover:bg-red-700 text-white p-4 rounded-xl font-bold text-left shadow-sm">📊 6. Arus Kas (Akunting)</button>
+            </div>
+            
+            <!-- TOMBOL LOGOUT FIX CACHE -->
+            <button onclick="localStorage.clear(); pindahHalaman('page-login')" class="w-full mt-6 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold shadow-md">🚪 Logout Sistem</button>
+        </div>
+    </div>
+
+    <div id="admin-modul-beginner" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
+        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Manajemen Beginner Class</h2>
+        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl mb-4">
+            <label class="block text-xs font-bold text-slate-600 mb-2">✍️ EDIT TEXT GREETING/MINGGU INI:</label>
+            <input type="text" id="input-sub-jadwal" placeholder="Jadwal minggu ini..." class="w-full p-2 bg-white border border-slate-300 rounded-lg mb-2">
+            <button onclick="simpanSubJudul()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 rounded-lg">💾 Simpan Teks</button>
+        </div>
+        <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
+            <label class="block text-xs font-bold text-sky-800 mb-2">➕ TAMBAH/EDIT SLOT JADWAL:</label>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <select id="form-hari" class="p-2 border border-slate-300 rounded-lg w-full">
+                    <option value="Senin">Senin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option>
+                    <option value="Kamis">Kamis</option><option value="Jumat">Jumat</option><option value="Sabtu">Sabtu</option><option value="Minggu">Minggu</option>
+                </select>
+                <select id="form-lokasi" class="p-2 border border-slate-300 rounded-lg w-full"><option value="">Memuat Kolam...</option></select>
+            </div>
+            <input type="text" id="form-jam" placeholder="Jam Kelas (cth: 10.00)" class="w-full p-2 border border-slate-300 rounded-lg mb-3">
+            <div class="bg-sky-100 p-3 rounded-lg border border-sky-300">
+                <label class="block text-xs font-bold text-sky-700 mb-2">Pilih Murid (Sisa Sesi > 0):</label>
+                <select id="dropdown-murid-aktif" class="w-full p-2 border border-sky-300 rounded-lg mb-2"><option value="">Memuat Murid...</option></select>
+                <button onclick="tambahMuridKeJadwal()" class="w-full bg-white border border-sky-300 text-sky-700 font-bold py-2 rounded-lg text-sm">➕ Masukkan Murid</button>
+            </div>
+            <input type="text" id="form-peserta" value="Kosong" placeholder="Daftar Murid" class="w-full p-2 mt-3 bg-slate-100 border border-slate-300 rounded-lg" readonly>
+            <input type="hidden" id="murid-to-deduct" value="">
+            <input type="hidden" id="jadwal-edit-id">
+            <button id="btn-jadwal" onclick="simpanJadwal()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 mt-3 rounded-lg shadow-md">⚡ Insert Slot</button>
+        </div>
+        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
+            <label class="block text-xs font-bold text-slate-600 mb-2">📋 LIVE JADWAL AKTIF:</label>
+            <div id="admin-jadwal-list" class="max-h-60 overflow-y-auto"></div>
+        </div>
+        <button onclick="pindahHalaman('dashboard-admin')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Hub</button>
+    </div>
+
+    <div id="admin-modul-coach" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
+        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Jadwal & Penugasan Coach</h2>
+        <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
+            <label class="block text-xs font-bold text-sky-800 mb-2">➕ INPUT JADWAL COACH:</label>
+            <input type="hidden" id="coach-edit-id"> 
+            <select id="coach-nama" class="w-full p-2 border border-slate-300 rounded-lg mb-2"><option value="">Memuat Coach...</option></select>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <select id="coach-hari" class="w-full p-2 border border-slate-300 rounded-lg">
+                    <option value="Senin">Senin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option><option value="Kamis">Kamis</option><option value="Jumat">Jumat</option><option value="Sabtu">Sabtu</option><option value="Minggu">Minggu</option>
+                </select>
+                <input type="time" id="coach-jam" class="w-full p-2 border border-slate-300 rounded-lg">
+            </div>
+            <input type="text" id="coach-lokasi" placeholder="📍 Lokasi Kolam" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
+            <select id="coach-tipe" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
+                <option value="Beginner">Beginner</option><option value="Private">Private</option>
+            </select>
+            
+            <div class="bg-sky-100 p-3 rounded-lg border border-sky-300 mt-2">
+                <label class="block text-xs font-bold text-sky-700 mb-2">Pilih Murid (Bisa lebih dari 1):</label>
+                <select id="coach-murid" class="w-full p-2 border border-sky-300 rounded-lg mb-2"><option value="">-- Pilih Murid Aktif --</option></select>
+                <button onclick="tambahMuridKeListCoach()" class="w-full bg-white border border-sky-300 text-sky-700 font-bold py-2 rounded-lg text-sm mb-2">➕ Tambah Murid</button>
+                <input type="text" id="coach-list-nama" placeholder="Belum ada murid terpilih..." class="w-full p-2 bg-slate-100 border border-slate-300 rounded-lg text-sm font-bold" readonly>
+                <input type="hidden" id="coach-list-id" value="">
+                <button onclick="resetListCoach()" class="w-full bg-red-100 text-red-600 font-bold py-2 rounded-lg mt-2 text-xs">🔄 Reset Pilihan Murid</button>
+            </div>
+            <button id="btn-coach" onclick="simpanJadwalCoach()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 mt-4 rounded-lg shadow-md">⚡ Simpan Penugasan</button>
+        </div>
+        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
+            <label class="block text-xs font-bold text-slate-600 mb-2">📋 JADWAL COACH AKTIF:</label>
+            <div id="admin-coach-list" class="max-h-60 overflow-y-auto"></div>
+        </div>
+        <button onclick="pindahHalaman('dashboard-admin')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Hub</button>
+    </div>
+
+    <div id="admin-modul-katalog" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
+        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Manajemen Katalog Program</h2>
+        <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
+            <label class="block text-xs font-bold text-sky-800 mb-2">➕ TAMBAH/EDIT PROGRAM:</label>
+            <input type="hidden" id="kat-edit-id">
+            <input type="hidden" id="kat-gambar-lama">
+            <input type="text" id="kat-nama" placeholder="Nama Kelas / Program" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
+            <input type="text" id="kat-deskripsi" placeholder="Deskripsi Singkat" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
+            <input type="text" id="kat-harga" placeholder="Harga (Contoh: Rp 500.000)" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
+            <label class="block text-xs font-bold text-slate-500 mb-1 mt-2">Upload Foto Cover:</label>
+            <input type="file" id="kat-file" accept="image/*" class="w-full p-2 border border-slate-300 rounded-lg bg-white mb-4">
+            <button id="btn-katalog" onclick="simpanKatalog()" class="w-full bg-sky-600 text-white font-bold py-3 rounded-lg shadow-md">⚡ Upload Program</button>
+        </div>
+        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
+            <label class="block text-xs font-bold text-slate-600 mb-2">📋 DAFTAR PROGRAM AKTIF:</label>
+            <div id="admin-katalog-list" class="max-h-60 overflow-y-auto"></div>
+        </div>
+        <button onclick="pindahHalaman('dashboard-admin')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Hub</button>
+    </div>
+
+    <div id="admin-modul-siswa" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
+        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Master Data Siswa</h2>
+        
+        <input type="text" id="search-murid" placeholder="🔍 Cari nama murid..." onkeyup="filterMurid()" class="w-full p-3 bg-slate-100 border border-slate-300 rounded-lg mb-4">
+        
+        <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
+            <label class="block text-xs font-bold text-sky-800 mb-2">➕ REGISTER / EDIT SISWA:</label>
+            <input type="hidden" id="sis-edit-id">
+            <input type="text" id="sis-nama" placeholder="Nama Lengkap Siswa" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
+            <input type="text" id="sis-panggilan" placeholder="Nama Panggilan (Utk Absen)" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
+            <input type="number" id="sis-wa" placeholder="Nomor WA Ortu (Cth: 0812...)" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
+            
+            <label class="block text-xs font-bold text-slate-500 mb-1 mt-2">Tanggal Lahir Siswa:</label>
+            <input type="date" id="sis-tgl-lahir" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
+            
+            <select id="sis-status" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
+                <option value="Aktif">Aktif</option>
+                <option value="Tidak Aktif">Tidak Aktif</option>
+            </select>
+            
+            <div class="grid grid-cols-2 gap-2 mb-2 mt-2">
+                <input type="text" id="sis-paket" placeholder="Jenis Paket" oninput="autoHitungExpiredSiswa()" class="p-2 border border-slate-300 rounded-lg w-full">
+                <input type="number" id="sis-sesi" placeholder="Sisa Sesi" class="p-2 border border-slate-300 rounded-lg w-full">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <div>
+                    <label class="block text-xs font-bold text-sky-700 mb-1">🗓️ Mulai Sesi 1:</label>
+                    <input type="date" id="sis-sesi-1" onchange="autoHitungExpiredSiswa()" class="w-full p-2 border border-slate-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-red-600 mb-1">⏳ Batas Expired:</label>
+                    <input type="date" id="sis-expired" class="w-full p-2 border border-red-300 bg-red-50 text-red-700 font-bold rounded-lg">
+                </div>
+            </div>
+            <button id="btn-simpan-siswa" onclick="simpanSiswa()" class="w-full bg-sky-600 text-white font-bold py-3 rounded-lg shadow-md">⚡ Simpan Siswa</button>
+        </div> 
+
+        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl mb-4">
+            <label class="block text-xs font-bold text-slate-600 mb-2">👥 DATA MURID & AUTO INVOICE:</label>
+            <div id="admin-siswa-list" class="max-h-80 overflow-y-auto space-y-2"></div>
+        </div>
+
+        <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl mb-4">
+            <label class="block text-xs font-bold text-amber-800 mb-2">👨‍👩‍👧 BUAT AKUN WALI MURID:</label>
+            <select id="form-wali-murid" class="w-full p-2 border border-amber-300 rounded-lg mb-2"><option value="">Memuat Daftar Murid...</option></select>
+            <input type="text" id="form-wali-user" placeholder="Username Ortu (cth: ortu.kenzo)" class="w-full p-2 border border-amber-300 rounded-lg mb-2">
+            <input type="text" id="form-wali-pass" placeholder="Password (cth: 123456)" class="w-full p-2 border border-amber-300 rounded-lg mb-3">
+            <button onclick="buatAkunWali()" class="w-full bg-amber-600 text-white font-bold py-2 rounded-lg">🔑 Create Akun & Hubungkan</button>
+        </div>
+
+        <div class="bg-yellow-50 border border-yellow-300 p-4 rounded-xl">
+            <label class="block text-xs font-bold text-yellow-800 mb-2">🏆 INPUT PRESTASI SISWA:</label>
+            <select id="prestasi-murid" class="w-full p-2 border border-yellow-300 rounded-lg mb-2"><option value="">Memuat Daftar Murid...</option></select>
+            <input type="text" id="prestasi-event" placeholder="Nama Event (cth: Kejurda 2026)" class="w-full p-2 border border-yellow-300 rounded-lg mb-2">
+            <input type="text" id="prestasi-pencapaian" placeholder="Pencapaian (cth: Juara 1)" class="w-full p-2 border border-yellow-300 rounded-lg mb-2">
+            <input type="date" id="prestasi-tanggal" class="w-full p-2 border border-yellow-300 rounded-lg mb-3">
+            <button onclick="simpanPrestasiAdmin()" class="w-full bg-yellow-600 text-white font-bold py-2 rounded-lg">💾 Simpan Prestasi</button>
+        </div>
+
+        <button onclick="pindahHalaman('dashboard-admin')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Hub</button>
+    </div>
+
+    <div id="admin-modul-fee" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
+        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Manajemen Coach & Rekap Fee</h2>
+        
+        <!-- INBOX ANTREAN FEE (BARU DITAMBAHKAN) -->
+        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl mb-4 shadow-sm">
+            <div class="flex justify-between items-center mb-3">
+                <label class="block text-xs font-bold text-emerald-800">📥 INBOX LAPORAN KELAS SELESAI:</label>
+                <button onclick="loadAntreanFeeAdmin()" class="bg-emerald-200 hover:bg-emerald-300 text-emerald-800 text-[10px] font-bold px-2 py-1 rounded">🔄 Refresh</button>
+            </div>
+            <div id="admin-antrean-fee-list" class="max-h-60 overflow-y-auto space-y-2">
+                <p class="text-center text-xs text-slate-500 italic">Memuat laporan masuk...</p>
+            </div>
+        </div>
+
+        <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl mb-4">
+            <label class="block text-xs font-bold text-amber-800 mb-2">👨‍🏫 REGISTRASI MASTER COACH:</label>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <input type="text" id="form-coach-nama" placeholder="Nama Lengkap Coach" class="w-full p-2 border border-amber-300 rounded-lg">
+                <input type="number" id="form-coach-wa" placeholder="No. WA (cth: 08123...)" class="w-full p-2 border border-amber-300 rounded-lg">
+            </div>
+            <select id="form-coach-spesialisasi" class="w-full p-2 border border-amber-300 rounded-lg mb-4">
+                <option value="All Rounder">All Rounder (Semua Kelas)</option><option value="Beginner Class">Spesialis Beginner</option><option value="Private Class">Spesialis Private</option>
+            </select>
+            <hr class="border-amber-300 border-dashed mb-3">
+            <label class="block text-xs font-bold text-amber-700 mb-2">Akses Login Coach:</label>
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <input type="text" id="form-coach-user" placeholder="Username" class="w-full p-2 border border-amber-300 rounded-lg">
+                <input type="text" id="form-coach-pass" placeholder="Password Login" class="w-full p-2 border border-amber-300 rounded-lg">
+            </div>
+            <button onclick="buatAkunCoach()" class="w-full bg-amber-600 text-white font-bold py-2 rounded-lg shadow">💾 Simpan Coach & Buat Akun</button>
+        </div>
+
+        <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
+            <label class="block text-xs font-bold text-sky-800 mb-2">➕ INPUT RECORD MENGAJAR:</label>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <select id="fee-nama" class="w-full p-2 border border-sky-300 rounded-lg"><option value="">Memuat Coach...</option></select>
+                <select id="fee-jenis" class="w-full p-2 border border-sky-300 rounded-lg">
+                    <option value="Beginner">Beginner Class</option><option value="Private">Private Class</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <input type="text" id="fee-murid" placeholder="Nama Murid (Cth: Kenzo)" class="w-full p-2 border border-sky-300 rounded-lg">
+                <input type="date" id="fee-tanggal" class="w-full p-2 border border-sky-300 rounded-lg">
+            </div>
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <input type="number" id="fee-sesi" placeholder="Jml Sesi" class="w-full p-2 border border-sky-300 rounded-lg">
+                <input type="number" id="fee-total" placeholder="Total (Rp)" class="w-full p-2 border border-sky-300 rounded-lg">
+            </div>
+            <button onclick="tambahFee()" class="w-full bg-sky-600 text-white font-bold py-3 rounded-lg shadow">⚡ Rekap Gaji</button>
+        </div>
+
+        <div id="rekap-fee-container" class="mb-4"></div>
+        
+        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
+            <label class="block text-xs font-bold text-slate-600 mb-2">💰 REKAPAN FEE TERKINI:</label>
+            <div id="admin-fee-list" class="max-h-48 overflow-y-auto space-y-2"></div>
+        </div>
+        
+        <button onclick="pindahHalaman('dashboard-admin')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Hub</button>
+    </div>
+
+    <div id="admin-modul-akunting" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
+        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">📊 Laporan Akunting (Cashflow)</h2>
+        
+        <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
+            <label class="block text-xs font-bold text-sky-800 mb-2">➕ INPUT ARUS KAS:</label>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <input type="date" id="akun-tanggal" class="w-full p-2 border border-sky-300 rounded-lg">
+                <select id="akun-jenis" class="w-full p-2 border border-sky-300 rounded-lg">
+                    <option value="Pemasukan">Pemasukan</option><option value="Pengeluaran">Pengeluaran</option>
+                </select>
+            </div>
+            <input type="text" id="akun-ket" placeholder="Keterangan Transaksi" class="w-full p-2 border border-sky-300 rounded-lg mb-2">
+            <input type="number" id="akun-jumlah" placeholder="Jumlah (Rupiah)" class="w-full p-2 border border-sky-300 rounded-lg mb-3">
+            <button onclick="tambahAkunting()" class="w-full bg-sky-600 text-white font-bold py-3 rounded-lg shadow-md">💾 Simpan Transaksi</button>
+        </div>
+
+        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl mb-4">
+            <label class="block text-xs font-bold text-slate-600 mb-2">🧾 INVOICE TERCETAK (HISTORY)</label>
+            <div id="admin-invoice-list" class="max-h-60 overflow-y-auto text-sm space-y-2"><p>Memuat invoice...</p></div>
+        </div>
+
+        <div class="mb-4" id="rekap-akunting-container">Memuat rekap...</div>
+
+        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
+            <label class="block text-xs font-bold text-slate-600 mb-2">📒 JURNAL ARUS KAS</label>
+            <div id="admin-akunting-list" class="max-h-60 overflow-y-auto space-y-2">Memuat...</div>
+        </div>
+        <button onclick="pindahHalaman('dashboard-admin')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Hub</button>
+    </div>

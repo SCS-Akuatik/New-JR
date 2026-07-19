@@ -1,0 +1,108 @@
+    <!-- ===================================== -->
+    <!-- 7. SEMUA MODAL (POPUP)                -->
+    <!-- ===================================== -->
+    <div id="modal-katalog-detail" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex justify-center items-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden relative">
+            <span onclick="document.getElementById('modal-katalog-detail').classList.add('hidden')" class="absolute top-3 right-4 cursor-pointer text-2xl font-bold text-red-500 bg-white w-8 h-8 rounded-full text-center leading-8 shadow-md z-10">&times;</span>
+            <img id="modal-kat-img" src="" class="w-full h-48 object-cover bg-slate-200">
+            <div class="p-5">
+                <h3 id="modal-kat-nama" class="text-xl font-bold text-sky-700 mb-1">Nama Program</h3>
+                <p id="modal-kat-desc" class="text-sm text-slate-600 mb-4 leading-relaxed">Deskripsi program...</p>
+                <div id="modal-kat-harga" class="text-lg font-bold text-emerald-500 mb-4">Rp 0</div>
+                <button id="btn-wa-katalog" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-lg shadow-md">💬 Tanya via WhatsApp</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-daftar-beginner" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex justify-center items-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-sky-600 p-4 text-center relative shrink-0">
+                <h3 class="m-0 text-white font-bold tracking-wide">FORM PENDAFTARAN</h3>
+                <p class="m-0 text-xs text-sky-200 mt-1">Kelas Beginner Jago Renang Academy</p>
+                <span onclick="tutupModalDaftarBeginner()" class="absolute top-2 right-4 text-2xl text-white hover:text-sky-200 font-bold cursor-pointer">&times;</span>
+            </div>
+            <div class="p-5 text-sm text-slate-700 overflow-y-auto">
+                <div class="space-y-3 mb-4">
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">NAMA LENGKAP ANAK:</label><input type="text" id="reg-nama" class="w-full p-2 border border-slate-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">NAMA PANGGILAN (Untuk Absen):</label><input type="text" id="reg-panggilan" class="w-full p-2 border border-slate-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">TANGGAL LAHIR:</label><input type="date" id="reg-tgl-lahir" class="w-full p-2 border border-slate-300 rounded-lg"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">NOMOR WHATSAPP (ORTU):</label><input type="number" id="reg-wa" class="w-full p-2 border border-slate-300 rounded-lg"></div>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-2">
+                    <label class="block text-xs font-bold text-sky-600 mb-3">🔑 DATA AKSES LOGIN (NANTI)</label>
+                    <div class="space-y-2">
+                        <div><span class="block text-[10px] font-bold text-slate-500">USERNAME:</span><input type="text" id="reg-user" class="w-full p-2 text-xs border border-slate-300 rounded-lg"></div>
+                        <div><span class="block text-[10px] font-bold text-slate-500">PASSWORD:</span><input type="text" id="reg-pass" class="w-full p-2 text-xs border border-slate-300 rounded-lg"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-2 p-4 pt-0 shrink-0 border-t border-slate-100">
+                <button onclick="tutupModalDaftarBeginner()" class="flex-1 bg-slate-200 text-slate-700 font-bold py-3 rounded-lg">Batal</button>
+                <button id="btn-submit-daftar" onclick="submitPendaftaranOnline()" class="flex-[2] bg-emerald-500 text-white font-bold py-3 rounded-lg shadow-md">🚀 Daftar Sekarang</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-invoice" class="hidden fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm flex justify-center items-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-sky-600 p-4 text-center relative shrink-0">
+                <h3 class="m-0 text-white font-bold tracking-wide">JAGO RENANG ACADEMY</h3>
+                <p class="m-0 text-xs text-sky-200 mt-1">Formulir Penerbitan Tagihan</p>
+                <button onclick="tutupModalInvoice()" class="absolute top-2 right-4 text-2xl text-white hover:text-red-200 font-bold">&times;</button>
+            </div>
+            <div class="p-5 text-sm text-slate-700 overflow-y-auto">
+                <div class="flex justify-between border-b border-dashed border-slate-300 pb-3 mb-4">
+                    <div><span class="block text-[10px] text-slate-500 font-bold">NOMOR INVOICE</span><b id="inv-nomor" class="text-slate-900 text-base">Memuat...</b></div>
+                    <div class="text-right"><span class="block text-[10px] text-slate-500 font-bold">TANGGAL TERBIT</span><b id="inv-tanggal" class="text-slate-900 text-base">-</b></div>
+                </div>
+                <div class="space-y-3 mb-4">
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">KEPADA WALIMURID:</label><input type="text" id="inv-input-nama" class="w-full p-2 border border-slate-300 rounded-lg text-sky-700 font-bold bg-slate-50"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">DESKRIPSI PAKET:</label><input type="text" id="inv-input-paket" class="w-full p-2 border border-slate-300 rounded-lg font-bold bg-slate-50"></div>
+                </div>
+                <div class="flex gap-2 mb-4">
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">BIAYA (Rp):</label>
+                        <input type="number" id="inv-input-biaya" oninput="hitungTotalInvoice()" class="w-full p-2 border border-slate-300 rounded-lg text-right font-bold">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold text-red-500 mb-1">DISKON (Rp):</label>
+                        <input type="number" id="inv-input-diskon" oninput="hitungTotalInvoice()" class="w-full p-2 border border-red-300 rounded-lg text-right font-bold text-red-600 bg-red-50">
+                    </div>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
+                    <label class="block text-xs font-bold text-slate-800 mb-3">📅 JADWAL SESI & EXPIRED</label>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div><span class="text-slate-500">Sesi 1:</span><input type="date" id="inv-sesi-1" onchange="hitungTotalInvoice()" class="w-full p-1 border rounded"></div>
+                        <div><span class="text-slate-500">Sesi 2:</span><input type="date" id="inv-sesi-2" class="w-full p-1 border rounded"></div>
+                        <div><span class="text-slate-500">Sesi 3:</span><input type="date" id="inv-sesi-3" class="w-full p-1 border rounded"></div>
+                        <div><span class="text-slate-500">Sesi 4:</span><input type="date" id="inv-sesi-4" class="w-full p-1 border rounded"></div>
+                    </div>
+                    <div id="inv-info-expired" class="mt-3 text-[10px] text-amber-600 font-bold text-center">Isi Tgl Sesi 1 untuk menghitung masa Expired!</div>
+                </div>
+                <div class="bg-sky-50 p-4 rounded-xl flex justify-between items-center mb-2">
+                    <span class="font-bold text-sky-800">TOTAL TAGIHAN</span>
+                    <h2 id="inv-total-display" class="text-xl font-bold text-sky-600 m-0">Rp 0</h2>
+                </div>
+            </div>
+            <div class="flex gap-2 p-4 pt-0 shrink-0 border-t border-slate-100">
+                <button onclick="tutupModalInvoice()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 rounded-lg">Batal</button>
+                <button onclick="submitInvoiceDatabase()" class="flex-[2] bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-lg shadow-md">💾 Submit & Kirim WA</button>
+            </div>
+            <input type="hidden" id="hidden-inv-murid-id">
+            <input type="hidden" id="hidden-inv-expired-date">
+        </div>
+    </div>
+
+    <div id="modal-detail-fee" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex justify-center items-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[80vh]">
+            <div class="bg-sky-700 text-white p-4 text-center relative shrink-0">
+                <h3 class="m-0 font-bold text-lg">Detail Rekap <span id="detail-fee-nama"></span></h3>
+                <p class="m-0 text-xs text-sky-200 mt-1" id="detail-fee-periode"></p>
+                <span onclick="document.getElementById('modal-detail-fee').classList.add('hidden')" class="absolute top-2 right-4 cursor-pointer text-2xl font-bold">&times;</span>
+            </div>
+            <div id="detail-fee-list" class="p-4 overflow-y-auto text-sm text-slate-700 flex-1 space-y-2">Memuat data...</div>
+            <div class="p-4 bg-slate-50 text-right border-t border-slate-200 font-bold text-lg text-sky-700 shrink-0">
+                Total: <span id="detail-fee-total"></span>
+            </div>
+        </div>
+    </div>
