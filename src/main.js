@@ -9,7 +9,10 @@ import './js/katalog.js';
 import './js/siswa.js';
 import './js/parents.js'; 
 import './js/fee.js';
-import './js/akunting.js';
+import './js/akunting.js'
+// Import logika untuk Admin Freelance
+import './js/admin2.js';
+
 // KULI KASTA TERTINGGI (BOS BESAR) MASUK SINI 👇
 import './js/owner.js';
 // Import kode HTML dari file admin
@@ -42,3 +45,5 @@ import modalHtml from './components/modal.html?raw';
 
 // Suntikkan ke container di index.html
 document.getElementById('modal-container').innerHTML = modalHtml;
+import admin2Html from './components/admin2.html?raw';
+document.getElementById('admin2-container').innerHTML = admin2Html;

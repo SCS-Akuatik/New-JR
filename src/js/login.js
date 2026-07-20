@@ -27,12 +27,26 @@ export async function prosesLogin() {
             localStorage.setItem('username', data.username);
 
             // Arahkan ke ruangan masing-masing
-            if (data.role.includes('owner')) window.pindahHalaman('page-owner');
-            else if (data.role.includes('admin')) window.pindahHalaman('dashboard-admin');
-            else if (data.role.includes('coach')) window.pindahHalaman('dashboard-coach');
-            else if (data.role.includes('parent')) window.pindahHalaman('dashboard-parent');
-            else alert("Role tidak dikenali!");
-        }
+            if (data.role.includes('owner')) {
+                window.pindahHalaman('page-owner');
+            } 
+            else if (data.role.includes('admin2')) {
+                window.pindahHalaman('dashboard-admin2');
+            } 
+            else if (data.role.includes('admin')) {
+                window.pindahHalaman('dashboard-admin');
+            } 
+            else if (data.role.includes('coach')) {
+                window.pindahHalaman('dashboard-coach');
+            } 
+            else if (data.role.includes('parent')) {
+                window.pindahHalaman('dashboard-parent');
+            } 
+            else {
+                alert("Role tidak dikenali!");
+            }
+        } // <-- INI KURUNG KURAWAL YANG TADI HILANG UNTUK MENUTUP BLOK ELSE
+        
     } catch (e) {
         alert("🚨 Terjadi kesalahan sistem saat ngecek akun!");
         console.error(e);

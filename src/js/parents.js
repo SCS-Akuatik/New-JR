@@ -12,7 +12,10 @@ let idAnakAktif = null;
 // ---------------------------------------------------
 export async function initParentDashboard() {
     const parentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
-    document.getElementById('parent-main-menu').style.display = 'none';
+    
+    // PERBAIKAN: Gunakan classList, bukan style.display
+    document.getElementById('parent-main-menu').classList.add('hidden');
+    document.getElementById('status-sesi-container').classList.add('hidden');
     document.getElementById('parent-area-sertifikat').innerHTML = ''; 
     
     try {
@@ -43,20 +46,78 @@ export async function initParentDashboard() {
     }
 }
 
-export function gantiAnakAktif() {
-    const val = document.getElementById('parent-pilih-anak').value;
-    if (!val) {
-        document.getElementById('parent-main-menu').style.display = 'none';
-        document.getElementById('parent-area-sertifikat').innerHTML = ''; 
-        idAnakAktif = null;
+window.gantiAnakAktif = async function() {
+    const pilihAnakEl = document.getElementById('parent-pilih-anak');
+    const muridId = pilihAnakEl.value;
+    const namaAnak = pilihAnakEl.options[pilihAnakEl.selectedIndex].text;
+
+    idAnakAktif = muridId; 
+
+    if (!muridId) {
+        document.getElementById('status-sesi-container').classList.add('hidden');
+        document.getElementById('parent-main-menu').classList.add('hidden');
         return;
     }
-    
-    idAnakAktif = parseInt(val); 
-    document.getElementById('parent-main-menu').style.display = 'block';
-    
-    if (typeof cekSertifikatLevel1 === "function") cekSertifikatLevel1();
-}
+
+    document.getElementById('status-sesi-container').classList.remove('hidden');
+    document.getElementById('parent-main-menu').classList.remove('hidden');
+
+    try {
+        const { data, error } = await sb.from('murid')
+            .select('sisa_sesi, expired_sesi')
+            .eq('id_murid', muridId)
+            .single();
+
+        if (error) throw error;
+
+        let sisaSesi = data.sisa_sesi || 0;
+        let expText = data.expired_sesi ? data.expired_sesi.split('-').reverse().join('/') : '-';
+
+        const alertHabis = document.getElementById('alert-sesi-habis');
+        const alertWarning = document.getElementById('alert-sesi-warning');
+        const alertAman = document.getElementById('alert-sesi-aman');
+
+        // LOGIKA 3 WARNA (Merah / Kuning / Biru)
+        if (sisaSesi <= 0) {
+            alertHabis.classList.remove('hidden');
+            if(alertWarning) alertWarning.classList.add('hidden');
+            alertAman.classList.add('hidden');
+            
+            document.getElementById('angka-sisa-sesi-merah').innerText = sisaSesi;
+            document.getElementById('info-jadwal-terakhir').innerText = expText;
+            
+            const noWaAdmin = "6289678159835"; 
+            const pesanWA = `Halo Admin JR Academy 👋.%0A%0ASaya orang tua dari *${namaAnak}*. Sesi renangnya sudah habis, saya ingin memperpanjang (renew) paket latihannya. Boleh minta tolong dikirimkan tagihannya? Terima kasih.`;
+            document.getElementById('btn-wa-renew').href = `https://wa.me/${noWaAdmin}?text=${pesanWA}`;
+            
+        } else if (sisaSesi <= 2) {
+            alertHabis.classList.add('hidden');
+            if(alertWarning) alertWarning.classList.remove('hidden');
+            alertAman.classList.add('hidden');
+            
+            const elKuning = document.getElementById('angka-sisa-sesi-kuning');
+            if(elKuning) elKuning.innerText = sisaSesi;
+            
+        } else {
+            alertHabis.classList.add('hidden');
+            if(alertWarning) alertWarning.classList.add('hidden');
+            alertAman.classList.remove('hidden');
+            
+            document.getElementById('angka-sisa-sesi-hijau').innerText = sisaSesi;
+        }
+
+        // Jalankan pengecekan progress sertifikat
+        if(typeof cekSertifikatLevel1 === 'function') cekSertifikatLevel1();
+
+    } catch (e) {
+        console.error("Gagal menarik data sisa sesi anak:", e);
+    }
+};
+
+
+window.lanjutRenew = function() {
+    alert("🚀 Fitur Bayar Mandiri sedang disiapkan! Sementara silakan gunakan tombol Chat Admin untuk meminta tagihan.");
+};
 
 // ---------------------------------------------------
 // 1. DATA PERENANG & UPLOAD DOKUMEN
@@ -311,62 +372,6 @@ export async function submitPendaftaranOnline() {
 }
 
 // ---------------------------------------------------
-// 6. UI BADGE SISA SESI & TANGGAL EXPIRED
-// ---------------------------------------------------
-export async function cekSisaSesi() {
-    const dropdown = document.getElementById('parent-pilih-anak'); 
-    if(!dropdown) return;
-    const idMurid = dropdown.value;
-    const badgeBox = document.getElementById('badge-sisa-sesi');
-    if(!badgeBox) return;
-
-    if (!idMurid) {
-        badgeBox.style.display = 'none';
-        return;
-    }
-
-    try {
-        const { data, error } = await sb.from('murid')
-            .select('sisa_sesi, expired_sesi')
-            .eq('id_murid', idMurid)
-            .single();
-
-        if (error) throw error;
-
-        badgeBox.style.display = 'block';
-        
-        let colorAngka = "";
-        if (data.sisa_sesi <= 1) {
-            badgeBox.style.background = '#fee2e2';
-            badgeBox.style.borderColor = '#fca5a5';
-            badgeBox.style.color = '#b91c1c';
-            colorAngka = '#991b1b';
-        } else {
-            badgeBox.style.background = '#e0f2fe';
-            badgeBox.style.borderColor = '#bae6fd';
-            badgeBox.style.color = '#0284c7';
-            colorAngka = '#0369a1';
-        }
-
-        let expText = data.expired_sesi 
-            ? `Berlaku s/d: ${data.expired_sesi.split('-').reverse().join('/')}` 
-            : 'Belum di-set (Hubungi Admin)';
-
-        badgeBox.innerHTML = `
-            <div style="font-size: 13px; margin-bottom: 5px;">
-                🏊‍♂️ Sisa Sesi: <span id="angka-sisa-sesi" style="font-size: 18px; color: ${colorAngka}; font-weight: 900;">${data.sisa_sesi || 0}</span> Pertemuan
-            </div>
-            <div style="font-size: 11px; padding: 4px; background: #fff; border-radius: 4px; border: 1px dashed #fca5a5; color: #ef4444; font-weight: bold; display: inline-block;">
-                ⏳ ${expText}
-            </div>
-        `;
-
-    } catch (err) {
-        console.error("Gagal cek sisa sesi:", err);
-    }
-}
-
-// ---------------------------------------------------
 // 7. FITUR SERTIFIKAT KELULUSAN (AUTO-GENERATE)
 // ---------------------------------------------------
 export async function cekSertifikatLevel1() {
@@ -377,11 +382,12 @@ export async function cekSertifikatLevel1() {
     
     if (!idMurid || !areaSertifikat) return;
 
-    const { data, error } = await sb.from('murid').select('nama_murid, lulus_level_1').eq('id_murid', idMurid).single();
+    const { data, error } = await sb.from('murid').select('nama_murid, lulus_level_1, sisa_sesi').eq('id_murid', idMurid).single();
     
     if (error || !data) return;
 
     if (data.lulus_level_1 === true) {
+        // JIKA SUDAH LULUS (TOMBOL HIJAU UNDUH)
         areaSertifikat.innerHTML = `
         <button onclick="generateSertifikatDummy('${data.nama_murid}')" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: left; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
             <span style="font-size: 14px;">🎓 Kelulusan: Level 1 Basic</span>
@@ -390,14 +396,32 @@ export async function cekSertifikatLevel1() {
         <p style="font-size:10px; color:#10b981; margin-top:5px; text-align:center;">Klik tombol di atas untuk mencetak sertifikat digital.</p>
         `;
     } else {
+        // JIKA BELUM LULUS (GAMIFICATION PROGRESS BAR)
+        // Simulasi progress: Anggap total 1 level = 8 sesi. 
+        // Sesi yang sudah diselesaikan = 8 - sisa sesi saat ini (dibatasi min 0, max 8)
+        let totalSesiLevel = 8;
+        let sisaSesi = data.sisa_sesi || 0;
+        let sesiSelesai = totalSesiLevel - (sisaSesi > totalSesiLevel ? totalSesiLevel : sisaSesi);
+        if (sesiSelesai < 0) sesiSelesai = 0;
+        let progressPercent = (sesiSelesai / totalSesiLevel) * 100;
+        
         areaSertifikat.innerHTML = `
-        <button onclick="alert('Jagoan belum lulus Level 1. Terus semangat berlatih bersama Coach ya!')" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; border: 1px solid #fbbf24; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: left; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <span style="font-size: 14px;">🎓 Kelulusan: Level 1 Basic</span>
-            <span style="font-size: 12px; background: #fffbeb; padding: 4px 8px; border-radius: 12px; color: #b45309; border: 1px solid #fcd34d;">🔒 Locked</span>
-        </button>
+        <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+            <div class="flex justify-between items-end mb-2">
+                <div>
+                    <h4 class="text-sm font-bold text-slate-800">🎓 Kelulusan: Level 1 Basic</h4>
+                    <p class="text-[10px] font-bold text-slate-500 mt-0.5">Progress: <span class="text-amber-600">${sesiSelesai} / ${totalSesiLevel}</span> Sesi menuju kelulusan</p>
+                </div>
+                <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded-lg font-bold border border-slate-200">🔒 Belum Terbuka</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2.5 mt-3 border border-slate-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-amber-400 to-amber-500 h-2.5 rounded-full transition-all duration-1000" style="width: ${progressPercent}%"></div>
+            </div>
+        </div>
         `;
     }
 }
+
 
 export function generateSertifikatDummy(namaAnak) {
     alert("⏳ Sedang mencetak sertifikat emas... Mohon tunggu sebentar.");
@@ -454,6 +478,5 @@ window.loadEventAnak = loadEventAnak;
 window.bukaModalDaftarBeginner = bukaModalDaftarBeginner;
 window.tutupModalDaftarBeginner = tutupModalDaftarBeginner;
 window.submitPendaftaranOnline = submitPendaftaranOnline;
-window.cekSisaSesi = cekSisaSesi;
 window.cekSertifikatLevel1 = cekSertifikatLevel1;
 window.generateSertifikatDummy = generateSertifikatDummy;

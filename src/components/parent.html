@@ -1,81 +1,138 @@
-    <!-- ===================================== -->
-    <!-- 5. DASHBOARD PARENT & MODULNYA        -->
-    <!-- ===================================== -->
-    <div id="dashboard-parent" class="hidden w-full max-w-2xl mt-5">
-        <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100">
-            <h1 class="text-2xl font-bold text-emerald-600 mb-2">Halo Ayah & Bunda! 👋</h1>
-            <p class="text-sm text-slate-500 mb-6">Selamat datang di Dashboard Orang Tua</p>
+<!-- ===================================== -->
+<!-- 5. DASHBOARD PARENT (RENEWAL FOCUSED) -->
+<!-- ===================================== -->
+<div id="dashboard-parent" class="hidden w-full max-w-2xl mt-5 pb-20">
+    <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100">
+        
+        <h1 class="text-2xl font-bold text-emerald-600 mb-2">Halo Ayah & Bunda! 👋</h1>
+        <p class="text-sm text-slate-500 mb-6">Selamat datang di Dashboard Orang Tua</p>
+        
+        <!-- AREA PILIH ANAK & STATUS SESI -->
+        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl mb-6">
+            <label class="block text-xs font-bold text-emerald-700 mb-2">👫 PILIH JAGOAN (ANAK):</label>
+            <select id="parent-pilih-anak" onchange="gantiAnakAktif()" class="w-full p-3 border border-emerald-300 rounded-lg font-bold text-emerald-900 bg-white shadow-sm focus:ring-2 focus:ring-emerald-400 outline-none transition">
+                <option value="">-- Pilih Anak --</option>
+            </select>
             
-            <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl mb-6">
-                <label class="block text-xs font-bold text-emerald-700 mb-2">👫 PILIH JAGOAN (ANAK):</label>
-                <select id="parent-pilih-anak" onchange="gantiAnakAktif(); if(typeof cekSisaSesi === 'function') cekSisaSesi();" class="w-full p-2 border border-emerald-300 rounded-lg font-bold text-emerald-800">
-                    <option value="">-- Pilih Anak --</option>
-                </select>
+            <!-- CONTAINER STATUS SESI -->
+            <div id="status-sesi-container" class="hidden mt-4">
                 
-                <div id="badge-sisa-sesi" class="hidden mt-3 bg-sky-100 border border-sky-300 p-3 rounded-lg text-center text-sky-800 font-bold text-sm">
-                    🏊‍♂️ Sisa Sesi: <span id="angka-sisa-sesi" class="text-xl text-sky-600">0</span> Pertemuan
+                <!-- ALERT 1: SESI AMAN (Biru - >2 Pertemuan) -->
+                <div id="alert-sesi-aman" class="hidden bg-sky-50 border border-sky-200 p-4 rounded-xl text-center shadow-sm transition-all">
+                    <span class="block text-sky-800 font-bold text-xs mb-1">🏊‍♂️ Sisa Sesi Renang</span>
+                    <span id="angka-sisa-sesi-hijau" class="text-3xl font-black text-sky-600">0</span>
+                    <span class="block text-sky-600 text-[10px] font-bold mt-1 uppercase tracking-wider">Pertemuan</span>
+                </div>
+
+                <!-- ALERT 1.5: EARLY WARNING (Kuning/Orange - 1 atau 2 Pertemuan) -->
+                <div id="alert-sesi-warning" class="hidden bg-orange-50 border border-orange-200 p-4 rounded-xl text-center shadow-sm relative overflow-hidden transition-all">
+                    <div class="absolute -right-4 -top-4 text-6xl opacity-10">⚠️</div>
+                    <span class="block text-orange-800 font-bold text-xs mb-1">⚠️ Sisa Sesi Menipis</span>
+                    <span id="angka-sisa-sesi-kuning" class="text-3xl font-black text-orange-600">0</span>
+                    <span class="block text-orange-600 text-[10px] font-bold mt-1 uppercase tracking-wider">Pertemuan</span>
+                    <p class="text-[10px] text-orange-700 mt-2 font-medium">Siap-siap renew agar jadwal latihan tidak terputus ya Bun!</p>
+                </div>
+
+                <!-- ALERT 2: SESI HABIS (Merah - 0 Pertemuan) -->
+                <div id="alert-sesi-habis" class="hidden bg-red-50 border border-red-200 p-4 rounded-xl shadow-sm relative overflow-hidden transition-all">
+                    <div class="absolute -right-4 -top-4 text-6xl opacity-10">⚠️</div>
+                    
+                    <div class="flex items-center gap-2 mb-2 relative z-10">
+                        <span class="text-lg">⚠️</span>
+                        <h3 class="text-red-700 font-black text-sm m-0">Sesi Renang Telah Habis</h3>
+                    </div>
+                    
+                    <div class="relative z-10 mb-4">
+                        <p class="text-red-600 text-xs font-bold mb-1">Sisa Sesi: <span id="angka-sisa-sesi-merah" class="text-base font-black">0</span></p>
+                        <p class="text-slate-500 text-[10px] font-bold">Jadwal Terakhir: <span id="info-jadwal-terakhir">-</span></p>
+                    </div>
+
+                    <div class="flex flex-col gap-2 relative z-10">
+                        <button onclick="lanjutRenew()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-lg text-xs shadow-md transition flex items-center justify-center gap-2">
+                            🚀 RENEW SEKARANG - AMANKAN JADWAL
+                        </button>
+                        <a id="btn-wa-renew" href="#" target="_blank" class="w-full bg-white hover:bg-slate-50 text-slate-600 border border-slate-300 font-bold py-2.5 rounded-lg text-xs text-center transition flex items-center justify-center gap-2 shadow-sm">
+                            💬 Chat Admin JR Academy
+                        </a>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div id="parent-main-menu" class="hidden flex flex-col gap-3">
-                <button onclick="pindahHalaman('parent-modul-profil'); loadProfilAnak();" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-4 rounded-xl text-left border border-slate-200 flex justify-between"><span>👤 1. Data Perenang & Dokumen</span> <span>➡️</span></button>
-                <button onclick="pindahHalaman('parent-modul-assessment'); loadAssessmentAnak();" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-4 rounded-xl text-left border border-slate-200 flex justify-between"><span>📊 2. Lihat Assessment / Progress</span> <span>➡️</span></button>
-                <button onclick="pindahHalaman('parent-modul-prestasi'); loadPrestasiAnak();" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-4 rounded-xl text-left border border-slate-200 flex justify-between"><span>🏆 3. Prestasi & Medali</span> <span>➡️</span></button>
-                <button onclick="pindahHalaman('parent-modul-event'); loadEventAnak();" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-4 rounded-xl text-left border border-slate-200 flex justify-between"><span>📅 4. Schedule Event & Lomba</span> <span>➡️</span></button>
+        <!-- MENU UTAMA (Dengan icon Chevron & Hover Effect modern) -->
+        <div id="parent-main-menu" class="hidden flex flex-col gap-3">
+            <button onclick="pindahHalaman('parent-modul-profil'); loadProfilAnak();" class="group bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold p-4 rounded-xl text-left border border-slate-200 flex justify-between items-center transition-all">
+                <span class="flex items-center gap-3"><span class="text-lg">👤</span> Data Perenang & Dokumen</span> 
+                <span class="text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 font-black transition-all">❯</span>
+            </button>
+            <button onclick="pindahHalaman('parent-modul-assessment'); loadAssessmentAnak();" class="group bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold p-4 rounded-xl text-left border border-slate-200 flex justify-between items-center transition-all">
+                <span class="flex items-center gap-3"><span class="text-lg">📊</span> Lihat Assessment / Progress</span> 
+                <span class="text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 font-black transition-all">❯</span>
+            </button>
+            <button onclick="pindahHalaman('parent-modul-prestasi'); loadPrestasiAnak();" class="group bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold p-4 rounded-xl text-left border border-slate-200 flex justify-between items-center transition-all">
+                <span class="flex items-center gap-3"><span class="text-lg">🏆</span> Prestasi & Medali</span> 
+                <span class="text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 font-black transition-all">❯</span>
+            </button>
+            <button onclick="pindahHalaman('parent-modul-event'); loadEventAnak();" class="group bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold p-4 rounded-xl text-left border border-slate-200 flex justify-between items-center transition-all">
+                <span class="flex items-center gap-3"><span class="text-lg">📅</span> Schedule Event & Lomba</span> 
+                <span class="text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 font-black transition-all">❯</span>
+            </button>
+        </div>
+        
+        <div id="parent-area-sertifikat" class="mt-5"></div>
+
+        <!-- TOMBOL LOGOUT (GHOST STYLE) -->
+        <button onclick="localStorage.clear(); window.location.reload();" class="w-full mt-8 bg-transparent hover:bg-red-50 text-red-500 border border-red-200 py-3 rounded-xl font-bold transition shadow-sm text-sm">
+            🚪 Keluar dari Dashboard
+        </button>
+    </div>
+</div>
+
+<div id="parent-modul-profil" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
+    <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Data Perenang</h2>
+    <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
+        <div class="text-center mb-4">
+            <img id="parent-view-foto" src="/images/default-avatar.png" alt="Foto Profil" class="w-24 h-24 rounded-full mx-auto object-cover border-4 border-sky-400 bg-slate-200 mb-3">
+            <h3 id="parent-nama-anak" class="text-lg font-bold text-slate-800 mb-1">Nama Lengkap</h3>
+            <p id="parent-info-paket" class="text-xs text-slate-500 font-bold">Paket: - | Sisa Sesi: -</p>
+        </div>
+        <div class="border-t pt-4 text-left space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">📸 UPLOAD FOTO PROFIL:</label>
+                <input type="file" id="parent-upload-foto" accept="image/*" class="w-full p-2 border border-slate-300 rounded-lg bg-white">
             </div>
-            
-            <div id="parent-area-sertifikat" class="mt-4"></div>
-
-            <!-- TOMBOL LOGOUT FIX CACHE -->
-            <button onclick="localStorage.clear(); pindahHalaman('page-login')" class="w-full mt-6 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold">Logout Sistem ⬅</button>
-        </div>
-    </div>
-
-    <div id="parent-modul-profil" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Data Perenang</h2>
-        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
-            <div class="text-center mb-4">
-                <img id="parent-view-foto" src="/images/default-avatar.png" alt="Foto Profil" class="w-24 h-24 rounded-full mx-auto object-cover border-4 border-sky-400 bg-slate-200 mb-3">
-                <h3 id="parent-nama-anak" class="text-lg font-bold text-slate-800 mb-1">Nama Lengkap</h3>
-                <p id="parent-info-paket" class="text-xs text-slate-500 font-bold">Paket: - | Sisa Sesi: -</p>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">📄 UPLOAD AKTA LAHIR (Lomba):</label>
+                <input type="file" id="parent-upload-akta" accept="image/*,application/pdf" class="w-full p-2 border border-slate-300 rounded-lg bg-white mb-1">
+                <div id="parent-status-akta" class="text-xs text-red-500 font-bold">Status Akta: Belum Tersedia</div>
             </div>
-            <div class="border-t pt-4 text-left space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">📸 UPLOAD FOTO PROFIL:</label>
-                    <input type="file" id="parent-upload-foto" accept="image/*" class="w-full p-2 border border-slate-300 rounded-lg bg-white">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">📄 UPLOAD AKTA LAHIR (Lomba):</label>
-                    <input type="file" id="parent-upload-akta" accept="image/*,application/pdf" class="w-full p-2 border border-slate-300 rounded-lg bg-white mb-1">
-                    <div id="parent-status-akta" class="text-xs text-red-500 font-bold">Status Akta: Belum Tersedia</div>
-                </div>
-                <button onclick="simpanProfilAnak()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-lg shadow">💾 Simpan & Upload Dokumen</button>
-            </div>
+            <button onclick="simpanProfilAnak()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-lg shadow">💾 Simpan & Upload Dokumen</button>
         </div>
-        <button onclick="pindahHalaman('dashboard-parent')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali</button>
     </div>
+    <button onclick="pindahHalaman('dashboard-parent')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali</button>
+</div>
 
-    <div id="parent-modul-assessment" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Assessment & Progress Report</h2>
-        <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
-            <h3 class="text-sm font-bold text-sky-700 mb-3">🏊‍♂️ Nilai Skill Terkini (0-100)</h3>
-            <div id="parent-assessment-score" class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm font-bold"></div>
-        </div>
-        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
-            <label class="block text-xs font-bold text-slate-600 mb-2">💬 CATATAN DARI COACH:</label>
-            <p id="parent-assessment-catatan" class="italic bg-white p-3 rounded-lg border border-slate-200 text-sm min-h-[50px]">Belum ada catatan dari pelatih.</p>
-        </div>
-        <button onclick="pindahHalaman('dashboard-parent')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali</button>
+<div id="parent-modul-assessment" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
+    <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Assessment & Progress Report</h2>
+    <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
+        <h3 class="text-sm font-bold text-sky-700 mb-3">🏊‍♂️ Nilai Skill Terkini (0-100)</h3>
+        <div id="parent-assessment-score" class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm font-bold"></div>
     </div>
+    <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
+        <label class="block text-xs font-bold text-slate-600 mb-2">💬 CATATAN DARI COACH:</label>
+        <p id="parent-assessment-catatan" class="italic bg-white p-3 rounded-lg border border-slate-200 text-sm min-h-[50px]">Belum ada catatan dari pelatih.</p>
+    </div>
+    <button onclick="pindahHalaman('dashboard-parent')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali</button>
+</div>
 
-    <div id="parent-modul-prestasi" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">🏆 Prestasi Jagoan</h2>
-        <div id="parent-prestasi-list" class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3"></div>
-        <button onclick="pindahHalaman('dashboard-parent')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali</button>
-    </div>
+<div id="parent-modul-prestasi" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
+    <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">🏆 Prestasi Jagoan</h2>
+    <div id="parent-prestasi-list" class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3"></div>
+    <button onclick="pindahHalaman('dashboard-parent')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali</button>
+</div>
 
-    <div id="parent-modul-event" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">📅 Schedule Event & Lomba</h2>
-        <div id="parent-event-list" class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3"></div>
-        <button onclick="pindahHalaman('dashboard-parent')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali</button>
-    </div>
+<div id="parent-modul-event" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
+    <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">📅 Schedule Event & Lomba</h2>
+    <div id="parent-event-list" class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3"></div>
+    <button onclick="pindahHalaman('dashboard-parent')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali</button>
+</div>
