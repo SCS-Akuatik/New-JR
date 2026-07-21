@@ -177,6 +177,9 @@ window.submitInvoiceBaruSpesial = async function(idMurid, nama, wa, user, pass, 
         return;
     }
 
+    // 🔥 TANGKAP IDENTITAS ADMIN YANG LAGI LOGIN 🔥
+    const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
+
     try {
         const { error } = await sb.from('invoices').insert([{
             no_invoice: noInv,
@@ -192,7 +195,8 @@ window.submitInvoiceBaruSpesial = async function(idMurid, nama, wa, user, pass, 
             sesi_3: s3,
             sesi_4: s4,
             expired_sesi: expDate,
-            status: 'Unpaid'
+            status: 'Unpaid',
+            admin_id: currentUser // <--- SUNTIKAN BONUSNYA DI SINI BOS!
         }]);
 
         if (error) {
@@ -221,6 +225,11 @@ window.submitInvoiceBaruSpesial = async function(idMurid, nama, wa, user, pass, 
         
         alert("Invoice Berhasil Disimpan ke Supabase & Link WA Berhasil Dibuat!");
 
+        // Auto-refresh daftar tagihan pending punya si Admin 2
+        if (typeof window.loadPendingInvoiceAdmin2 === 'function') {
+            window.loadPendingInvoiceAdmin2();
+        }
+
         // Kembalikan fungsi tombol asli
         if(btn) {
             btn.innerHTML = "💾 Submit & Kirim WA";
@@ -236,6 +245,7 @@ window.submitInvoiceBaruSpesial = async function(idMurid, nama, wa, user, pass, 
         btn.disabled = false;
     }
 };
+
 
 // ==========================================
 // DAFTARKAN SEMUA HELPER KE GLOBAL WINDOW
