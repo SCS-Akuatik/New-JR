@@ -21,6 +21,7 @@
                 <button onclick="pindahHalaman('admin-modul-siswa'); loadSiswaAdmin(); if(typeof loadDropdownMuridForWali === 'function') loadDropdownMuridForWali();" class="bg-amber-500 hover:bg-amber-600 text-white p-4 rounded-xl font-bold text-left shadow-sm">👥 4. Data Master Siswa</button>
                 <button onclick="pindahHalaman('admin-modul-fee'); loadAntreanFeeAdmin(); loadFeeAdmin(); if(typeof initDropdownCoach === 'function') initDropdownCoach(); loadRekapFee();" class="bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-xl font-bold text-left shadow-sm">💰 5. Manajemen Fee</button>
                 <button onclick="pindahHalaman('admin-modul-akunting'); loadAkuntingAdmin();" class="bg-red-600 hover:bg-red-700 text-white p-4 rounded-xl font-bold text-left shadow-sm">📊 6. Arus Kas (Akunting)</button>
+                <!-- TOMBOL PDF YANG NYASAR DI SINI UDAH DICABUT -->
             </div>
             
             <!-- TOMBOL LOGOUT FIX CACHE -->
@@ -182,7 +183,7 @@
     <div id="admin-modul-fee" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
         <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Manajemen Coach & Rekap Fee</h2>
         
-        <!-- INBOX ANTREAN FEE (BARU DITAMBAHKAN) -->
+        <!-- INBOX ANTREAN FEE -->
         <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl mb-4 shadow-sm">
             <div class="flex justify-between items-center mb-3">
                 <label class="block text-xs font-bold text-emerald-800">📥 INBOX LAPORAN KELAS SELESAI:</label>
@@ -240,8 +241,17 @@
         <button onclick="pindahHalaman('dashboard-admin')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Hub</button>
     </div>
 
+    <!-- ============================================== -->
+    <!-- MODUL AKUNTING - TOMBOL PDF UDAH PINDAH KE SINI! -->
+    <!-- ============================================== -->
     <div id="admin-modul-akunting" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">📊 Laporan Akunting (Cashflow)</h2>
+        
+        <div class="flex justify-between items-center border-b pb-3 mb-4">
+            <h2 class="text-xl font-bold text-slate-800 m-0">📊 Laporan Akunting (Cashflow)</h2>
+            <button onclick="downloadPDFAkunting()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded-lg shadow-sm text-xs flex items-center gap-1.5 transition">
+                📥 Export PDF
+            </button>
+        </div>
         
         <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
             <label class="block text-xs font-bold text-sky-800 mb-2">➕ INPUT ARUS KAS:</label>

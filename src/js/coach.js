@@ -538,7 +538,6 @@ export function clearSearchMurid() {
    MODUL COACH: ASSESSMENT & PROGRESS
 ========================================================= */
 export async function loadCoachAssessment() {
-    // Dropdown tidak diisi lagi karena sudah menggunakan Autocomplete HTML
     loadRiwayatAssessment();
     loadBelumAssessment(); 
 }
@@ -580,7 +579,6 @@ export async function loadBelumAssessment() {
 export async function pilihAnakBelumDinilai(idMurid) {
     document.getElementById('assess-murid').value = idMurid; 
     
-    // Fetch nama buat ditampilin di kolom search
     const { data } = await sb.from('murid').select('nama_murid, nama_panggilan').eq('id_murid', idMurid).maybeSingle();
     if(data) {
         const panggilan = data.nama_panggilan || data.nama_murid.split(' ')[0];
@@ -593,7 +591,6 @@ export async function pilihAnakBelumDinilai(idMurid) {
 }
 
 export async function loadAssessmentDetail() {
-    // Ambil ID dari hidden input
     const idMurid = document.getElementById('assess-murid').value;
     if(!idMurid) return;
 
@@ -634,7 +631,6 @@ export async function loadAssessmentDetail() {
 export async function editAssessmentLog(idAssessment, idMurid) {
     document.getElementById('assess-murid').value = idMurid;
 
-    // Fetch nama agar input search otomatis terisi
     const { data: dataMurid } = await sb.from('murid').select('nama_murid, nama_panggilan').eq('id_murid', idMurid).maybeSingle();
     if(dataMurid) {
         const panggilan = dataMurid.nama_panggilan || dataMurid.nama_murid.split(' ')[0];
@@ -669,9 +665,7 @@ export async function editAssessmentLog(idAssessment, idMurid) {
 }
 
 export async function simpanAssessment() {
-    // Ambil ID dari hidden input
     const idMurid = document.getElementById('assess-murid').value;
-    
     if(!idMurid) return alert("Cari dan pilih murid terlebih dahulu!");
 
     const valFloat = parseInt(document.getElementById('ass-float').value) || 0;
@@ -747,7 +741,7 @@ export async function simpanAssessment() {
         
         if (hiddenId) hiddenId.value = ""; 
         document.getElementById('ass-catatan').value = ""; 
-        clearSearchMurid(); // Kosongkan form pencarian setelah sukses
+        clearSearchMurid(); 
         
         if (typeof loadRiwayatAssessment === "function") loadRiwayatAssessment(); 
         if (typeof loadBelumAssessment === "function") loadBelumAssessment(); 
@@ -759,6 +753,7 @@ export async function simpanAssessment() {
     }
 }
 
+// 🔥 INI BAGIAN HTML DAFTAR RIWAYAT YANG DISUNTIK TOMBOL PDF 🔥
 export async function loadRiwayatAssessment() {
     const listEl = document.getElementById('coach-assessment-list');
     if (!listEl) return;
@@ -777,13 +772,18 @@ export async function loadRiwayatAssessment() {
     logData.forEach(item => {
         const murid = muridData ? muridData.find(m => m.id_murid === item.id_murid) : null;
         const nama = murid ? murid.nama_murid : `Siswa (ID: ${item.id_murid})`; 
+        // Mengamankan kutip pada nama
+        const safeNama = nama.replace(/'/g, "\\'");
         
         html += `
         <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative;">
             
             <button onclick="editAssessmentLog(${item.id_assessment}, ${item.id_murid})" style="position: absolute; top: 12px; right: 12px; width: max-content !important; min-width: 60px; background:#f59e0b; color:white; border:none; border-radius:4px; padding:6px 10px; font-size:11px; cursor:pointer; font-weight:bold; display: inline-block;">✏️ Edit</button>
 
-            <div style="padding-right: 80px; margin-bottom: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 8px;">
+            <!-- 📥 TOMBOL BARU: DOWNLOAD PDF RAPOR MUNCUL DI SINI! -->
+            <button onclick="downloadRaporPDF(${item.id_assessment}, '${safeNama}')" style="position: absolute; top: 12px; right: 80px; width: max-content !important; min-width: 60px; background:#4f46e5; color:white; border:none; border-radius:4px; padding:6px 10px; font-size:11px; cursor:pointer; font-weight:bold; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">📥 PDF</button>
+
+            <div style="padding-right: 150px; margin-bottom: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 8px;">
                 <strong style="color:#0369a1; font-size:14px; display:block; margin-bottom:4px;">${nama}</strong>
                 <span style="font-size:11px; color:#64748b; font-weight:bold;">📅 ${item.tanggal_assessment}</span>
             </div>
@@ -804,6 +804,129 @@ export async function loadRiwayatAssessment() {
 
     listEl.innerHTML = html || '<p style="text-align:center; font-size:12px; color:#64748b;">Belum ada riwayat assessment.</p>';
 }
+
+/* =========================================================
+   🔥 FITUR BARU: INVISIBLE PDF GENERATOR RAPOR SISWA 🔥
+========================================================= */
+export async function downloadRaporPDF(idAssessment, namaSiswa) {
+    try {
+        // Ambil data nilai spesifik dari database
+        const { data, error } = await sb.from('assessment_log').select('*').eq('id_assessment', idAssessment).single();
+        if(error || !data) throw error;
+
+        // Analisis Kelulusan Level 1
+        const isLulus = (data.freestyle_stroke >= 95 && data.breaststroke >= 100);
+        const statusText = isLulus ? "LULUS LEVEL 1 (GRADUATED)" : "DALAM PROSES (IN PROGRESS)";
+        const statusColor = isLulus ? "#059669" : "#d97706"; // Hijau kalau lulus, Oren kalau belum
+
+        // Bikin Kerangka HVS Digital
+        const pdfContainer = document.createElement('div');
+        pdfContainer.innerHTML = `
+            <div style="padding: 40px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: white;">
+                
+                <!-- KOP SURAT RAPOR -->
+                <div style="text-align: center; border-bottom: 3px solid #0284c7; padding-bottom: 15px; margin-bottom: 30px;">
+                    <h1 style="color: #0284c7; margin: 0; font-size: 26px; font-weight: 900; letter-spacing: 1px;">JAGO RENANG ACADEMY</h1>
+                    <p style="margin: 5px 0 0 0; color: #64748b; font-size: 13px; font-weight: bold; letter-spacing: 2px;">STUDENT PROGRESS REPORT</p>
+                </div>
+
+                <!-- INFO SISWA -->
+                <div style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                        <p style="margin: 0 0 4px 0; color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: bold;">Nama Atlet / Siswa:</p>
+                        <h2 style="margin: 0; color: #1e293b; font-size: 20px;">${namaSiswa}</h2>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="margin: 0 0 4px 0; color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: bold;">Tanggal Evaluasi:</p>
+                        <h2 style="margin: 0; color: #1e293b; font-size: 16px;">${data.tanggal_assessment}</h2>
+                    </div>
+                </div>
+
+                <!-- TABEL MATERI RENANG -->
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 35px;">
+                    <thead>
+                        <tr style="background-color: #f0f9ff; border-top: 2px solid #bae6fd; border-bottom: 2px solid #bae6fd;">
+                            <th style="padding: 12px; text-align: left; font-size: 13px; color: #0369a1; width: 75%;">MATERI EVALUASI KETERAMPILAN</th>
+                            <th style="padding: 12px; text-align: center; font-size: 13px; color: #0369a1; width: 25%;">PENCAPAIAN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid #e0f2fe;">
+                            <td style="padding: 10px 12px; font-size: 13px; color: #334155;">1. Floating & Streamline (Mengapung)</td>
+                            <td style="padding: 10px 12px; text-align: center; font-size: 14px; font-weight: bold; color: #0284c7;">${data.floating_streamline || 0}%</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e0f2fe;">
+                            <td style="padding: 10px 12px; font-size: 13px; color: #334155;">2. Breathing Control (Pernapasan)</td>
+                            <td style="padding: 10px 12px; text-align: center; font-size: 14px; font-weight: bold; color: #0284c7;">${data.breathing_control || 0}%</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e0f2fe;">
+                            <td style="padding: 10px 12px; font-size: 13px; color: #334155;">3. Freestyle Kicking (Kaki Bebas)</td>
+                            <td style="padding: 10px 12px; text-align: center; font-size: 14px; font-weight: bold; color: #0284c7;">${data.freestyle_kicking || 0}%</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e0f2fe;">
+                            <td style="padding: 10px 12px; font-size: 13px; color: #334155;">4. Freestyle Stroke (Tangan Bebas)</td>
+                            <td style="padding: 10px 12px; text-align: center; font-size: 14px; font-weight: bold; color: #0284c7;">${data.freestyle_stroke || 0}%</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e0f2fe;">
+                            <td style="padding: 10px 12px; font-size: 13px; color: #334155;">5. Breaststroke (Gaya Dada)</td>
+                            <td style="padding: 10px 12px; text-align: center; font-size: 14px; font-weight: bold; color: #0284c7;">${data.breaststroke || 0}%</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e0f2fe;">
+                            <td style="padding: 10px 12px; font-size: 13px; color: #334155;">6. Backstroke (Gaya Punggung)</td>
+                            <td style="padding: 10px 12px; text-align: center; font-size: 14px; font-weight: bold; color: #0284c7;">${data.backstroke || 0}%</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #e0f2fe;">
+                            <td style="padding: 10px 12px; font-size: 13px; color: #334155;">7. Butterfly Stroke (Gaya Kupu-kupu)</td>
+                            <td style="padding: 10px 12px; text-align: center; font-size: 14px; font-weight: bold; color: #0284c7;">${data.butterfly_stroke || 0}%</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- STATUS & CATATAN PELATIH -->
+                <div style="margin-bottom: 40px; display: flex; flex-direction: column; gap: 15px;">
+                    <div>
+                        <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: bold; display: block; margin-bottom: 6px;">Status Program:</span>
+                        <span style="background-color: ${statusColor}15; color: ${statusColor}; padding: 8px 16px; border-radius: 6px; font-weight: 900; font-size: 15px; border: 1px solid ${statusColor}40; display: inline-block;">
+                            ${statusText}
+                        </span>
+                    </div>
+                    
+                    <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; padding: 16px; border-radius: 8px;">
+                        <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: bold; display: block; margin-bottom: 6px;">Catatan & Evaluasi Pelatih:</span>
+                        <p style="margin: 0; font-size: 13px; color: #334155; font-style: italic; line-height: 1.6;">
+                            "${data.catatan_coach || 'Terus semangat berlatih dan pertahankan konsistensi!'}"
+                        </p>
+                    </div>
+                </div>
+
+                <!-- TANDA TANGAN -->
+                <div style="margin-top: 60px; text-align: right; color: #334155;">
+                    <p style="margin: 0 0 70px 0; font-size: 13px;">Disahkan oleh,</p>
+                    <p style="margin: 0; font-weight: bold; text-decoration: underline; font-size: 15px;">Coach ${localStorage.getItem('loggedInUser') || 'Instruktur JR'}</p>
+                    <p style="margin: 4px 0 0 0; color: #64748b; font-size: 12px;">Instruktur Penilai</p>
+                </div>
+            </div>
+        `;
+
+        // Atur Konfigurasi Kertas PDF
+        const opt = {
+            margin:       [0, 0, 0, 0],
+            filename:     `Rapor_${namaSiswa.replace(/\s+/g, '_')}_${data.tanggal_assessment}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Mulai Download!
+        alert("⏳ Sedang menyusun PDF Rapor, mohon tunggu sebentar...");
+        await html2pdf().set(opt).from(pdfContainer).save();
+        
+    } catch(e) {
+        console.error(e);
+        alert("Gagal mencetak Rapor: " + e.message);
+    }
+}
+
 
 /* =========================================================
    MODUL FEE, AKUNTING, & PROFIL - FIXED IDENTITAS
@@ -988,6 +1111,7 @@ window.loadAssessmentDetail = loadAssessmentDetail;
 window.editAssessmentLog = editAssessmentLog;
 window.simpanAssessment = simpanAssessment;
 window.loadRiwayatAssessment = loadRiwayatAssessment;
+window.downloadRaporPDF = downloadRaporPDF; // <-- Fungsi sakti DFF TAHAP 1
 
 // Fee & Profil
 window.tambahAkunting = tambahAkunting;

@@ -359,6 +359,137 @@ export function kirimReminder(noInvoice, namaMurid, paket, total) {
     
     window.open(`https://wa.me/?text=${teksWA}`, '_blank');
 }
+window.downloadPDFAkunting = async function() {
+    try {
+        // Ganti ID filter ini sesuai dengan ID dropdown bulan/tahun di HTML-mu (jika ada)
+        // Jika tidak ada, defaultnya akan menarik bulan & tahun saat ini.
+        const elBulan = document.getElementById('filter-bulan-akunting');
+        const elTahun = document.getElementById('filter-tahun-akunting');
+        
+        const bulan = elBulan ? elBulan.value : (new Date().getMonth() + 1);
+        const tahun = elTahun ? elTahun.value : new Date().getFullYear();
+
+        const btn = document.querySelector('button[onclick="downloadPDFAkunting()"]');
+        const textAwal = btn.innerHTML;
+        btn.innerHTML = "⏳ Memproses PDF...";
+        btn.disabled = true;
+
+        // 1. Tarik Data Kas dari Database
+        const { data, error } = await sb.from('akunting').select('*').order('tanggal', { ascending: true });
+        if(error) throw error;
+
+        // 2. Filter khusus bulan dan tahun yang dipilih
+        const targetPrefix = `${tahun}-${String(bulan).padStart(2, '0')}`;
+        const dataFiltered = data.filter(item => item.tanggal && item.tanggal.startsWith(targetPrefix));
+
+        if(dataFiltered.length === 0) {
+            btn.innerHTML = textAwal;
+            btn.disabled = false;
+            return alert("Tida ada transaksi di bulan ini, kertas laporan kosong!");
+        }
+
+        // 3. Bangun Tabel Laporan di Belakang Layar
+        let totalPemasukan = 0;
+        let totalPengeluaran = 0;
+        let trHtml = '';
+
+        dataFiltered.forEach(d => {
+            const isMasuk = d.jenis === 'Pemasukan';
+            const jumlah = parseInt(d.jumlah) || 0;
+            if(isMasuk) totalPemasukan += jumlah;
+            else totalPengeluaran += jumlah;
+
+            trHtml += `
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 10px; font-size: 11px; color: #475569;">${d.tanggal}</td>
+                    <td style="padding: 10px; font-size: 11px; color: #334155; font-weight: 500;">${d.keterangan}</td>
+                    <td style="padding: 10px; font-size: 11px; color: #059669; text-align: right;">${isMasuk ? 'Rp ' + jumlah.toLocaleString('id-ID') : '-'}</td>
+                    <td style="padding: 10px; font-size: 11px; color: #e11d48; text-align: right;">${!isMasuk ? 'Rp ' + jumlah.toLocaleString('id-ID') : '-'}</td>
+                </tr>
+            `;
+        });
+
+        const laba = totalPemasukan - totalPengeluaran;
+        const namaBulanMap = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        
+        // 4. Suntikkan ke Kertas HVS Digital (A4)
+        const pdfContainer = document.createElement('div');
+        pdfContainer.innerHTML = `
+            <div style="padding: 40px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: white;">
+                
+                <!-- KOP SURAT -->
+                <div style="text-align: center; border-bottom: 3px solid #0f766e; padding-bottom: 15px; margin-bottom: 30px;">
+                    <h1 style="color: #0f766e; margin: 0; font-size: 24px; font-weight: 900; letter-spacing: 1px;">JAGO RENANG ACADEMY</h1>
+                    <p style="margin: 5px 0 0 0; color: #64748b; font-size: 12px; font-weight: bold;">Laporan Arus Kas Internal - Periode: ${namaBulanMap[bulan-1]} ${tahun}</p>
+                </div>
+
+                <!-- TABEL TRANSAKSI -->
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                    <thead>
+                        <tr style="background-color: #f8fafc; border-bottom: 2px solid #cbd5e1;">
+                            <th style="padding: 10px; text-align: left; font-size: 12px; color: #334155; width: 15%;">Tanggal</th>
+                            <th style="padding: 10px; text-align: left; font-size: 12px; color: #334155; width: 45%;">Keterangan</th>
+                            <th style="padding: 10px; text-align: right; font-size: 12px; color: #334155; width: 20%;">Pemasukan</th>
+                            <th style="padding: 10px; text-align: right; font-size: 12px; color: #334155; width: 20%;">Pengeluaran</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${trHtml}
+                    </tbody>
+                </table>
+
+                <!-- REKAPITULASI NERACA -->
+                <div style="display: flex; justify-content: flex-end;">
+                    <div style="width: 350px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: #334155;">
+                            <span>Total Pemasukan:</span>
+                            <strong>Rp ${totalPemasukan.toLocaleString('id-ID')}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 13px; color: #e11d48;">
+                            <span>Total Pengeluaran:</span>
+                            <strong>Rp ${totalPengeluaran.toLocaleString('id-ID')}</strong>
+                        </div>
+                        <div style="border-top: 1px dashed #cbd5e1; padding-top: 12px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; color: #0f766e;">
+                            <span>Laba Bersih:</span>
+                            <span>Rp ${laba.toLocaleString('id-ID')}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TTD FOOTER -->
+                <div style="margin-top: 60px; text-align: right; font-size: 12px; color: #334155;">
+                    <p style="margin-bottom: 70px;">Surabaya, ${new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p>
+                    <p style="font-weight: bold; text-decoration: underline;">Owner Jago Renang</p>
+                    <p style="margin-top: 2px; color: #64748b;">Founder / CEO</p>
+                </div>
+            </div>
+        `;
+
+        // 5. Konversi HTML ke PDF
+        const opt = {
+            margin:       [0, 0, 0, 0], // Margin diatur dalam HTML (padding)
+            filename:     `Laporan_Kas_JR_${tahun}_${bulan}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+
+        await html2pdf().set(opt).from(pdfContainer).save();
+
+        btn.innerHTML = textAwal;
+        btn.disabled = false;
+        alert("✅ Laporan Kas berhasil di-download!");
+
+    } catch(e) {
+        console.error(e);
+        alert("Gagal Export PDF: " + e.message);
+        const btn = document.querySelector('button[onclick="downloadPDFAkunting()"]');
+        if(btn) {
+            btn.innerHTML = "📥 Export PDF Laporan Kas";
+            btn.disabled = false;
+        }
+    }
+};
 
 // =========================================================
 // REGISTER TO WINDOW
