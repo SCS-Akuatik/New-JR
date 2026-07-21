@@ -174,34 +174,77 @@ window.hitungMyBonus = async function() {
         const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
         if (!currentUser) return;
 
-        const now = new Date();
-        const currentYear = now.getFullYear();
-        const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
-        const startDate = `${currentYear}-${currentMonth}-01`;
-        const endDate = `${currentYear}-${currentMonth}-31`;
-
+        // 1. Tarik SEMUA invoice Paid milik admin ini (Kita hilangkan filter tanggal SQL yang bikin bentrok)
         const { data, error } = await sb
             .from('invoices')
-            .select('total')
+            .select('total, biaya, tanggal_terbit, created_at') // Ambil kolom total DAN biaya
             .eq('admin_id', currentUser)
-            .eq('status', 'Paid')
-            .gte('tanggal_terbit', startDate)
-            .lte('tanggal_terbit', endDate);
+            .eq('status', 'Paid');
 
         if (error) throw error;
 
         let totalBonus = 0;
+        
         if (data && data.length > 0) {
-            const totalOmset = data.reduce((sum, inv) => sum + (inv.total || 0), 0);
+            const now = new Date();
+            const currentMonth = now.getMonth(); // 0 = Jan, 6 = Jul
+            const currentYear = now.getFullYear();
+
+            // 2. Filter data Bulan Ini secara manual (Kebal format tanggal acak)
+            const validInvoices = data.filter(inv => {
+                let dateStr = inv.tanggal_terbit || inv.created_at || '';
+                if (!dateStr) return false;
+
+                let invMonth, invYear;
+
+                // Deteksi format DD/MM/YYYY (Contoh: 21/7/2026)
+                if (dateStr.includes('/')) {
+                    const parts = dateStr.split('/');
+                    invMonth = parseInt(parts[1]) - 1; // JS array bulan mulai dari 0
+                    invYear = parseInt(parts[2]);
+                } 
+                // Deteksi format YYYY-MM-DD atau DD-MM-YYYY
+                else if (dateStr.includes('-')) {
+                    const parts = dateStr.split('-');
+                    if(parts[0].length === 4) { // YYYY-MM-DD
+                        invYear = parseInt(parts[0]);
+                        invMonth = parseInt(parts[1]) - 1;
+                    } else { // DD-MM-YYYY
+                        invYear = parseInt(parts[2]);
+                        invMonth = parseInt(parts[1]) - 1;
+                    }
+                } else {
+                    // Fallback sistem
+                    const d = new Date(dateStr);
+                    invMonth = d.getMonth();
+                    invYear = d.getFullYear();
+                }
+
+                return invMonth === currentMonth && invYear === currentYear;
+            });
+
+            // 3. Hitung Total Omset (Mendukung baik itu disimpan di kolom 'total' maupun 'biaya')
+            const totalOmset = validInvoices.reduce((sum, inv) => {
+                const nilaiInvoice = parseInt(inv.total) || parseInt(inv.biaya) || 0;
+                return sum + nilaiInvoice;
+            }, 0);
+            
+            // 4. Kalikan dengan Persentase Bonus (5%)
             const persentaseBonus = 0.05; 
             totalBonus = totalOmset * persentaseBonus;
         }
 
-        document.getElementById('admin2-bonus-display').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalBonus);
+        // Tampilkan ke layar
+        const elBonus = document.getElementById('admin2-bonus-display');
+        if (elBonus) {
+            elBonus.innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalBonus);
+        }
+        
     } catch(e) {
         console.error("Gagal menghitung bonus:", e);
     }
 };
+
 
 window.updateScoreKontak = function() {
     let k = parseInt(document.getElementById('score-kontak').innerText);
