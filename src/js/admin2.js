@@ -11,11 +11,15 @@ window.bukaModulAdmin2 = function(idTarget) {
 
 window.initDashboardAdmin2 = async function() {
     bukaModulAdmin2('dashboard-admin2');
-    muatChecklistHarian();
-    await hitungMyBonus();
-    loadPendingInvoiceAdmin2();
+    
+    // Panggil Jam duluan agar UI langsung ter-update tanpa delay
     jalankanJamWIB(); 
-    await loadProfilAdmin(); // Di-await biar data user kelar loading sebelum interaksi lain
+    
+    // Proses data secara asinkron tanpa memblokir UI satu sama lain
+    muatChecklistHarian();
+    loadProfilAdmin(); 
+    hitungMyBonus();
+    loadPendingInvoiceAdmin2();
 };
 
 // ==========================================
@@ -323,14 +327,21 @@ window.jalankanJamWIB = function() {
     const elTgl = document.getElementById('admin-tgl-realtime'); 
 
     const updateWaktu = () => {
-        const now = new Date();
-        if(elJam) {
-            const optJam = { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false };
-            elJam.innerText = new Intl.DateTimeFormat('id-ID', optJam).format(now).replace('.', ':');
-        }
-        if(elTgl) {
-            const optTgl = { timeZone: 'Asia/Jakarta', weekday: 'short', day: 'numeric', month: 'short' };
-            elTgl.innerText = new Intl.DateTimeFormat('id-ID', optTgl).format(now);
+        try {
+            const now = new Date();
+            
+            // Format Jam (Native toLocaleTimeString lebih aman cross-browser)
+            if(elJam) {
+                const jamStr = now.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false });
+                elJam.innerText = jamStr.replace('.', ':');
+            }
+            // Format Tanggal
+            if(elTgl) {
+                const tglStr = now.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'short', day: 'numeric', month: 'short' });
+                elTgl.innerText = tglStr;
+            }
+        } catch(e) {
+            console.error("Error jam realtime:", e);
         }
     };
 
@@ -340,62 +351,44 @@ window.jalankanJamWIB = function() {
 };
 
 window.loadProfilAdmin = async function() {
-    const elNama = document.getElementById('admin-nama-panggilan');
-    const elFoto = document.getElementById('admin-avatar-img');
-    let elRole = document.getElementById('admin-role-label'); 
+    const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
+    if(!currentUser) return;
 
-    let callName = 'Admin';
-    let roleLabel = 'Admin In-house';
-    let avatarUrl = '/images/default-avatar.png';
+    const elNama = document.getElementById('admin-nama-panggilan');
+    const elRole = document.getElementById('admin-role-label');
+    const elFoto = document.getElementById('admin-avatar-img');
 
     try {
-        // 1. Prioritas Pertama: Coba Tarik dari Supabase Auth
-        const { data: authData, error: authError } = await sb.auth.getUser();
+        // 🔥 Murni Query ke tabel users (Tanpa Supabase Auth) 🔥
+        const { data, error } = await sb.from('users')
+            .select('avatar_url, call_name, role_label')
+            .eq('username', currentUser)
+            .maybeSingle();
         
-        if (authData && authData.user) {
-            const meta = authData.user.user_metadata || {};
-            if (meta.call_name) callName = meta.call_name;
-            if (meta.role_label) roleLabel = meta.role_label;
-            if (meta.avatar_url) avatarUrl = meta.avatar_url;
-        } else {
-            // 2. Fallback Cadangan: Tarik dari Custom Login (Tabel public.users)
-            const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
-            if (currentUser) {
-                // Sulap Username jadi Call Name Cantik
-                callName = currentUser.split('.')[0];
-                if(callName.toLowerCase() === 'trialfebi') {
-                    callName = 'Febi';
-                } else {
-                    callName = callName.charAt(0).toUpperCase() + callName.slice(1);
-                }
-                
-                // Coba ambil foto dari tabel
-                const { data: userData } = await sb.from('users').select('avatar_url, role').eq('username', currentUser).maybeSingle();
-                if (userData && userData.avatar_url) {
-                    avatarUrl = userData.avatar_url;
-                }
-                // Jika dev ada role spesifik di tabel, bisa dimasukin di sini juga
+        if (error) throw error;
+
+        if (data) {
+            // Set Nama Panggilan
+            if (elNama && data.call_name) {
+                elNama.innerText = data.call_name;
+            } else if (elNama) {
+                // Fallback kalau kosong: kapitalisasi username
+                elNama.innerText = currentUser.charAt(0).toUpperCase() + currentUser.slice(1);
+            }
+
+            // Set Role Jabatan
+            if (elRole && data.role_label) {
+                elRole.innerText = data.role_label;
+            }
+
+            // Set Foto
+            if (elFoto && data.avatar_url) {
+                elFoto.src = data.avatar_url;
             }
         }
 
-        // Terapkan data ke HTML
-        if (elNama) elNama.innerText = callName;
-        
-        // Cari Elemen Role. Kalau id 'admin-role-label' ga dibikin sama dev, 
-        // kita cari element paragraf yang ada tepat di bawah nama
-        if (!elRole && elNama && elNama.nextElementSibling) {
-            elRole = elNama.nextElementSibling;
-        }
-        if (elRole) elRole.innerText = roleLabel;
-        
-        if (elFoto) {
-            elFoto.src = avatarUrl;
-            // Cegah Broken Image! Kalau error load gambar, kembali ke default
-            elFoto.onerror = () => { elFoto.src = '/images/default-avatar.png'; };
-        }
-
     } catch(e) {
-        console.error("Gagal memuat metadata profil admin:", e);
+        console.error("Gagal load profil admin:", e);
     }
 };
 
@@ -412,21 +405,17 @@ window.uploadAvatarAdmin = async function(event) {
         return alert("🚨 Format file harus JPG, PNG, atau WEBP.");
     }
 
+    const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
     const elFoto = document.getElementById('admin-avatar-img');
     const oldSrc = elFoto.src; 
     
     elFoto.style.opacity = '0.5';
 
     try {
-        const { data: authData } = await sb.auth.getUser();
-        const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
-        
-        // Penamaan Folder cerdas: Pakai Auth UID (kalau ada) atau username lokal
-        const folderName = (authData && authData.user) ? authData.user.id : (currentUser || 'default');
-
         const ext = file.name.split('.').pop();
         const fileName = `avatar_${Date.now()}.${ext}`;
-        const filePath = `${folderName}/${fileName}`; 
+        // Path murni pakai username agar tidak tertukar
+        const filePath = `${currentUser}/${fileName}`; 
 
         const { error: uploadError } = await sb.storage
             .from('admin-avatars')
@@ -440,15 +429,12 @@ window.uploadAvatarAdmin = async function(event) {
 
         const publicUrl = publicUrlData.publicUrl;
 
-        // Update Metadata ke Supabase Auth
-        if (authData && authData.user) {
-            await sb.auth.updateUser({ data: { avatar_url: publicUrl } });
-        }
+        // Update ke database users lokal
+        const { error: updateError } = await sb.from('users')
+            .update({ avatar_url: publicUrl })
+            .eq('username', currentUser);
 
-        // Backup: Update ke tabel users lokal
-        if (currentUser) {
-            await sb.from('users').update({ avatar_url: publicUrl }).eq('username', currentUser);
-        }
+        if (updateError) throw updateError;
 
         elFoto.src = publicUrl;
         alert("✅ Foto profil berhasil diperbarui!");
