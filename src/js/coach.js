@@ -804,7 +804,7 @@ export async function loadRiwayatAssessment() {
 }
 
 /* =========================================================
-   🔥 OBAT ANTI-BLANK: PDF GENERATOR RAPOR SISWA 🔥
+   🔥 OBAT FINAL NUKLIR ANTI-BLANK (PDF GENERATOR) 🔥
 ========================================================= */
 export async function downloadRaporPDF(idAssessment, namaSiswa) {
     try {
@@ -815,9 +815,22 @@ export async function downloadRaporPDF(idAssessment, namaSiswa) {
         const statusText = isLulus ? "LULUS LEVEL 1 (GRADUATED)" : "DALAM PROSES (IN PROGRESS)";
         const statusColor = isLulus ? "#059669" : "#d97706"; 
 
-        // KUNCI ASLI: Bikin murni string HTML dengan width tetap (800px), JANGAN ditempel ke document.body
-        const htmlRapor = `
-            <div style="padding: 40px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: white; width: 800px; max-width: 800px;">
+        // 1. Bikin Kertas HVS yang NYATA dan nempel di kordinat 0,0
+        const pdfContainer = document.createElement('div');
+        pdfContainer.id = "temp-pdf-rapor";
+        pdfContainer.style.position = 'absolute';
+        pdfContainer.style.top = '0';
+        pdfContainer.style.left = '0';
+        pdfContainer.style.width = '800px';
+        pdfContainer.style.minHeight = '1131px'; // Proporsi fix A4
+        pdfContainer.style.backgroundColor = '#ffffff';
+        pdfContainer.style.zIndex = '99999'; // Taruh paling atas biar HP maksa render
+        pdfContainer.style.padding = '40px';
+        pdfContainer.style.boxSizing = 'border-box';
+
+        // 2. Isi Tinta/Konten (Paksa font hitam biar gak bentrok sama Dark Mode HP)
+        pdfContainer.innerHTML = `
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #000000;">
                 <div style="text-align: center; border-bottom: 3px solid #0284c7; padding-bottom: 15px; margin-bottom: 30px;">
                     <h1 style="color: #0284c7; margin: 0; font-size: 26px; font-weight: 900; letter-spacing: 1px;">JAGO RENANG ACADEMY</h1>
                     <p style="margin: 5px 0 0 0; color: #64748b; font-size: 13px; font-weight: bold; letter-spacing: 2px;">STUDENT PROGRESS REPORT</p>
@@ -892,24 +905,41 @@ export async function downloadRaporPDF(idAssessment, namaSiswa) {
             </div>
         `;
 
+        // 3. Tanam ke Body biar nampil sekejap
+        document.body.appendChild(pdfContainer);
+
+        // 4. KUNCI ANTI-BLANK: Paksa layar scroll ke 0,0 sebelum dipotret!
+        window.scrollTo(0, 0);
+
+        // 5. Konfigurasi Fix Resolusi (Bukan Inci, tapi Pixel)
         const opt = {
-            margin:       [0.2, 0.2, 0.2, 0.2],
+            margin:       0,
             filename:     `Rapor_${namaSiswa.replace(/\s+/g, '_')}_${data.tanggal_assessment}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true }, 
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            image:        { type: 'jpeg', quality: 1 },
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true,
+                scrollY: 0, // Paksa mulai motret dari pucuk atas
+                windowWidth: 800 // Kunci lebar memori potret
+            }, 
+            jsPDF:        { unit: 'px', format: [800, 1131], orientation: 'portrait' } // Ukuran pixel murni nyesuain DIV
         };
 
-        alert("⏳ Sedang memotret dan menyusun PDF Rapor, mohon tunggu sebentar...");
+        alert("⏳ Memotret Rapor PDF... Layar akan berkedip sebentar.");
         
-        // Langsung lempar string HTML mentah ke PDF, dijamin warna dan tulisan nempel!
-        await html2pdf().set(opt).from(htmlRapor).save();
+        await html2pdf().set(opt).from(pdfContainer).save();
+        
+        // 6. Hapus kertas dari layar kalau udah selesai
+        document.body.removeChild(pdfContainer);
         
     } catch(e) {
         console.error(e);
         alert("Gagal mencetak Rapor: " + e.message);
+        const temp = document.getElementById('temp-pdf-rapor');
+        if(temp) document.body.removeChild(temp);
     }
 }
+
 
 
 
