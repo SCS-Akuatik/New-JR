@@ -165,20 +165,17 @@ window.triggerInvoiceDariAdmin2 = function(id_murid, nama_murid, paket) {
     }
 };
 
-// 🔥 FUNGSI HITUNG BONUS REAL-TIME 🔥
 window.hitungMyBonus = async function() {
     try {
         const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
         if (!currentUser) return;
 
-        // Ambil rentang tanggal bulan ini
         const now = new Date();
         const currentYear = now.getFullYear();
         const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
         const startDate = `${currentYear}-${currentMonth}-01`;
         const endDate = `${currentYear}-${currentMonth}-31`;
 
-        // Query Supabase: Cari invoice LUNAS buatan admin ini di bulan ini
         const { data, error } = await sb
             .from('invoices')
             .select('total')
@@ -191,10 +188,7 @@ window.hitungMyBonus = async function() {
 
         let totalBonus = 0;
         if (data && data.length > 0) {
-            // Hitung total Omset dari invoice yang dikawal admin ini
             const totalOmset = data.reduce((sum, inv) => sum + (inv.total || 0), 0);
-            
-            // Asumsi Bonus = 5% dari total tagihan (Bisa diganti sesuai kebijakanmu)
             const persentaseBonus = 0.05; 
             totalBonus = totalOmset * persentaseBonus;
         }
@@ -232,8 +226,9 @@ window.simpanChecklist = function() {
     localStorage.setItem('chk-balas-komen', document.getElementById('chk-balas-komen').checked);
     muatChecklistHarian();
 };
+
 // ==========================================
-// 4. MANAJEMEN INVOICE & LUNAS KHUSUS ADMIN 2
+// 4. MANAJEMEN INVOICE PENDING KHUSUS ADMIN 2
 // ==========================================
 window.loadPendingInvoiceAdmin2 = async function() {
     const container = document.getElementById('admin2-pending-invoice-list');
@@ -243,7 +238,6 @@ window.loadPendingInvoiceAdmin2 = async function() {
     const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
 
     try {
-        // Cari invoice status Unpaid buatan admin yang lagi login ini
         const { data, error } = await sb.from('invoices')
             .select('*')
             .eq('admin_id', currentUser)
@@ -275,7 +269,6 @@ window.loadPendingInvoiceAdmin2 = async function() {
                     <button onclick="lunasiInvoiceAdmin2(${inv.id}, '${inv.nomor_invoice || inv.no_invoice}', '${inv.nama_murid}', ${totalVal})" class="flex-1 bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 rounded text-[10px] transition shadow-sm">
                         ✅ Tandai Lunas
                     </button>
-                    <!-- Tombol WA buat nagih lagi kalau ortu lupa -->
                     <button onclick="window.open('https://wa.me/?text=Halo%20Ayah/Bunda%20${inv.nama_murid},%20mengingatkan%20tagihan%20${inv.nomor_invoice || inv.no_invoice}%20belum%20diselesaikan.%20Terima%20kasih!', '_blank')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-300 font-bold px-3 py-2 rounded text-[10px] transition">
                         🔔 Follow Up
                     </button>
@@ -294,11 +287,9 @@ window.lunasiInvoiceAdmin2 = async function(idInvoice, noInvoice, namaSiswa, tot
     if (!confirm(`✅ Tandai Invoice ${noInvoice} (${namaSiswa}) LUNAS?\nBonus kamu akan otomatis bertambah!`)) return;
 
     try {
-        // 1. Update status jadi Paid
         const { error: errInv } = await sb.from('invoices').update({ status: 'Paid' }).eq('id', idInvoice);
         if (errInv) throw errInv;
 
-        // 2. Catat ke Arus Kas Pusat
         const now = new Date();
         const tglHariIni = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
         const { error: errKas } = await sb.from('akunting').insert([{
@@ -309,7 +300,6 @@ window.lunasiInvoiceAdmin2 = async function(idInvoice, noInvoice, namaSiswa, tot
         }]);
         if (errKas) throw errKas;
 
-        // 3. Efek Visual & Update Angka Gamification
         let paidScoreEl = document.getElementById('score-paid');
         if (paidScoreEl) {
             paidScoreEl.innerText = parseInt(paidScoreEl.innerText) + 1;
@@ -317,7 +307,6 @@ window.lunasiInvoiceAdmin2 = async function(idInvoice, noInvoice, namaSiswa, tot
         
         alert("🎉 BOOM! Invoice Lunas. Cek bonusmu sekarang!");
         
-        // Refresh daftar pending & Hitung ulang bonus!
         loadPendingInvoiceAdmin2();
         hitungMyBonus(); 
 
@@ -325,23 +314,36 @@ window.lunasiInvoiceAdmin2 = async function(idInvoice, noInvoice, namaSiswa, tot
         alert("Gagal memproses pembayaran: " + e.message);
     }
 };
+
 // ==========================================
 // 5. PROFIL ADMIN, UPLOAD AVATAR & JAM WIB
 // ==========================================
 
 window.jalankanJamWIB = function() {
     const elJam = document.getElementById('admin-jam-realtime');
+    const elTgl = document.getElementById('admin-tgl-realtime'); // Target widget Tanggal
     if(!elJam) return;
 
-    // Bersihkan interval lama jika ada biar tidak dobel
-    if(window.jamInterval) clearInterval(window.jamInterval);
+    const updateWaktu = () => {
+        const now = new Date();
+        
+        // Format Jam
+        const optJam = { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false };
+        const timeString = new Intl.DateTimeFormat('id-ID', optJam).format(now);
+        elJam.innerText = timeString.replace('.', ':');
+        
+        // Format Tanggal (Sel, 21 Jul)
+        if(elTgl) {
+            const optTgl = { timeZone: 'Asia/Jakarta', weekday: 'short', day: 'numeric', month: 'short' };
+            const dateString = new Intl.DateTimeFormat('id-ID', optTgl).format(now);
+            elTgl.innerText = dateString;
+        }
+    };
 
-    window.jamInterval = setInterval(() => {
-        // Hardcode GMT+7 (Asia/Jakarta) agar anti-melenceng dari device user
-        const options = { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false };
-        const timeString = new Intl.DateTimeFormat('id-ID', options).format(new Date());
-        elJam.innerText = timeString.replace('.', ':'); // Format HH:mm
-    }, 1000);
+    updateWaktu(); // Langsung jalan tanpa delay 1 detik
+
+    if(window.jamInterval) clearInterval(window.jamInterval);
+    window.jamInterval = setInterval(updateWaktu, 1000);
 };
 
 window.loadProfilAdmin = async function() {
@@ -351,15 +353,25 @@ window.loadProfilAdmin = async function() {
     const elNama = document.getElementById('admin-nama-panggilan');
     const elFoto = document.getElementById('admin-avatar-img');
 
-    // Set fallback nama dari username
-    if(elNama) elNama.innerText = currentUser.split('.')[0].toUpperCase(); // misal 'trialfebi' jadi 'TRIALFEBI'
+    // MENGAKALI DATABASE: Olah string dari username jadi nama panggilan yang cantik
+    if(elNama) {
+        let cleanName = currentUser.split('.')[0]; // Cth: 'admin.dimas' -> 'admin'
+        
+        // Trik spesifik: Kalau username-nya trialfebi, jadikan 'Febi'
+        if(currentUser.toLowerCase() === 'trialfebi') {
+            cleanName = 'Febi';
+        } else {
+            // Huruf pertama kapital
+            cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+        }
+        
+        elNama.innerText = cleanName;
+    }
 
     try {
         const { data, error } = await sb.from('users').select('avatar_url').eq('username', currentUser).maybeSingle();
         
         if (data && data.avatar_url && elFoto) {
-            // Gunakan fitur resize Supabase untuk optimasi render (Thumbnail 100x100)
-            // Asumsi URL Supabase Storage standar
             elFoto.src = data.avatar_url; 
         }
     } catch(e) {
@@ -371,12 +383,10 @@ window.uploadAvatarAdmin = async function(event) {
     const file = event.target.files[0];
     if(!file) return;
 
-    // 1. Validasi Ukuran (Max 2MB)
     if(file.size > 2 * 1024 * 1024) {
-        return alert("🚨 Ukuran file terlalu besar! Maksimal 2MB ya Bos.");
+        return alert("🚨 Ukuran file terlalu besar! Maksimal 2MB.");
     }
 
-    // 2. Validasi Tipe (Opsional tambahan keamanan frontend)
     const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if(!validTypes.includes(file.type)) {
         return alert("🚨 Format file harus JPG, PNG, atau WEBP.");
@@ -386,37 +396,31 @@ window.uploadAvatarAdmin = async function(event) {
     const elFoto = document.getElementById('admin-avatar-img');
     const oldSrc = elFoto.src; 
     
-    // Tampilkan efek loading sederhana
     elFoto.style.opacity = '0.5';
 
     try {
         const ext = file.name.split('.').pop();
-        // Format path: admin-avatars/username/avatar_1234567.jpg
         const fileName = `avatar_${Date.now()}.${ext}`;
         const filePath = `${currentUser}/${fileName}`; 
 
-        // Upload ke Supabase Storage
         const { error: uploadError } = await sb.storage
             .from('admin-avatars')
             .upload(filePath, file, { upsert: true, cacheControl: '3600' });
 
         if (uploadError) throw uploadError;
 
-        // Ambil Public URL
         const { data: publicUrlData } = sb.storage
             .from('admin-avatars')
             .getPublicUrl(filePath);
 
         const publicUrl = publicUrlData.publicUrl;
 
-        // Simpan URL ke tabel users
         const { error: updateError } = await sb.from('users')
             .update({ avatar_url: publicUrl })
             .eq('username', currentUser);
 
         if (updateError) throw updateError;
 
-        // Sukses: Tampilkan gambar baru
         elFoto.src = publicUrl;
         alert("✅ Foto profil berhasil diperbarui!");
 
