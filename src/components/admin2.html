@@ -1,46 +1,39 @@
 <div id="dashboard-admin2" class="hidden w-full max-w-2xl mt-5 transition-all relative">
     
-    <!-- ========================================== -->
-    <!-- STICKY DARK BLUR HEADER                    -->
-    <!-- ========================================== -->
-    <div class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-700 rounded-t-2xl px-5 py-3 flex items-center justify-between shadow-lg">
+    <!-- HEADER DARK (GABUNGAN PROFIL & TAGLINE LAMA) -->
+    <div class="bg-slate-900 rounded-t-2xl p-6 border-b-4 border-teal-500 sticky top-0 z-50 shadow-lg">
         
-        <!-- KIRI: Avatar & Info -->
-        <div class="flex items-center gap-3">
-            <div class="relative cursor-pointer group flex-shrink-0" onclick="document.getElementById('upload-avatar-admin').click()" title="Klik untuk ganti foto">
-                <img id="admin-avatar-img" src="/images/default-avatar.png" alt="Profile" class="w-11 h-11 rounded-full object-cover border-2 border-slate-600 shadow-sm group-hover:opacity-80 transition" loading="lazy">
-                
-                <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                    <span class="text-white text-[10px]">📷</span>
+        <!-- BARIS 1: PROFIL & JAM -->
+        <div class="flex items-center justify-between mb-4">
+            <!-- KIRI: Avatar & Info -->
+            <div class="flex items-center gap-3">
+                <div class="relative cursor-pointer group flex-shrink-0" onclick="document.getElementById('upload-avatar-admin').click()">
+                    <!-- Gambar anti-broken: Otomatis bikin inisial nama kalau kosong -->
+                    <img id="admin-avatar-img" src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff" alt="Profile" class="w-12 h-12 rounded-full object-cover border-2 border-slate-600 shadow-sm">
+                    <input type="file" id="upload-avatar-admin" accept="image/jpeg, image/png, image/webp" class="hidden" onchange="uploadAvatarAdmin(event)">
                 </div>
-                <input type="file" id="upload-avatar-admin" accept="image/jpeg, image/png, image/webp" class="hidden" onchange="uploadAvatarAdmin(event)">
+                <div class="flex flex-col">
+                    <h2 id="admin-nama-panggilan" class="text-base font-bold text-white m-0 tracking-wide">Admin</h2>
+                    <p id="admin-role-label" class="text-[11px] font-medium text-teal-400 mt-0.5">Admin In-house</p>
+                </div>
             </div>
-            
-            <div class="flex flex-col">
-                <h2 id="admin-nama-panggilan" class="text-sm font-bold text-white m-0 leading-tight tracking-wide">Admin</h2>
-                <!-- 🔥 ID admin-role-label ditambahkan di sini 🔥 -->
-                <p id="admin-role-label" class="text-[10px] font-medium text-slate-400 mt-0.5">Admin In-house</p>
+
+            <!-- KANAN: Stacked Clock & Date -->
+            <div class="flex flex-col items-end text-right">
+                <div class="flex items-baseline gap-1.5">
+                    <span id="admin-jam-realtime" class="text-xl font-black text-white font-mono tracking-wider leading-none">--:--</span>
+                    <span class="text-[9px] font-bold text-slate-900 bg-teal-400 px-1.5 py-0.5 rounded uppercase tracking-wider">WIB</span>
+                </div>
+                <span id="admin-tgl-realtime" class="text-[10px] text-slate-400 font-medium mt-1 tracking-wide">--, -- ---</span>
             </div>
         </div>
 
-        <!-- TENGAH: Branding (Sembunyi di HP super kecil, muncul di HP normal/lebar) -->
-        <div class="hidden sm:block absolute left-1/2 transform -translate-x-1/2 text-center">
-            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-80">ADMIN - JR ACADEMY</span>
-        </div>
-
-        <!-- KANAN: Stacked Clock & Date -->
-        <div class="flex flex-col items-end text-right">
-            <div class="flex items-baseline gap-1.5">
-                <span id="admin-jam-realtime" class="text-lg font-black text-white font-mono tracking-wider leading-none">--:--</span>
-                <span class="text-[8px] font-bold text-slate-300 bg-slate-700/60 px-1.5 py-0.5 rounded uppercase tracking-wider">WIB</span>
-            </div>
-            <span id="admin-tgl-realtime" class="text-[10px] text-slate-400 font-medium mt-1 opacity-80 tracking-wide">--, -- ---</span>
-        </div>
+        <!-- BARIS 2: TAGLINE ASLI YANG DIBILANG BAGUS -->
+        <p class="text-sm text-slate-400 m-0 border-t border-slate-700/50 pt-3">⚡ Fokus. Eksekusi. Closing.</p>
     </div>
 
-
-    <!-- WADAH KONTEN UTAMA KARTU (Biarkan sisanya tetap sama ke bawah) -->
-    <div class="bg-white p-5 rounded-b-2xl shadow-lg border border-t-0 border-slate-200">
+    <!-- WADAH KONTEN UTAMA -->
+    <div class="bg-white p-6 rounded-b-2xl shadow-lg border border-t-0 border-slate-200">
         
         <!-- 4 KARTU UTAMA -->
         <!-- (Kode 4 Kartu Utama dan seterusnya biarkan SAMA seperti sebelumnya) -->

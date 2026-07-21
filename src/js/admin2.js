@@ -329,23 +329,25 @@ window.jalankanJamWIB = function() {
     const updateWaktu = () => {
         try {
             const now = new Date();
+            // Format Jam (Manual murni biar HP/Browser apapun gak error)
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            if(elJam) elJam.innerText = `${hh}:${mm}`;
+
+            // Format Tanggal (Manual: Sel, 21 Jul)
+            const hariList = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const blnList = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+            const namaHari = hariList[now.getDay()];
+            const tgl = now.getDate();
+            const namaBln = blnList[now.getMonth()];
             
-            // Format Jam (Native toLocaleTimeString lebih aman cross-browser)
-            if(elJam) {
-                const jamStr = now.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false });
-                elJam.innerText = jamStr.replace('.', ':');
-            }
-            // Format Tanggal
-            if(elTgl) {
-                const tglStr = now.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'short', day: 'numeric', month: 'short' });
-                elTgl.innerText = tglStr;
-            }
+            if(elTgl) elTgl.innerText = `${namaHari}, ${tgl} ${namaBln}`;
         } catch(e) {
-            console.error("Error jam realtime:", e);
+            console.error("Jam Error:", e);
         }
     };
 
-    updateWaktu(); 
+    updateWaktu(); // Eksekusi instan
     if(window.jamInterval) clearInterval(window.jamInterval);
     window.jamInterval = setInterval(updateWaktu, 1000);
 };
@@ -358,37 +360,33 @@ window.loadProfilAdmin = async function() {
     const elRole = document.getElementById('admin-role-label');
     const elFoto = document.getElementById('admin-avatar-img');
 
-    try {
-        // 🔥 Murni Query ke tabel users (Tanpa Supabase Auth) 🔥
-        const { data, error } = await sb.from('users')
-            .select('avatar_url, call_name, role_label')
-            .eq('username', currentUser)
-            .maybeSingle();
-        
-        if (error) throw error;
+    // 1. Tembak UI Instan (Fallback) sebelum nunggu Database loading
+    let callName = currentUser.charAt(0).toUpperCase() + currentUser.slice(1);
+    if(currentUser.toLowerCase() === 'trialfebi') callName = 'Febi';
+    
+    if (elNama) elNama.innerText = callName;
+    if (elFoto) elFoto.src = `https://ui-avatars.com/api/?name=${callName}&background=0D8ABC&color=fff`;
 
+    try {
+        // 2. Tarik Data! Pakai "select('*')" biar GAK CRASH kalau kolom call_name belum ada
+        const { data, error } = await sb.from('users').select('*').eq('username', currentUser).maybeSingle();
+        
         if (data) {
-            // Set Nama Panggilan
             if (elNama && data.call_name) {
                 elNama.innerText = data.call_name;
-            } else if (elNama) {
-                // Fallback kalau kosong: kapitalisasi username
-                elNama.innerText = currentUser.charAt(0).toUpperCase() + currentUser.slice(1);
+                // Update avatar inisial dengan nama aslinya
+                if(elFoto && !data.avatar_url) elFoto.src = `https://ui-avatars.com/api/?name=${data.call_name}&background=0D8ABC&color=fff`;
             }
-
-            // Set Role Jabatan
-            if (elRole && data.role_label) {
-                elRole.innerText = data.role_label;
-            }
-
-            // Set Foto
+            if (elRole && data.role_label) elRole.innerText = data.role_label;
+            
             if (elFoto && data.avatar_url) {
                 elFoto.src = data.avatar_url;
+                // Cegah gambar rusak/blank kalau link mati
+                elFoto.onerror = () => { elFoto.src = `https://ui-avatars.com/api/?name=${data.call_name || callName}&background=0D8ABC&color=fff`; };
             }
         }
-
     } catch(e) {
-        console.error("Gagal load profil admin:", e);
+        console.error("Database profil aman di-bypass:", e);
     }
 };
 
@@ -447,3 +445,11 @@ window.uploadAvatarAdmin = async function(event) {
         elFoto.style.opacity = '1';
     }
 };
+
+// AUTO PANGGIL paksa biar jam & nama nggak bengong saat halaman dibuka
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        if(document.getElementById('admin-jam-realtime')) jalankanJamWIB();
+        if(document.getElementById('admin-nama-panggilan')) loadProfilAdmin();
+    }, 500);
+});
