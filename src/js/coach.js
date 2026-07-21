@@ -815,17 +815,9 @@ export async function downloadRaporPDF(idAssessment, namaSiswa) {
         const statusText = isLulus ? "LULUS LEVEL 1 (GRADUATED)" : "DALAM PROSES (IN PROGRESS)";
         const statusColor = isLulus ? "#059669" : "#d97706"; 
 
-        // KUNCI ANTI BLANK: Elemen dibikin dan ditanam beneran ke Body (Tapi disembunyikan)
-        const pdfContainer = document.createElement('div');
-        pdfContainer.id = "temp-pdf-rapor";
-        pdfContainer.style.position = 'absolute';
-        pdfContainer.style.left = '-9999px';
-        pdfContainer.style.top = '0';
-        pdfContainer.style.width = '800px'; // Paksa ukuran kertas Desktop
-        pdfContainer.style.backgroundColor = 'white';
-
-        pdfContainer.innerHTML = `
-            <div style="padding: 40px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: white;">
+        // KUNCI ASLI: Bikin murni string HTML dengan width tetap (800px), JANGAN ditempel ke document.body
+        const htmlRapor = `
+            <div style="padding: 40px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: white; width: 800px; max-width: 800px;">
                 <div style="text-align: center; border-bottom: 3px solid #0284c7; padding-bottom: 15px; margin-bottom: 30px;">
                     <h1 style="color: #0284c7; margin: 0; font-size: 26px; font-weight: 900; letter-spacing: 1px;">JAGO RENANG ACADEMY</h1>
                     <p style="margin: 5px 0 0 0; color: #64748b; font-size: 13px; font-weight: bold; letter-spacing: 2px;">STUDENT PROGRESS REPORT</p>
@@ -900,33 +892,25 @@ export async function downloadRaporPDF(idAssessment, namaSiswa) {
             </div>
         `;
 
-        // Tanam kertasnya ke body secara sembunyi-sembunyi
-        document.body.appendChild(pdfContainer);
-
         const opt = {
             margin:       [0.2, 0.2, 0.2, 0.2],
             filename:     `Rapor_${namaSiswa.replace(/\s+/g, '_')}_${data.tanggal_assessment}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 }, // Paksa tukang foto pakai lensa lebar
+            html2canvas:  { scale: 2, useCORS: true }, 
             jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
         };
 
         alert("⏳ Sedang memotret dan menyusun PDF Rapor, mohon tunggu sebentar...");
         
-        // Eksekusi potret dan save
-        await html2pdf().set(opt).from(pdfContainer).save();
-        
-        // Buang kertas gaibnya biar memori HP nggak penuh
-        document.body.removeChild(pdfContainer);
+        // Langsung lempar string HTML mentah ke PDF, dijamin warna dan tulisan nempel!
+        await html2pdf().set(opt).from(htmlRapor).save();
         
     } catch(e) {
         console.error(e);
         alert("Gagal mencetak Rapor: " + e.message);
-        // Bersihkan sampah kalau error
-        const temp = document.getElementById('temp-pdf-rapor');
-        if(temp) document.body.removeChild(temp);
     }
 }
+
 
 
 /* =========================================================
