@@ -11,20 +11,13 @@ window.bukaModulAdmin2 = function(idTarget) {
 
 window.initDashboardAdmin2 = async function() {
     bukaModulAdmin2('dashboard-admin2');
-    
-    // Panggil Jam duluan agar UI langsung ter-update tanpa delay
     jalankanJamWIB(); 
-    
-    // Proses data secara asinkron tanpa memblokir UI satu sama lain
     muatChecklistHarian();
     loadProfilAdmin(); 
     hitungMyBonus();
     loadPendingInvoiceAdmin2();
 };
 
-// ==========================================
-// 1. RENEWAL QUEUE (Tabel: murid)
-// ==========================================
 window.loadRenewalQueue = async function() {
     const container = document.getElementById('list-renewal-container');
     container.innerHTML = '<p class="text-center text-slate-400 py-4 italic text-sm">🔄 Menarik data antrean dari server...</p>';
@@ -66,13 +59,11 @@ window.loadRenewalQueue = async function() {
                         <p class="text-[11px] text-slate-500 font-bold mt-0.5">${m.jenis_paket || 'Belum ada paket'}</p>
                     </div>
                 </div>
-                
                 <div class="flex items-center gap-4 text-xs font-bold text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 mb-3">
                     <div class="${isOverdue ? 'text-red-600' : 'text-sky-600'}">
                         📅 Sisa Sesi: <span class="text-sm">${m.sisa_sesi}</span>
                     </div>
                 </div>
-
                 <div class="flex gap-2">
                     <a href="https://wa.me/${noWa}?text=${pesanWA}" target="_blank" onclick="updateScoreKontak()" class="flex-[2] bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs text-center flex items-center justify-center gap-1.5 transition">
                         💬 WA Reminder
@@ -91,9 +82,6 @@ window.loadRenewalQueue = async function() {
     }
 };
 
-// ==========================================
-// 2. LEADS INBOX (PENDAFTARAN BARU)
-// ==========================================
 window.loadLeadsInbox = async function() {
     bukaModulAdmin2('admin2-modul-leads');
     const container = document.getElementById('list-leads-container');
@@ -132,7 +120,6 @@ window.loadLeadsInbox = async function() {
                     </div>
                     <span class="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-1 rounded">PENDING</span>
                 </div>
-                
                 <div class="flex flex-col sm:flex-row gap-2 mt-3">
                     <a href="https://wa.me/${noWa}?text=${pesanWA}" target="_blank" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-lg text-xs text-center transition">
                         💬 Sapa via WA
@@ -150,9 +137,6 @@ window.loadLeadsInbox = async function() {
     }
 };
 
-// ==========================================
-// 3. FUNGSI PEMBANTU & GAMIFICATION BONUS
-// ==========================================
 window.triggerInvoiceDariAdmin2 = function(id_murid, nama_murid, paket) {
     const modal = document.getElementById('modal-invoice');
     if(modal) {
@@ -163,13 +147,11 @@ window.triggerInvoiceDariAdmin2 = function(id_murid, nama_murid, paket) {
         
         document.getElementById('inv-nomor').innerText = "INV/JR/" + Math.floor(1000 + Math.random() * 9000);
         document.getElementById('inv-tanggal').innerText = new Date().toLocaleDateString('id-ID');
-        
     } else {
         alert("Modal Invoice tidak ditemukan!");
     }
 };
 
-// 🔥 FUNGSI HITUNG BONUS (MURNI NARIK DARI fee_marketing) 🔥
 window.hitungMyBonus = async function() {
     try {
         const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
@@ -181,6 +163,11 @@ window.hitungMyBonus = async function() {
         const startDate = `${currentYear}-${currentMonth}-01`;
         const endDate = `${currentYear}-${currentMonth}-31`;
 
+        const namaBulanMap = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        const textBulan = namaBulanMap[now.getMonth()];
+        const titleLuar = document.getElementById('title-bonus-luar');
+        if (titleLuar) titleLuar.innerText = `💰 Bonus ${textBulan}`;
+
         const { data, error } = await sb.from('fee_marketing')
             .select('fee')
             .eq('admin_id', currentUser)
@@ -190,7 +177,6 @@ window.hitungMyBonus = async function() {
         if (error) throw error;
 
         let totalBonus = 0;
-        
         if (data && data.length > 0) {
             totalBonus = data.reduce((sum, item) => sum + (parseInt(item.fee) || 0), 0);
         }
@@ -232,9 +218,6 @@ window.simpanChecklist = function() {
     muatChecklistHarian();
 };
 
-// ==========================================
-// 4. MANAJEMEN INVOICE PENDING KHUSUS ADMIN 2
-// ==========================================
 window.loadPendingInvoiceAdmin2 = async function() {
     const container = document.getElementById('admin2-pending-invoice-list');
     if(!container) return;
@@ -288,21 +271,18 @@ window.loadPendingInvoiceAdmin2 = async function() {
     }
 };
 
-// 🔥 FUNGSI LUNASI INVOICE (Dilengkapi Insert ke fee_marketing) 🔥
 window.lunasiInvoiceAdmin2 = async function(idInvoice, noInvoice, namaSiswa, total) {
     if (!confirm(`✅ Tandai Invoice ${noInvoice} (${namaSiswa}) LUNAS?\nBonus Rp 10.000 akan masuk ke dompetmu!`)) return;
 
     try {
         const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
 
-        // 1. Update status jadi Paid
         const { error: errInv } = await sb.from('invoices').update({ status: 'Paid' }).eq('id', idInvoice);
         if (errInv) throw errInv;
 
         const now = new Date();
         const tglHariIni = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
         
-        // 2. Catat ke Arus Kas Pusat
         const { error: errKas } = await sb.from('akunting').insert([{
             tanggal: tglHariIni,
             keterangan: `Pembayaran ${noInvoice} - ${namaSiswa} (Via ${currentUser})`,
@@ -311,7 +291,6 @@ window.lunasiInvoiceAdmin2 = async function(idInvoice, noInvoice, namaSiswa, tot
         }]);
         if (errKas) throw errKas;
 
-        // 3. Catat Bonus ke tabel fee_marketing
         const feeBounty = 10000;
         const { error: errFee } = await sb.from('fee_marketing').insert([{
             admin_id: currentUser,
@@ -338,10 +317,6 @@ window.lunasiInvoiceAdmin2 = async function(idInvoice, noInvoice, namaSiswa, tot
     }
 };
 
-// ==========================================
-// 5. PROFIL ADMIN, UPLOAD AVATAR & JAM WIB
-// ==========================================
-
 window.jalankanJamWIB = function() {
     const elJam = document.getElementById('admin-jam-realtime');
     const elTgl = document.getElementById('admin-tgl-realtime'); 
@@ -349,12 +324,10 @@ window.jalankanJamWIB = function() {
     const updateWaktu = () => {
         try {
             const now = new Date();
-            // Format Jam (Manual murni biar HP/Browser apapun gak error)
             const hh = String(now.getHours()).padStart(2, '0');
             const mm = String(now.getMinutes()).padStart(2, '0');
             if(elJam) elJam.innerText = `${hh}:${mm}`;
 
-            // Format Tanggal (Manual: Sel, 21 Jul)
             const hariList = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
             const blnList = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
             const namaHari = hariList[now.getDay()];
@@ -367,7 +340,7 @@ window.jalankanJamWIB = function() {
         }
     };
 
-    updateWaktu(); // Eksekusi instan
+    updateWaktu(); 
     if(window.jamInterval) clearInterval(window.jamInterval);
     window.jamInterval = setInterval(updateWaktu, 1000);
 };
@@ -380,7 +353,6 @@ window.loadProfilAdmin = async function() {
     const elRole = document.getElementById('admin-role-label');
     const elFoto = document.getElementById('admin-avatar-img');
 
-    // 1. Tembak UI Instan (Fallback) sebelum nunggu Database loading
     let callName = currentUser.charAt(0).toUpperCase() + currentUser.slice(1);
     if(currentUser.toLowerCase() === 'trialfebi') callName = 'Febi';
     
@@ -388,25 +360,22 @@ window.loadProfilAdmin = async function() {
     if (elFoto) elFoto.src = `https://ui-avatars.com/api/?name=${callName}&background=0D8ABC&color=fff`;
 
     try {
-        // 2. Tarik Data! Pakai "select('*')" biar GAK CRASH kalau kolom call_name belum ada
         const { data, error } = await sb.from('users').select('*').eq('username', currentUser).maybeSingle();
         
         if (data) {
             if (elNama && data.call_name) {
                 elNama.innerText = data.call_name;
-                // Update avatar inisial dengan nama aslinya
                 if(elFoto && !data.avatar_url) elFoto.src = `https://ui-avatars.com/api/?name=${data.call_name}&background=0D8ABC&color=fff`;
             }
             if (elRole && data.role_label) elRole.innerText = data.role_label;
             
             if (elFoto && data.avatar_url) {
                 elFoto.src = data.avatar_url;
-                // Cegah gambar rusak/blank kalau link mati
                 elFoto.onerror = () => { elFoto.src = `https://ui-avatars.com/api/?name=${data.call_name || callName}&background=0D8ABC&color=fff`; };
             }
         }
     } catch(e) {
-        console.error("Database profil aman di-bypass:", e);
+        console.error("Database profil error:", e);
     }
 };
 
@@ -432,7 +401,6 @@ window.uploadAvatarAdmin = async function(event) {
     try {
         const ext = file.name.split('.').pop();
         const fileName = `avatar_${Date.now()}.${ext}`;
-        // Path murni pakai username agar tidak tertukar
         const filePath = `${currentUser}/${fileName}`; 
 
         const { error: uploadError } = await sb.storage
@@ -447,7 +415,6 @@ window.uploadAvatarAdmin = async function(event) {
 
         const publicUrl = publicUrlData.publicUrl;
 
-        // Update ke database users lokal
         const { error: updateError } = await sb.from('users')
             .update({ avatar_url: publicUrl })
             .eq('username', currentUser);
@@ -466,10 +433,98 @@ window.uploadAvatarAdmin = async function(event) {
     }
 };
 
-// AUTO PANGGIL paksa biar jam & nama nggak bengong saat halaman dibuka
+window.bukaHistoriBonus = async function() {
+    const modal = document.getElementById('modal-histori-bonus');
+    if (!modal) return alert("Elemen modal histori belum dipasang di HTML!");
+    
+    modal.classList.remove('hidden');
+    
+    const listContainer = document.getElementById('histori-bonus-list');
+    listContainer.innerHTML = '<p class="text-center text-xs text-slate-400 italic py-4">🔄 Menarik data dari brankas...</p>';
+
+    const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
+    if (!currentUser) return;
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+    const startDate = `${currentYear}-${currentMonth}-01`;
+    const endDate = `${currentYear}-${currentMonth}-31`;
+
+    const namaBulanMap = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const labelHistoriTotal = document.getElementById('label-histori-total');
+    if (labelHistoriTotal) labelHistoriTotal.innerText = `Cair Bulan ${namaBulanMap[now.getMonth()]}`;
+
+    try {
+        const { data, error } = await sb.from('fee_marketing')
+            .select('*')
+            .eq('admin_id', currentUser)
+            .gte('tanggal_cair', startDate)
+            .lte('tanggal_cair', endDate)
+            .order('tanggal_cair', { ascending: false })
+            .order('id', { ascending: false });
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            listContainer.innerHTML = `
+            <div class="text-center py-6">
+                <span class="text-3xl block mb-2">💸</span>
+                <p class="text-xs text-slate-500 font-bold">Belum ada bonus cair bulan ini.</p>
+                <p class="text-[10px] text-slate-400">Ayo semangat closing lagi!</p>
+            </div>`;
+            document.getElementById('histori-bonus-total').innerText = 'Rp 0';
+            
+            const outerDisplay = document.getElementById('admin2-bonus-display');
+            if (outerDisplay) outerDisplay.innerText = 'Rp 0';
+            return;
+        }
+
+        let totalBonus = 0;
+        let html = '';
+
+        data.forEach(item => {
+            const fee = parseInt(item.fee) || 0;
+            totalBonus += fee;
+            
+            const tgl = item.tanggal_cair ? new Date(item.tanggal_cair).toLocaleDateString('id-ID', {day:'numeric', month:'short'}) : 'Hari ini';
+
+            html += `
+            <div class="bg-slate-50 border border-slate-100 rounded-lg p-3 hover:border-teal-200 transition">
+                <div class="flex justify-between items-center mb-1">
+                    <strong class="text-sky-700 text-xs">🧾 ${item.no_invoice || 'Invoice System'}</strong>
+                    <span class="text-emerald-600 font-black text-xs bg-emerald-100 px-2 py-0.5 rounded shadow-sm">+ Rp ${fee.toLocaleString('id-ID')}</span>
+                </div>
+                <div class="text-[10px] text-slate-500 font-medium flex justify-between mt-1.5">
+                    <span>📅 ${tgl}</span>
+                    <span class="text-teal-600">✅ Lunas</span>
+                </div>
+            </div>`;
+        });
+
+        listContainer.innerHTML = html;
+        const formattedTotal = `Rp ${totalBonus.toLocaleString('id-ID')}`;
+        document.getElementById('histori-bonus-total').innerText = formattedTotal;
+
+        const outerDisplay = document.getElementById('admin2-bonus-display');
+        if (outerDisplay) outerDisplay.innerText = formattedTotal;
+
+    } catch (e) {
+        console.error("Gagal load histori bonus:", e);
+        listContainer.innerHTML = '<p class="text-center text-xs text-red-500 italic py-4">Gagal memuat histori. Cek koneksi.</p>';
+    }
+};
+
+window.tutupHistoriBonus = function() {
+    const modal = document.getElementById('modal-histori-bonus');
+    if (modal) modal.classList.add('hidden');
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         if(document.getElementById('admin-jam-realtime')) jalankanJamWIB();
         if(document.getElementById('admin-nama-panggilan')) loadProfilAdmin();
+        if(document.getElementById('admin2-bonus-display')) hitungMyBonus(); 
+        if(document.getElementById('admin2-pending-invoice-list')) loadPendingInvoiceAdmin2();
     }, 500);
 });
