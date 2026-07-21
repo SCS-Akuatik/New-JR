@@ -82,6 +82,10 @@ window.loadPendingPendaftaran = async function() {
     });
     list.innerHTML = html;
 };
+    // Auto-refresh buat Admin 2
+    if (typeof window.loadLeadsInbox === 'function') {
+        window.loadLeadsInbox();
+    }
 
 // 2. Trik Auto-Refresh Notif setiap 5 detik (Live Tracker)
 setInterval(() => {

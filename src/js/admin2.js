@@ -13,7 +13,7 @@ window.initDashboardAdmin2 = async function() {
     bukaModulAdmin2('dashboard-admin2');
     muatChecklistHarian();
     await hitungMyBonus();
-    // Bisa tambah badge notif Leads & Renewal di sini nantinya
+    loadPendingInvoiceAdmin2(); // <--- TAMBAHKAN BARIS INI
 };
 
 // ==========================================
@@ -24,12 +24,11 @@ window.loadRenewalQueue = async function() {
     container.innerHTML = '<p class="text-center text-slate-400 py-4 italic text-sm">🔄 Menarik data antrean dari server...</p>';
     
     try {
-        // PAKE NAMA KOLOM ASLI DATABASE-MU
         const { data, error } = await sb
             .from('murid') 
             .select('id_murid, nama_murid, jenis_paket, sisa_sesi, no_wa, expired_sesi')
             .lte('sisa_sesi', 2)
-            .order('sisa_sesi', { ascending: true }); // Urutkan dari sesi 0 dulu
+            .order('sisa_sesi', { ascending: true });
 
         if (error) throw error;
 
@@ -44,9 +43,8 @@ window.loadRenewalQueue = async function() {
         let html = '';
         data.forEach(m => {
             let isOverdue = (m.sisa_sesi <= 0);
-            let badgeOverdue = isOverdue ? `<span class="bg-red-100 text-red-700 text-[10px] font-black px-2 py-1 rounded border border-red-300 animate-pulse">⚠️ SESA HABIS</span>` : '';
+            let badgeOverdue = isOverdue ? `<span class="bg-red-100 text-red-700 text-[10px] font-black px-2 py-1 rounded border border-red-300 animate-pulse">⚠️ SESI HABIS</span>` : '';
 
-            // Template WA Alarm Renewal
             const pesanWA = `Halo Ayah/Bunda ${m.nama_murid}, ini Admin JR Academy 👋.%0A%0AInfo nih Bun, sesi renang Jagoan kita sisa ${m.sisa_sesi} pertemuan lagi lho. Biar jadwal latihannya nggak keputus, yuk amankan kuota untuk paket selanjutnya!%0A%0ABisa balas pesan ini untuk diterbitkan invoice tagihannya ya Bun. Terima kasih! 😊🏊‍♂️`;
             
             let noWa = m.no_wa ? m.no_wa.toString() : "";
@@ -88,7 +86,7 @@ window.loadRenewalQueue = async function() {
 };
 
 // ==========================================
-// 2. LEADS INBOX (Tabel: pendaftaran_pending)
+// 2. LEADS INBOX (PENDAFTARAN BARU)
 // ==========================================
 window.loadLeadsInbox = async function() {
     bukaModulAdmin2('admin2-modul-leads');
@@ -113,7 +111,6 @@ window.loadLeadsInbox = async function() {
         data.forEach(lead => {
             const tglDaftar = new Date(lead.created_at).toLocaleDateString('id-ID', { hour: '2-digit', minute:'2-digit' });
             
-            // Template WA Sambutan
             const pesanWA = `Halo Bunda ${lead.nama}, terima kasih sudah mendaftar di Jago Renang Academy! 🎉%0A%0AData pendaftaran jagoan kita sudah kami terima. Berikutnya kami akan mengirimkan link Invoice untuk aktivasi akun dan jadwal perdananya ya Bun.%0A%0AApakah ada pertanyaan soal program kelasnya?`;
             
             let noWa = lead.no_wa ? lead.no_wa.toString() : "";
@@ -125,17 +122,17 @@ window.loadLeadsInbox = async function() {
                     <div>
                         <h3 class="font-bold text-slate-800 text-sm m-0">🆕 ${lead.nama}</h3>
                         <p class="text-[11px] text-slate-500 font-bold mt-0.5">Daftar: ${tglDaftar}</p>
+                        <p class="text-[11px] text-slate-600 mt-1">WA: ${lead.no_wa} | User: ${lead.username}</p>
                     </div>
-                    <span class="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-1 rounded">PENDING INVOICE</span>
+                    <span class="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-1 rounded">PENDING</span>
                 </div>
                 
-                <div class="flex gap-2 mt-3">
-                    <a href="https://wa.me/${noWa}?text=${pesanWA}" target="_blank" class="flex-[2] bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-lg text-xs text-center transition">
+                <div class="flex flex-col sm:flex-row gap-2 mt-3">
+                    <a href="https://wa.me/${noWa}?text=${pesanWA}" target="_blank" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-lg text-xs text-center transition">
                         💬 Sapa via WA
                     </a>
-                    <!-- NOTE: Karena murid belum masuk tabel 'murid', tombol invoice ini mungkin perlu logic khusus insert ke tabel murid dulu atau proses approval -->
-                    <button onclick="alert('Fitur Approval & Generate Invoice Leads sedang disiapkan!')" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs text-center transition">
-                        ✅ Approve
+                    <button onclick="approvePendaftar(${lead.id}, '${lead.nama}', '${lead.tanggal_lahir}', '${lead.no_wa}', '${lead.username}', '${lead.password}')" class="flex-[1.5] bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs text-center transition shadow-sm">
+                        ✅ ACC & Tagih
                     </button>
                 </div>
             </div>`;
@@ -148,13 +145,12 @@ window.loadLeadsInbox = async function() {
 };
 
 // ==========================================
-// 3. FUNGSI PEMBANTU (INVOICE, BONUS, CEKLIS)
+// 3. FUNGSI PEMBANTU & GAMIFICATION BONUS
 // ==========================================
 window.triggerInvoiceDariAdmin2 = function(id_murid, nama_murid, paket) {
     const modal = document.getElementById('modal-invoice');
     if(modal) {
         modal.classList.remove('hidden'); 
-        // Menggunakan id HTML yang ada di kodemu sebelumnya
         document.getElementById('hidden-inv-murid-id').value = id_murid;
         document.getElementById('inv-input-nama').value = nama_murid;
         document.getElementById('inv-input-paket').value = paket;
@@ -162,22 +158,48 @@ window.triggerInvoiceDariAdmin2 = function(id_murid, nama_murid, paket) {
         document.getElementById('inv-nomor').innerText = "INV/JR/" + Math.floor(1000 + Math.random() * 9000);
         document.getElementById('inv-tanggal').innerText = new Date().toLocaleDateString('id-ID');
         
-        // Animasi UI Score (Gamification)
-        let paidScore = parseInt(document.getElementById('score-paid').innerText);
-        document.getElementById('score-paid').innerText = paidScore + 1;
     } else {
         alert("Modal Invoice tidak ditemukan!");
     }
 };
 
+// 🔥 FUNGSI HITUNG BONUS REAL-TIME 🔥
 window.hitungMyBonus = async function() {
     try {
-        // Query tabel invoices yang statusnya Paid 
-        // Admin ID belum ada di tabel invoice, jadi pakai dummy dulu biar angkanya gede wkwk
-        let totalBonus = 2150000; 
+        const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
+        if (!currentUser) return;
+
+        // Ambil rentang tanggal bulan ini
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+        const startDate = `${currentYear}-${currentMonth}-01`;
+        const endDate = `${currentYear}-${currentMonth}-31`;
+
+        // Query Supabase: Cari invoice LUNAS buatan admin ini di bulan ini
+        const { data, error } = await sb
+            .from('invoices')
+            .select('total')
+            .eq('admin_id', currentUser)
+            .eq('status', 'Paid')
+            .gte('tanggal_terbit', startDate)
+            .lte('tanggal_terbit', endDate);
+
+        if (error) throw error;
+
+        let totalBonus = 0;
+        if (data && data.length > 0) {
+            // Hitung total Omset dari invoice yang dikawal admin ini
+            const totalOmset = data.reduce((sum, inv) => sum + (inv.total || 0), 0);
+            
+            // Asumsi Bonus = 5% dari total tagihan (Bisa diganti sesuai kebijakanmu)
+            const persentaseBonus = 0.05; 
+            totalBonus = totalOmset * persentaseBonus;
+        }
+
         document.getElementById('admin2-bonus-display').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalBonus);
     } catch(e) {
-        console.error(e);
+        console.error("Gagal menghitung bonus:", e);
     }
 };
 
@@ -186,7 +208,7 @@ window.updateScoreKontak = function() {
     document.getElementById('score-kontak').innerText = k + 1;
 };
 
-// Logika Content Tracker tetap sama persis seperti sebelumnya (pakai LocalStorage)
+// Content Tracker
 window.muatChecklistHarian = function() {
     const today = new Date().toLocaleDateString('id-ID');
     document.getElementById('tgl-checklist').innerText = today;
@@ -207,4 +229,97 @@ window.simpanChecklist = function() {
     localStorage.setItem('chk-ig-reels', document.getElementById('chk-ig-reels').checked);
     localStorage.setItem('chk-balas-komen', document.getElementById('chk-balas-komen').checked);
     muatChecklistHarian();
+};
+// ==========================================
+// 4. MANAJEMEN INVOICE & LUNAS KHUSUS ADMIN 2
+// ==========================================
+window.loadPendingInvoiceAdmin2 = async function() {
+    const container = document.getElementById('admin2-pending-invoice-list');
+    if(!container) return;
+    
+    container.innerHTML = '<p class="text-center text-xs text-slate-400 italic py-2">🔄 Menarik data...</p>';
+    const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
+
+    try {
+        // Cari invoice status Unpaid buatan admin yang lagi login ini
+        const { data, error } = await sb.from('invoices')
+            .select('*')
+            .eq('admin_id', currentUser)
+            .eq('status', 'Unpaid')
+            .order('id', { ascending: false });
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            container.innerHTML = '<p class="text-center text-xs text-teal-600 font-bold py-2">✨ Bersih! Tidak ada tagihan yang gantung.</p>';
+            return;
+        }
+
+        let html = '';
+        data.forEach(inv => {
+            let totalVal = inv.total || inv.biaya || 0;
+            
+            html += `
+            <div class="bg-white border border-amber-300 rounded-lg p-3 shadow-sm flex flex-col gap-2">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <strong class="text-sky-700 text-xs">${inv.nomor_invoice || inv.no_invoice}</strong>
+                        <p class="text-[11px] font-bold text-slate-700 mt-0.5">👤 ${inv.nama_murid || 'Tanpa Nama'}</p>
+                    </div>
+                    <span class="text-amber-600 font-black text-sm">Rp ${totalVal.toLocaleString('id-ID')}</span>
+                </div>
+                
+                <div class="flex gap-2 mt-1">
+                    <button onclick="lunasiInvoiceAdmin2(${inv.id}, '${inv.nomor_invoice || inv.no_invoice}', '${inv.nama_murid}', ${totalVal})" class="flex-1 bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 rounded text-[10px] transition shadow-sm">
+                        ✅ Tandai Lunas
+                    </button>
+                    <!-- Tombol WA buat nagih lagi kalau ortu lupa -->
+                    <button onclick="window.open('https://wa.me/?text=Halo%20Ayah/Bunda%20${inv.nama_murid},%20mengingatkan%20tagihan%20${inv.nomor_invoice || inv.no_invoice}%20belum%20diselesaikan.%20Terima%20kasih!', '_blank')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-300 font-bold px-3 py-2 rounded text-[10px] transition">
+                        🔔 Follow Up
+                    </button>
+                </div>
+            </div>`;
+        });
+        
+        container.innerHTML = html;
+    } catch(e) {
+        console.error("Gagal memuat pending invoice:", e);
+        container.innerHTML = '<p class="text-center text-xs text-red-500 py-2">Gagal memuat data.</p>';
+    }
+};
+
+window.lunasiInvoiceAdmin2 = async function(idInvoice, noInvoice, namaSiswa, total) {
+    if (!confirm(`✅ Tandai Invoice ${noInvoice} (${namaSiswa}) LUNAS?\nBonus kamu akan otomatis bertambah!`)) return;
+
+    try {
+        // 1. Update status jadi Paid
+        const { error: errInv } = await sb.from('invoices').update({ status: 'Paid' }).eq('id', idInvoice);
+        if (errInv) throw errInv;
+
+        // 2. Catat ke Arus Kas Pusat
+        const now = new Date();
+        const tglHariIni = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        const { error: errKas } = await sb.from('akunting').insert([{
+            tanggal: tglHariIni,
+            keterangan: `Pembayaran ${noInvoice} - ${namaSiswa} (Via Admin 2)`,
+            jenis: 'Pemasukan',
+            jumlah: parseInt(total)
+        }]);
+        if (errKas) throw errKas;
+
+        // 3. Efek Visual & Update Angka Gamification
+        let paidScoreEl = document.getElementById('score-paid');
+        if (paidScoreEl) {
+            paidScoreEl.innerText = parseInt(paidScoreEl.innerText) + 1;
+        }
+        
+        alert("🎉 BOOM! Invoice Lunas. Cek bonusmu sekarang!");
+        
+        // Refresh daftar pending & Hitung ulang bonus!
+        loadPendingInvoiceAdmin2();
+        hitungMyBonus(); 
+
+    } catch(e) {
+        alert("Gagal memproses pembayaran: " + e.message);
+    }
 };

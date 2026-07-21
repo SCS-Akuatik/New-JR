@@ -2,7 +2,7 @@ import { sb } from './config.js';
 
 // ========================================================
 // SCRIPT AKUNTING (ARUS KAS & REKAPITULASI)
-// VERSION: FULL ANTI ZONA WAKTU + REMINDER WA + VOID HISTORY
+// VERSION: FULL ANTI ZONA WAKTU + REMINDER WA + VOID HISTORY + ASSIGNEE
 // ========================================================
 
 export async function tambahAkunting() {
@@ -52,7 +52,6 @@ export async function loadAkuntingAdmin() {
         let val = parseFloat(a.jumlah);
         totalSaldo += (a.jenis === 'Pemasukan' ? val : -val);
         
-        // 🔴 MANUAL SPLIT STRING (Anti Zona Waktu Mundur)
         let tglIndo = 'Tanpa Tanggal';
         if (a.tanggal) {
             const parts = a.tanggal.split('T')[0].split('-');
@@ -102,14 +101,12 @@ export async function loadRekapAkunting() {
     data.forEach(item => {
         if (!item.tanggal) return;
         
-        // 🔴 MANUAL SPLIT STRING (Anti Zona Waktu Mundur)
         const parts = item.tanggal.split('T')[0].split('-');
         const itemTahun = parseInt(parts[0]);
         const itemBulan = parseInt(parts[1]);
         
         let val = parseFloat(item.jumlah) || 0;
 
-        // LOGIKA TUTUP BUKU
         if (itemTahun < tahun || (itemTahun === tahun && itemBulan < bulan)) {
             if (item.jenis === 'Pemasukan') saldoBulanSebelumnya += val;
             if (item.jenis === 'Pengeluaran') saldoBulanSebelumnya -= val;
@@ -206,7 +203,6 @@ export async function loadInvoiceHistory() {
     listContainer.innerHTML = '<p style="text-align:center;">Memuat data invoice...</p>';
 
     try {
-        // 🔥 NAMA TABEL UDAH DIGANTI JADI invoices 🔥
         const { data, error } = await sb.from('invoices')
             .select('*')
             .order('id', { ascending: false })
@@ -233,7 +229,6 @@ export async function loadInvoiceHistory() {
                 badgeText = 'Void';
             }
 
-            // UI Tombol Reminder Sejajar dengan Badge
             if (inv.status === 'Unpaid' || !inv.status) {
                 reminderBtn = `<button onclick="kirimReminder('${inv.nomor_invoice || inv.no_invoice}', '${inv.nama_murid || inv.nama_wali}', '${inv.paket || '-'}', ${inv.total || inv.biaya || 0})" style="display:flex; align-items:center; justify-content:center; height:24px; box-sizing:border-box; margin:0; background:#3b82f6; color:white; border:none; padding:0 10px; border-radius:12px; font-size:10px; font-weight:bold; cursor:pointer; line-height:1; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">🔔 WA</button>`;
             }
@@ -243,11 +238,15 @@ export async function loadInvoiceHistory() {
             let invTgl = inv.tanggal_terbit || inv.tanggal || inv.created_at || '-';
             let tglFormat = invTgl !== '-' ? new Date(invTgl).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
 
+            // 🔥 TAMPILKAN NAMA ADMIN PEMBUAT INVOICE (JIKA ADA) 🔥
+            let labelAdmin = inv.admin_id ? `<span style="font-size:9px; background:#e2e8f0; color:#475569; padding:2px 6px; border-radius:4px; font-weight:bold;">👤 By: ${inv.admin_id}</span>` : '';
+
             let actionButtons = '';
             if (inv.status === 'Unpaid' || !inv.status) {
                 actionButtons = `
                 <div style="margin-top: 10px; display: flex; gap: 8px;">
-                    <button onclick="lunasiInvoice(${inv.id}, '${inv.nomor_invoice || inv.no_invoice}', '${inv.nama_murid || inv.nama_wali}', ${totalVal})" style="flex: 1; background: #10b981; color: white; border: none; padding: 6px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">✅ Lunas</button>
+                    <!-- Di tombol lunas, kita juga bypass admin_id biar divalidasi -->
+                    <button onclick="lunasiInvoice(${inv.id}, '${inv.nomor_invoice || inv.no_invoice}', '${inv.nama_murid || inv.nama_wali}', ${totalVal}, '${inv.admin_id || ''}')" style="flex: 1; background: #10b981; color: white; border: none; padding: 6px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">✅ Lunas</button>
                     <button onclick="batalkanInvoice(${inv.id}, '${inv.nomor_invoice || inv.no_invoice}')" style="flex: 1; background: #ef4444; color: white; border: none; padding: 6px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">❌ Void</button>
                 </div>`;
             }
@@ -259,7 +258,10 @@ export async function loadInvoiceHistory() {
             <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin-bottom:10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); ${opacityStyle}">
                 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px;">
-                    <strong style="color:#0369a1; font-size:12px; ${strikeStyle}">${inv.nomor_invoice || inv.no_invoice || 'INV-XXX'}</strong>
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <strong style="color:#0369a1; font-size:12px; ${strikeStyle}">${inv.nomor_invoice || inv.no_invoice || 'INV-XXX'}</strong>
+                        ${labelAdmin}
+                    </div>
                     
                     <div style="display:flex; align-items:center; gap:5px;">
                         ${reminderBtn}
@@ -295,7 +297,6 @@ export async function batalkanInvoice(idInvoice, noInvoice) {
     if (!confirm(`⚠️ Yakin ingin membatalkan (Void) Invoice ${noInvoice}? Data akan disembunyikan dari daftar aktif.`)) return;
 
     try {
-        // 🔥 NAMA TABEL UDAH DIGANTI JADI invoices 🔥
         const { error } = await sb.from('invoices').update({ status: 'Batal' }).eq('id', idInvoice);
         if (error) throw error;
         
@@ -305,16 +306,20 @@ export async function batalkanInvoice(idInvoice, noInvoice) {
     }
 }
 
-export async function lunasiInvoice(idInvoice, noInvoice, namaSiswa, total) {
-    if (!confirm(`✅ Tandai Invoice ${noInvoice} (${namaSiswa}) sebagai LUNAS?\n\nNominal Rp ${total.toLocaleString('id-ID')} akan OTOMATIS masuk ke Catatan Pemasukan Arus Kas!`)) return;
+export async function lunasiInvoice(idInvoice, noInvoice, namaSiswa, total, adminPembuat) {
+    const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
+    
+    // VALIDASI KEAMANAN: Cek apakah yang klik Lunas adalah admin yang membuat, JIKA admin tersebut di-set.
+    if (adminPembuat && adminPembuat !== currentUser) {
+        if (!confirm(`⚠️ PERINGATAN!\nInvoice ini dibuat oleh [${adminPembuat}]. Jika kamu tandai lunas, bonus akan tetap masuk ke ${adminPembuat}.\nLanjutkan?`)) return;
+    } else {
+        if (!confirm(`✅ Tandai Invoice ${noInvoice} (${namaSiswa}) sebagai LUNAS?\n\nNominal Rp ${total.toLocaleString('id-ID')} akan OTOMATIS masuk ke Catatan Pemasukan Arus Kas dan BONUS kamu akan bertambah!`)) return;
+    }
 
     try {
-        // 🔥 NAMA TABEL UDAH DIGANTI JADI invoices 🔥
-        // 1. Ubah status invoice jadi Paid
         const { error: errInv } = await sb.from('invoices').update({ status: 'Paid' }).eq('id', idInvoice);
         if (errInv) throw errInv;
 
-        // 2. Insert langsung ke Akunting (Arus Kas) dengan waktu lokal komputer/HP
         const now = new Date();
         const tglHariIni = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
         
@@ -328,10 +333,21 @@ export async function lunasiInvoice(idInvoice, noInvoice, namaSiswa, total) {
 
         alert("Berhasil! Invoice Lunas & Arus Kas otomatis bertambah! 💰");
         
-        // Refresh tabel tampilan
+        // Refresh tabel tampilan & Trigger Update Bonus Real-time!
         loadInvoiceHistory(); 
         if (typeof window.loadAkuntingAdmin === "function") window.loadAkuntingAdmin(); 
         if (typeof window.loadRekapAkunting === "function") window.loadRekapAkunting(); 
+        
+        // 🔥 TRIGGER UPDATE BONUS (Jika dipanggil dari halaman Admin 2) 🔥
+        if (typeof window.hitungMyBonus === "function") {
+            // Update UI Score Gamification
+            let paidScoreEl = document.getElementById('score-paid');
+            if (paidScoreEl) {
+                let paidScore = parseInt(paidScoreEl.innerText);
+                paidScoreEl.innerText = paidScore + 1;
+            }
+            window.hitungMyBonus(); 
+        }
         
     } catch (err) {
         alert("Gagal memproses pembayaran: " + err.message);
@@ -341,7 +357,6 @@ export async function lunasiInvoice(idInvoice, noInvoice, namaSiswa, total) {
 export function kirimReminder(noInvoice, namaMurid, paket, total) {
     const teksWA = `Halo Ayah/Bunda dari *${namaMurid}*! 👋%0A%0AMohon izin menginformasikan dari Admin *Jago Renang Academy*. Mengingatkan kembali terdapat tagihan yang masih *pending/belum diselesaikan* dengan rincian berikut:%0A%0A🧾 *No Invoice:* ${noInvoice}%0A📦 *Paket:* ${paket}%0A💰 *Total Tagihan:* Rp ${total.toLocaleString('id-ID')}%0A%0AApakah ada kendala terkait pembayaran? Jika sudah melakukan transfer, mohon berkenan mengirimkan bukti pembayarannya ya Ayah/Bunda untuk segera kami proses pembaruan sisa sesi ananda.%0A%0ATerima kasih banyak atas kerjasamanya! 🙏`;
     
-    // Buka WhatsApp web/app
     window.open(`https://wa.me/?text=${teksWA}`, '_blank');
 }
 

@@ -195,10 +195,8 @@ export async function loadCoachAdmin() {
    MODUL COACH (DASHBOARD PELATIH) - FIXED IDENTITAS
 ========================================================= */
 export async function loadCoachJadwal() {
-    // FIX: Ambil dari localStorage
     const userSesi = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
     
-    // FIX: Jemput nama asli dulu dari tabel master coach
     const { data: masterCoach } = await sb.from('coach')
         .select('nama_coach')
         .eq('username', userSesi)
@@ -206,7 +204,6 @@ export async function loadCoachJadwal() {
         
     const namaAsliCoach = masterCoach ? masterCoach.nama_coach : userSesi;
 
-    // FILTER: Tampilkan jadwal pakai Nama Asli
     const { data: jadwalTugas } = await sb.from('jadwal_coach')
         .select('*')
         .ilike('nama_coach', `%${namaAsliCoach}%`)
@@ -460,17 +457,88 @@ export async function accFeeCoach(idAntrean, namaCoach, namaMurid, tipeClass, tg
     }
 }
 
+
+/* =========================================================
+   FITUR AUTOCOMPLETE PENCARIAN MURID (ASSESSMENT)
+========================================================= */
+let debounceTimerMurid;
+
+export function debounceSearchMurid() {
+    clearTimeout(debounceTimerMurid);
+    const keyword = document.getElementById('search-assess-murid').value.trim();
+    const clearBtn = document.getElementById('clear-search-murid');
+    const dropdown = document.getElementById('dropdown-assess-murid');
+
+    if (keyword.length > 0) {
+        clearBtn.classList.remove('hidden');
+    } else {
+        clearBtn.classList.add('hidden');
+        dropdown.classList.add('hidden');
+        return;
+    }
+
+    debounceTimerMurid = setTimeout(() => {
+        cariMuridAssessment(keyword);
+    }, 300);
+}
+
+export async function cariMuridAssessment(keyword) {
+    const dropdown = document.getElementById('dropdown-assess-murid');
+    dropdown.innerHTML = '<div class="p-3 text-xs text-slate-500 italic text-center">🔄 Mencari di database...</div>';
+    dropdown.classList.remove('hidden');
+
+    try {
+        const { data, error } = await sb.from('murid')
+            .select('id_murid, nama_murid, nama_panggilan')
+            .or(`nama_murid.ilike.%${keyword}%,nama_panggilan.ilike.%${keyword}%`)
+            .limit(10); 
+
+        if (error) throw error;
+
+        if (data.length === 0) {
+            dropdown.innerHTML = '<div class="p-3 text-xs text-red-500 font-bold text-center">❌ Tidak ada murid yang cocok</div>';
+            return;
+        }
+
+        let html = '';
+        data.forEach(m => {
+            const panggilan = m.nama_panggilan ? m.nama_panggilan : m.nama_murid.split(' ')[0];
+            html += `
+            <div onclick="pilihMuridAutocomplete(${m.id_murid}, '${panggilan}', '${m.nama_murid}')" class="p-3 border-b border-slate-100 hover:bg-sky-50 cursor-pointer transition">
+                <div class="font-bold text-sky-700 text-sm">${panggilan}</div>
+                <div class="text-[10px] text-slate-500">👤 ${m.nama_murid}</div>
+            </div>`;
+        });
+        dropdown.innerHTML = html;
+
+    } catch (error) {
+        console.error("Gagal mencari murid:", error);
+        dropdown.innerHTML = '<div class="p-3 text-xs text-red-500 text-center">⚠️ Terjadi gangguan jaringan</div>';
+    }
+}
+
+export function pilihMuridAutocomplete(id, panggilan, namaLengkap) {
+    document.getElementById('search-assess-murid').value = `${panggilan} (${namaLengkap})`;
+    document.getElementById('assess-murid').value = id; 
+    document.getElementById('dropdown-assess-murid').classList.add('hidden'); 
+    
+    loadAssessmentDetail(); 
+}
+
+export function clearSearchMurid() {
+    document.getElementById('search-assess-murid').value = '';
+    document.getElementById('assess-murid').value = '';
+    document.getElementById('dropdown-assess-murid').classList.add('hidden');
+    document.getElementById('clear-search-murid').classList.add('hidden');
+    
+    loadAssessmentDetail();
+}
+
 /* =========================================================
    MODUL COACH: ASSESSMENT & PROGRESS
 ========================================================= */
 export async function loadCoachAssessment() {
-    const { data: murid } = await sb.from('murid').select('id_murid, nama_murid').order('nama_murid');
-    let opt = '<option value="">-- Pilih Murid --</option>';
-    if(murid) murid.forEach(m => opt += `<option value="${m.id_murid}">${m.nama_murid}</option>`);
-    
-    const assessMuridEl = document.getElementById('assess-murid');
-    if(assessMuridEl) assessMuridEl.innerHTML = opt;
-
+    // Dropdown tidak diisi lagi karena sudah menggunakan Autocomplete HTML
     loadRiwayatAssessment();
     loadBelumAssessment(); 
 }
@@ -509,17 +577,24 @@ export async function loadBelumAssessment() {
     }
 }
 
-export function pilihAnakBelumDinilai(idMurid) {
-    const dropdown = document.getElementById('assess-murid');
-    if(dropdown) dropdown.value = idMurid; 
+export async function pilihAnakBelumDinilai(idMurid) {
+    document.getElementById('assess-murid').value = idMurid; 
+    
+    // Fetch nama buat ditampilin di kolom search
+    const { data } = await sb.from('murid').select('nama_murid, nama_panggilan').eq('id_murid', idMurid).maybeSingle();
+    if(data) {
+        const panggilan = data.nama_panggilan || data.nama_murid.split(' ')[0];
+        document.getElementById('search-assess-murid').value = `${panggilan} (${data.nama_murid})`;
+        document.getElementById('clear-search-murid').classList.remove('hidden');
+    }
+    
     loadAssessmentDetail(); 
     window.scrollTo({ top: 0, behavior: "smooth" }); 
 }
 
 export async function loadAssessmentDetail() {
-    const dropdown = document.getElementById('assess-murid');
-    if(!dropdown) return;
-    const idMurid = dropdown.value;
+    // Ambil ID dari hidden input
+    const idMurid = document.getElementById('assess-murid').value;
     if(!idMurid) return;
 
     let hiddenId = document.getElementById('ass-edit-id');
@@ -557,8 +632,15 @@ export async function loadAssessmentDetail() {
 }
 
 export async function editAssessmentLog(idAssessment, idMurid) {
-    const dropdown = document.getElementById('assess-murid');
-    if(dropdown) dropdown.value = idMurid;
+    document.getElementById('assess-murid').value = idMurid;
+
+    // Fetch nama agar input search otomatis terisi
+    const { data: dataMurid } = await sb.from('murid').select('nama_murid, nama_panggilan').eq('id_murid', idMurid).maybeSingle();
+    if(dataMurid) {
+        const panggilan = dataMurid.nama_panggilan || dataMurid.nama_murid.split(' ')[0];
+        document.getElementById('search-assess-murid').value = `${panggilan} (${dataMurid.nama_murid})`;
+        document.getElementById('clear-search-murid').classList.remove('hidden');
+    }
 
     let hiddenId = document.getElementById('ass-edit-id');
     if (!hiddenId) {
@@ -587,10 +669,10 @@ export async function editAssessmentLog(idAssessment, idMurid) {
 }
 
 export async function simpanAssessment() {
-    const dropdown = document.getElementById('assess-murid');
-    const idMurid = dropdown.value;
+    // Ambil ID dari hidden input
+    const idMurid = document.getElementById('assess-murid').value;
     
-    if(!idMurid) return alert("Pilih murid!");
+    if(!idMurid) return alert("Cari dan pilih murid terlebih dahulu!");
 
     const valFloat = parseInt(document.getElementById('ass-float').value) || 0;
     const valBreath = parseInt(document.getElementById('ass-breath').value) || 0;
@@ -665,6 +747,7 @@ export async function simpanAssessment() {
         
         if (hiddenId) hiddenId.value = ""; 
         document.getElementById('ass-catatan').value = ""; 
+        clearSearchMurid(); // Kosongkan form pencarian setelah sukses
         
         if (typeof loadRiwayatAssessment === "function") loadRiwayatAssessment(); 
         if (typeof loadBelumAssessment === "function") loadBelumAssessment(); 
@@ -758,12 +841,10 @@ export async function loadCoachFee() {
     const listEl = document.getElementById('coach-fee-list');
     if (!totalEl || !listEl) return;
 
-    // FIX: Ambil dari localStorage
     const userSesi = localStorage.getItem("loggedInUser") || localStorage.getItem("username");
     if (!userSesi) return listEl.innerHTML = "Coach belum login.";
 
     try {
-        // FIX: Jemput nama asli dulu dari tabel master coach
         const { data: masterCoach } = await sb.from('coach')
             .select('nama_coach')
             .eq('username', userSesi)
@@ -771,7 +852,6 @@ export async function loadCoachFee() {
 
         const namaAsli = masterCoach ? masterCoach.nama_coach : userSesi;
 
-        // FILTER: Tampilkan fee pakai Nama Asli
         const { data, error } = await sb.from("fee_coach")
             .select("*")
             .eq("nama_coach", namaAsli) 
@@ -893,6 +973,14 @@ window.selesaiTugasJadwal = selesaiTugasJadwal;
 window.batalTugasJadwal = batalTugasJadwal;
 window.loadAntreanFeeAdmin = loadAntreanFeeAdmin;
 window.accFeeCoach = accFeeCoach;
+
+// Autocomplete Register
+window.debounceSearchMurid = debounceSearchMurid;
+window.cariMuridAssessment = cariMuridAssessment;
+window.pilihMuridAutocomplete = pilihMuridAutocomplete;
+window.clearSearchMurid = clearSearchMurid;
+
+// Assessment Register
 window.loadCoachAssessment = loadCoachAssessment;
 window.loadBelumAssessment = loadBelumAssessment;
 window.pilihAnakBelumDinilai = pilihAnakBelumDinilai;
@@ -900,6 +988,8 @@ window.loadAssessmentDetail = loadAssessmentDetail;
 window.editAssessmentLog = editAssessmentLog;
 window.simpanAssessment = simpanAssessment;
 window.loadRiwayatAssessment = loadRiwayatAssessment;
+
+// Fee & Profil
 window.tambahAkunting = tambahAkunting;
 window.loadCoachFee = loadCoachFee;
 window.loadProfilCoach = loadProfilCoach;

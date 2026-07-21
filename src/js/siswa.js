@@ -289,6 +289,9 @@ export async function submitInvoiceDatabase(event) {
         return;
     }
 
+    // 🔥 TANGKAP IDENTITAS ADMIN YANG LAGI LOGIN 🔥
+    const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
+
     try {
         const { error } = await sb.from('invoices').insert([{
             no_invoice: noInv,
@@ -304,7 +307,8 @@ export async function submitInvoiceDatabase(event) {
             sesi_3: s3,
             sesi_4: s4,
             expired_sesi: expDate,
-            status: 'Unpaid'
+            status: 'Unpaid',
+            admin_id: currentUser // <--- INJEKSI BONUS DI SINI BOS!
         }]);
 
         if (error) {
