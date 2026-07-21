@@ -13,7 +13,9 @@ window.initDashboardAdmin2 = async function() {
     bukaModulAdmin2('dashboard-admin2');
     muatChecklistHarian();
     await hitungMyBonus();
-    loadPendingInvoiceAdmin2(); // <--- TAMBAHKAN BARIS INI
+    loadPendingInvoiceAdmin2();
+    jalankanJamWIB(); 
+    loadProfilAdmin();
 };
 
 // ==========================================
@@ -321,5 +323,108 @@ window.lunasiInvoiceAdmin2 = async function(idInvoice, noInvoice, namaSiswa, tot
 
     } catch(e) {
         alert("Gagal memproses pembayaran: " + e.message);
+    }
+};
+// ==========================================
+// 5. PROFIL ADMIN, UPLOAD AVATAR & JAM WIB
+// ==========================================
+
+window.jalankanJamWIB = function() {
+    const elJam = document.getElementById('admin-jam-realtime');
+    if(!elJam) return;
+
+    // Bersihkan interval lama jika ada biar tidak dobel
+    if(window.jamInterval) clearInterval(window.jamInterval);
+
+    window.jamInterval = setInterval(() => {
+        // Hardcode GMT+7 (Asia/Jakarta) agar anti-melenceng dari device user
+        const options = { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false };
+        const timeString = new Intl.DateTimeFormat('id-ID', options).format(new Date());
+        elJam.innerText = timeString.replace('.', ':'); // Format HH:mm
+    }, 1000);
+};
+
+window.loadProfilAdmin = async function() {
+    const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
+    if(!currentUser) return;
+
+    const elNama = document.getElementById('admin-nama-panggilan');
+    const elFoto = document.getElementById('admin-avatar-img');
+
+    // Set fallback nama dari username
+    if(elNama) elNama.innerText = currentUser.split('.')[0].toUpperCase(); // misal 'trialfebi' jadi 'TRIALFEBI'
+
+    try {
+        const { data, error } = await sb.from('users').select('avatar_url').eq('username', currentUser).maybeSingle();
+        
+        if (data && data.avatar_url && elFoto) {
+            // Gunakan fitur resize Supabase untuk optimasi render (Thumbnail 100x100)
+            // Asumsi URL Supabase Storage standar
+            elFoto.src = data.avatar_url; 
+        }
+    } catch(e) {
+        console.error("Gagal load profil:", e);
+    }
+};
+
+window.uploadAvatarAdmin = async function(event) {
+    const file = event.target.files[0];
+    if(!file) return;
+
+    // 1. Validasi Ukuran (Max 2MB)
+    if(file.size > 2 * 1024 * 1024) {
+        return alert("🚨 Ukuran file terlalu besar! Maksimal 2MB ya Bos.");
+    }
+
+    // 2. Validasi Tipe (Opsional tambahan keamanan frontend)
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if(!validTypes.includes(file.type)) {
+        return alert("🚨 Format file harus JPG, PNG, atau WEBP.");
+    }
+
+    const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
+    const elFoto = document.getElementById('admin-avatar-img');
+    const oldSrc = elFoto.src; 
+    
+    // Tampilkan efek loading sederhana
+    elFoto.style.opacity = '0.5';
+
+    try {
+        const ext = file.name.split('.').pop();
+        // Format path: admin-avatars/username/avatar_1234567.jpg
+        const fileName = `avatar_${Date.now()}.${ext}`;
+        const filePath = `${currentUser}/${fileName}`; 
+
+        // Upload ke Supabase Storage
+        const { error: uploadError } = await sb.storage
+            .from('admin-avatars')
+            .upload(filePath, file, { upsert: true, cacheControl: '3600' });
+
+        if (uploadError) throw uploadError;
+
+        // Ambil Public URL
+        const { data: publicUrlData } = sb.storage
+            .from('admin-avatars')
+            .getPublicUrl(filePath);
+
+        const publicUrl = publicUrlData.publicUrl;
+
+        // Simpan URL ke tabel users
+        const { error: updateError } = await sb.from('users')
+            .update({ avatar_url: publicUrl })
+            .eq('username', currentUser);
+
+        if (updateError) throw updateError;
+
+        // Sukses: Tampilkan gambar baru
+        elFoto.src = publicUrl;
+        alert("✅ Foto profil berhasil diperbarui!");
+
+    } catch(e) {
+        console.error("Gagal upload avatar:", e);
+        alert("Gagal mengunggah foto: " + e.message);
+        elFoto.src = oldSrc; 
+    } finally {
+        elFoto.style.opacity = '1';
     }
 };
