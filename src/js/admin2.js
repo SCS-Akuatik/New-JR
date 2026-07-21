@@ -169,72 +169,32 @@ window.triggerInvoiceDariAdmin2 = function(id_murid, nama_murid, paket) {
     }
 };
 
+// 🔥 FUNGSI HITUNG BONUS (MURNI NARIK DARI fee_marketing) 🔥
 window.hitungMyBonus = async function() {
     try {
         const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
         if (!currentUser) return;
 
-        // 1. Tarik SEMUA invoice Paid milik admin ini (Kita hilangkan filter tanggal SQL yang bikin bentrok)
-        const { data, error } = await sb
-            .from('invoices')
-            .select('total, biaya, tanggal_terbit, created_at') // Ambil kolom total DAN biaya
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+        const startDate = `${currentYear}-${currentMonth}-01`;
+        const endDate = `${currentYear}-${currentMonth}-31`;
+
+        const { data, error } = await sb.from('fee_marketing')
+            .select('fee')
             .eq('admin_id', currentUser)
-            .eq('status', 'Paid');
+            .gte('tanggal_cair', startDate)
+            .lte('tanggal_cair', endDate);
 
         if (error) throw error;
 
         let totalBonus = 0;
         
         if (data && data.length > 0) {
-            const now = new Date();
-            const currentMonth = now.getMonth(); // 0 = Jan, 6 = Jul
-            const currentYear = now.getFullYear();
-
-            // 2. Filter data Bulan Ini secara manual (Kebal format tanggal acak)
-            const validInvoices = data.filter(inv => {
-                let dateStr = inv.tanggal_terbit || inv.created_at || '';
-                if (!dateStr) return false;
-
-                let invMonth, invYear;
-
-                // Deteksi format DD/MM/YYYY (Contoh: 21/7/2026)
-                if (dateStr.includes('/')) {
-                    const parts = dateStr.split('/');
-                    invMonth = parseInt(parts[1]) - 1; // JS array bulan mulai dari 0
-                    invYear = parseInt(parts[2]);
-                } 
-                // Deteksi format YYYY-MM-DD atau DD-MM-YYYY
-                else if (dateStr.includes('-')) {
-                    const parts = dateStr.split('-');
-                    if(parts[0].length === 4) { // YYYY-MM-DD
-                        invYear = parseInt(parts[0]);
-                        invMonth = parseInt(parts[1]) - 1;
-                    } else { // DD-MM-YYYY
-                        invYear = parseInt(parts[2]);
-                        invMonth = parseInt(parts[1]) - 1;
-                    }
-                } else {
-                    // Fallback sistem
-                    const d = new Date(dateStr);
-                    invMonth = d.getMonth();
-                    invYear = d.getFullYear();
-                }
-
-                return invMonth === currentMonth && invYear === currentYear;
-            });
-
-            // 3. Hitung Total Omset (Mendukung baik itu disimpan di kolom 'total' maupun 'biaya')
-            const totalOmset = validInvoices.reduce((sum, inv) => {
-                const nilaiInvoice = parseInt(inv.total) || parseInt(inv.biaya) || 0;
-                return sum + nilaiInvoice;
-            }, 0);
-            
-            // 4. Kalikan dengan Persentase Bonus (5%)
-            const persentaseBonus = 0.05; 
-            totalBonus = totalOmset * persentaseBonus;
+            totalBonus = data.reduce((sum, item) => sum + (parseInt(item.fee) || 0), 0);
         }
 
-        // Tampilkan ke layar
         const elBonus = document.getElementById('admin2-bonus-display');
         if (elBonus) {
             elBonus.innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalBonus);
@@ -244,7 +204,6 @@ window.hitungMyBonus = async function() {
         console.error("Gagal menghitung bonus:", e);
     }
 };
-
 
 window.updateScoreKontak = function() {
     let k = parseInt(document.getElementById('score-kontak').innerText);
@@ -329,35 +288,53 @@ window.loadPendingInvoiceAdmin2 = async function() {
     }
 };
 
+// 🔥 FUNGSI LUNASI INVOICE (Dilengkapi Insert ke fee_marketing) 🔥
 window.lunasiInvoiceAdmin2 = async function(idInvoice, noInvoice, namaSiswa, total) {
-    if (!confirm(`✅ Tandai Invoice ${noInvoice} (${namaSiswa}) LUNAS?\nBonus kamu akan otomatis bertambah!`)) return;
+    if (!confirm(`✅ Tandai Invoice ${noInvoice} (${namaSiswa}) LUNAS?\nBonus Rp 10.000 akan masuk ke dompetmu!`)) return;
 
     try {
+        const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
+
+        // 1. Update status jadi Paid
         const { error: errInv } = await sb.from('invoices').update({ status: 'Paid' }).eq('id', idInvoice);
         if (errInv) throw errInv;
 
         const now = new Date();
         const tglHariIni = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        
+        // 2. Catat ke Arus Kas Pusat
         const { error: errKas } = await sb.from('akunting').insert([{
             tanggal: tglHariIni,
-            keterangan: `Pembayaran ${noInvoice} - ${namaSiswa} (Via Admin 2)`,
+            keterangan: `Pembayaran ${noInvoice} - ${namaSiswa} (Via ${currentUser})`,
             jenis: 'Pemasukan',
             jumlah: parseInt(total)
         }]);
         if (errKas) throw errKas;
+
+        // 3. Catat Bonus ke tabel fee_marketing
+        const feeBounty = 10000;
+        const { error: errFee } = await sb.from('fee_marketing').insert([{
+            admin_id: currentUser,
+            invoice_id: idInvoice,
+            no_invoice: noInvoice,
+            tanggal_cair: tglHariIni,
+            fee: feeBounty
+        }]);
+        if (errFee) throw errFee;
 
         let paidScoreEl = document.getElementById('score-paid');
         if (paidScoreEl) {
             paidScoreEl.innerText = parseInt(paidScoreEl.innerText) + 1;
         }
         
-        alert("🎉 BOOM! Invoice Lunas. Cek bonusmu sekarang!");
+        alert("🎉 BOOM! Invoice Lunas. Bonus Rp 10.000 berhasil dicatat!");
         
         loadPendingInvoiceAdmin2();
         hitungMyBonus(); 
 
     } catch(e) {
         alert("Gagal memproses pembayaran: " + e.message);
+        console.error(e);
     }
 };
 
