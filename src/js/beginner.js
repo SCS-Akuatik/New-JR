@@ -14,39 +14,61 @@ export async function bukaJadwalUser() {
         const { data: cfg } = await sb.from('pengaturan').select('nilai').eq('kunci', 'sub_judul_jadwal').single();
         if (cfg && sub) sub.innerText = cfg.nilai;
         
+        // 1. Tarik semua jadwal (biarkan Supabase tanpa order, kita order di JS)
         const { data, error } = await sb.from('jadwal_kelas').select('*');
         if (error) throw error;
 
+        // =========================================================
+        // 🪄 SUNTIKAN SORTING JADWAL (HARI & JAM)
+        // =========================================================
         if (data && data.length > 0) {
             const urutanHari = {
-                "Senin": 1, "Selasa": 2, "Rabu": 3, "Kamis": 4, 
-                "Jumat": 5, "Sabtu": 6, "Minggu": 7
+                "Senin": 1,
+                "Selasa": 2,
+                "Rabu": 3,
+                "Kamis": 4,
+                "Jumat": 5,
+                "Sabtu": 6,
+                "Minggu": 7
             };
 
             data.sort((a, b) => {
+                // 1. Urutkan berdasarkan Hari dulu
                 const indexHariA = urutanHari[a.hari] || 99;
                 const indexHariB = urutanHari[b.hari] || 99;
-                if (indexHariA !== indexHariB) return indexHariA - indexHariB; 
-                
+
+                if (indexHariA !== indexHariB) {
+                    return indexHariA - indexHariB; // Senin akan selalu di atas Selasa dst.
+                }
+
+                // 2. Jika Harinya sama (misal sama-sama Jumat), urutkan berdasarkan Jam
                 const jamA = a.jam || "00.00";
                 const jamB = b.jam || "00.00";
-                return jamA.localeCompare(jamB); 
+                return jamA.localeCompare(jamB); // 08.00 akan di atas 15.00
             });
         }
+        // =========================================================
 
+        // 2. KELOMPOKKAN BERDASARKAN LOKASI KOLAM (Otak Grouping)
         const jadwalPerKolam = {};
         data.forEach(row => {
-            if (!jadwalPerKolam[row.lokasi]) jadwalPerKolam[row.lokasi] = []; 
-            jadwalPerKolam[row.lokasi].push(row); 
+            if (!jadwalPerKolam[row.lokasi]) {
+                jadwalPerKolam[row.lokasi] = []; // Bikin kamar baru kalau kolam belum ada
+            }
+            jadwalPerKolam[row.lokasi].push(row); // Masukkan jadwal ke kamar kolamnya
         });
 
         let html = '';
+        
+        // 3. RENDER HTML PER KONTAINER KOLAM
         for (const [lokasi, listJadwal] of Object.entries(jadwalPerKolam)) {
             html += `
             <div class="bg-white border border-slate-200 rounded-xl overflow-hidden mb-4 shadow-md">
+                <!-- HEADER KOLAM -->
                 <div class="bg-sky-600 p-3">
                     <h3 class="m-0 text-[15px] font-bold text-white tracking-wide">📍 ${lokasi}</h3>
                 </div>
+                <!-- LIST JADWAL DI DALAM KOLAM TERSEBUT -->
                 <div class="px-3 bg-slate-50">
             `;
 
@@ -55,6 +77,7 @@ export async function bukaJadwalUser() {
                 let textColor = isKosong ? 'text-emerald-600' : 'text-slate-600';
                 let statusText = isKosong ? '✅ Slot Tersedia' : '👥 ' + row.peserta;
 
+                // Tampilan list disejajarkan kiri-kanan (flex justify-between)
                 html += `
                     <div class="flex justify-between items-center border-b border-slate-200 py-3 last:border-0 gap-3">
                         <span class="bg-sky-50 border border-sky-200 text-sky-800 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm whitespace-nowrap">
@@ -66,16 +89,17 @@ export async function bukaJadwalUser() {
                     </div>
                 `;
             });
-            html += `</div></div>`; 
+
+            html += `</div></div>`; // Tutup wadah list & wadah kolam
         }
 
         container.innerHTML = html || '<p class="text-slate-500 text-sm">Jadwal kosong.</p>';
     } catch(e) { 
-        // ALERT ERROR JADWAL USER
-        alert("ERROR LOAD JADWAL USER:\n" + (e.message || JSON.stringify(e)));
-        container.innerHTML = '<p class="text-red-500 font-bold">🚨 Gagal narik data jadwal.</p>'; 
+        container.innerHTML = '<p class="text-red-500 font-bold">🚨 Gagal narik data: ' + e.message + '</p>'; 
     }
 }
+
+
 
 // ===================================================
 // 2. LOAD JADWAL ADMIN & DROPDOWN KOLAM
@@ -85,8 +109,8 @@ export async function loadJadwalAdmin() {
     if(!list) return;
     list.innerHTML = '<p class="text-sky-600 text-sm font-bold animate-pulse">⏳ Memuat jadwal admin...</p>';
     
-    // Panggil helper dropdown
-    loadDropdownMuridBeginner(); 
+    // Panggil helper dropdown bebarengan!
+    if(typeof window.loadDropdownMuridBeginner === 'function') window.loadDropdownMuridBeginner();
     if(typeof window.loadDaftarKolam === 'function') window.loadDaftarKolam();
 
     try {
@@ -110,9 +134,7 @@ export async function loadJadwalAdmin() {
         });
         list.innerHTML = html || '<p class="text-slate-400 text-sm">Belum ada jadwal.</p>';
     } catch(e) {
-        // ALERT ERROR JADWAL ADMIN
-        alert("ERROR TABEL JADWAL KELAS:\n" + (e.message || JSON.stringify(e)));
-        list.innerHTML = '<p class="text-red-500">Gagal load data jadwal.</p>';
+        list.innerHTML = '<p class="text-red-500">Gagal load data: ' + e.message + '</p>';
     }
 }
 
@@ -125,17 +147,17 @@ export async function loadDropdownMuridBeginner() {
     select.innerHTML = '<option value="">Sedang memuat data murid...</option>';
     
     try {
-        const { data, error } = await sb.from('murid').select('id_murid, nama_lengkap, nama_murid, sisa_sesi').gt('sisa_sesi', 0);
+        // HANYA BARIS INI YANG DIUBAH (Hapus nama_lengkap)
+        const { data, error } = await sb.from('murid').select('id_murid, nama_murid, sisa_sesi').gt('sisa_sesi', 0);
         if(error) throw error;
 
         select.innerHTML = '<option value="">Pilih Murid (Sisa Sesi > 0)...</option>';
         data?.forEach(m => {
-            let namaFinal = m.nama_lengkap || m.nama_murid || 'Tanpa Nama';
+            // DAN BARIS INI YANG DIUBAH (Hapus fallback nama_lengkap)
+            let namaFinal = m.nama_murid || 'Tanpa Nama';
             select.innerHTML += `<option value="${m.id_murid}" data-nama="${namaFinal}">${namaFinal} (Sisa: ${m.sisa_sesi})</option>`;
         });
     } catch(e) {
-        // INI DIA TERSANGKA UTAMANYA! ALERT ERROR DROPDOWN MURID
-        alert("ERROR TABEL MURID:\n" + (e.message || JSON.stringify(e)));
         select.innerHTML = '<option value="">Gagal muat data</option>';
     }
 }
@@ -193,7 +215,7 @@ export async function simpanJadwal() {
         document.getElementById('murid-to-deduct').value = '';
         loadJadwalAdmin();
     } catch(e) {
-        alert("GAGAL SIMPAN:\n" + (e.message || JSON.stringify(e)));
+        alert("Gagal simpan jadwal: " + e.message);
     } finally {
         btn.innerText = "⚡ Insert Slot";
     }
@@ -225,11 +247,8 @@ export async function simpanSubJudul() {
     const teks = document.getElementById('input-sub-jadwal').value;
     if(!teks) return alert("Isi teks terlebih dahulu!");
     const { error } = await sb.from('pengaturan').update({ nilai: teks }).eq('kunci', 'sub_judul_jadwal');
-    if(error) {
-        alert('Gagal simpan sub judul:\n' + (error.message || JSON.stringify(error)));
-    } else {
-        alert('Sub judul berhasil diperbarui!');
-    }
+    if(error) alert('Gagal simpan sub judul: ' + error.message);
+    else alert('Sub judul berhasil diperbarui!');
 }
 
 // ==========================================
