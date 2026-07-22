@@ -804,7 +804,7 @@ export async function loadRiwayatAssessment() {
 }
 
 /* =========================================================
-   🔥 OBAT FINAL NUKLIR ANTI-BLANK (PDF GENERATOR) 🔥
+   🔥 OBAT FINAL: JEDA WAKTU (DELAY PAINTING) 🔥
 ========================================================= */
 export async function downloadRaporPDF(idAssessment, namaSiswa) {
     try {
@@ -815,20 +815,19 @@ export async function downloadRaporPDF(idAssessment, namaSiswa) {
         const statusText = isLulus ? "LULUS LEVEL 1 (GRADUATED)" : "DALAM PROSES (IN PROGRESS)";
         const statusColor = isLulus ? "#059669" : "#d97706"; 
 
-        // 1. Bikin Kertas HVS yang NYATA dan nempel di kordinat 0,0
         const pdfContainer = document.createElement('div');
         pdfContainer.id = "temp-pdf-rapor";
-        pdfContainer.style.position = 'absolute';
+        // Kita taruh di belakang layar (z-index -9999) biar HP tetap merender warnanya secara fisik, tapi gak nutupin layar aslimu
+        pdfContainer.style.position = 'fixed';
         pdfContainer.style.top = '0';
         pdfContainer.style.left = '0';
         pdfContainer.style.width = '800px';
-        pdfContainer.style.minHeight = '1131px'; // Proporsi fix A4
         pdfContainer.style.backgroundColor = '#ffffff';
-        pdfContainer.style.zIndex = '99999'; // Taruh paling atas biar HP maksa render
+        pdfContainer.style.zIndex = '-9999';
         pdfContainer.style.padding = '40px';
         pdfContainer.style.boxSizing = 'border-box';
 
-        // 2. Isi Tinta/Konten (Paksa font hitam biar gak bentrok sama Dark Mode HP)
+        // Isi HTML (Sama persis)
         pdfContainer.innerHTML = `
             <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #000000;">
                 <div style="text-align: center; border-bottom: 3px solid #0284c7; padding-bottom: 15px; margin-bottom: 30px;">
@@ -905,13 +904,12 @@ export async function downloadRaporPDF(idAssessment, namaSiswa) {
             </div>
         `;
 
-        // 3. Tanam ke Body biar nampil sekejap
         document.body.appendChild(pdfContainer);
 
-        // 4. KUNCI ANTI-BLANK: Paksa layar scroll ke 0,0 sebelum dipotret!
-        window.scrollTo(0, 0);
+        // 🔥 KUNCI OBATNYA DI SINI: Kasih jeda 1 detik biar HP Android-mu sempet ngegambar semua tabel & warna sebelum dijepret!
+        alert("⏳ Menggambar PDF... Tunggu 1 Detik ya!");
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // 5. Konfigurasi Fix Resolusi (Bukan Inci, tapi Pixel)
         const opt = {
             margin:       0,
             filename:     `Rapor_${namaSiswa.replace(/\s+/g, '_')}_${data.tanggal_assessment}.pdf`,
@@ -919,17 +917,13 @@ export async function downloadRaporPDF(idAssessment, namaSiswa) {
             html2canvas:  { 
                 scale: 2, 
                 useCORS: true,
-                scrollY: 0, // Paksa mulai motret dari pucuk atas
-                windowWidth: 800 // Kunci lebar memori potret
+                windowWidth: 800
             }, 
-            jsPDF:        { unit: 'px', format: [800, 1131], orientation: 'portrait' } // Ukuran pixel murni nyesuain DIV
+            jsPDF:        { unit: 'px', format: [800, 1131], orientation: 'portrait' }
         };
-
-        alert("⏳ Memotret Rapor PDF... Layar akan berkedip sebentar.");
         
         await html2pdf().set(opt).from(pdfContainer).save();
         
-        // 6. Hapus kertas dari layar kalau udah selesai
         document.body.removeChild(pdfContainer);
         
     } catch(e) {
@@ -939,7 +933,6 @@ export async function downloadRaporPDF(idAssessment, namaSiswa) {
         if(temp) document.body.removeChild(temp);
     }
 }
-
 
 
 
