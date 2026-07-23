@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendaftaran Jago Renang Academy</title>
+
+    <!-- ========================================================== -->
+    <!-- META TAGS UNTUK PREVIEW LINK WHATSAPP (OPEN GRAPH) -->
+    <!-- ========================================================== -->
+    <meta name="description" content="Formulir pendaftaran resmi Kelas Beginner Jago Renang Academy.">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.jagorenang.my.id/daftar.html">
+    <meta property="og:title" content="🏊‍♂️ Pendaftaran Jago Renang Academy">
+    <meta property="og:description" content="Daftarkan ananda sekarang! Sistem manajemen kelas profesional dengan jadwal & raport digital.">
+    
+    <!-- URL GAMBAR HARUS LENGKAP BIAR DITARIK SAMA WHATSAPP -->
+    <meta property="og:image" content="https://www.jagorenang.my.id/images/Daftar.jpg">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="800">
+    <meta property="og:image:height" content="800">
+    <!-- ========================================================== -->
+    
+    <!-- 1. Panggil library Supabase dari CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- HAPUS SCRIPT config.js AGAR TIDAK ERROR 404 DI PUBLIC FOLDER -->
+
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #e0f2fe; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; box-sizing: border-box; }
+        .card { background: white; width: 100%; max-width: 400px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: #0284c7; color: white; padding: 20px; text-align: center; }
+        .header h2 { margin: 0; font-size: 18px; }
+        .header p { margin: 5px 0 0 0; font-size: 12px; color: #bae6fd; }
+        .body-form { padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; color: #64748b; font-weight: bold; margin-bottom: 5px; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        .btn-submit { width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
+        .box-login { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="form-container">
+        <div class="header">
+            <h2>FORM PENDAFTARAN</h2>
+            <p>Kelas Beginner/Private Jago Renang Academy</p>
+        </div>
+        <div class="body-form">
+            
+            <!-- WADAH DINAMIS ANAK -->
+            <div id="container-anak">
+                <div class="box-anak" style="background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:10px;">
+                    <label style="font-size:12px; color:#0369a1; font-weight:bold; display:block; margin-bottom:10px;">👦👧 DATA ANAK 1</label>
+                    <div class="form-group">
+                        <label>NAMA LENGKAP ANAK:</label>
+                        <input type="text" class="input-nama" placeholder="Masukkan nama anak...">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>TANGGAL LAHIR:</label>
+                        <input type="date" class="input-tgl">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TOMBOL TAMBAH ANAK -->
+            <button class="btn-submit" onclick="tambahKolomAnak()" style="background:#e0f2fe; color:#0369a1; border:1px dashed #0284c7; margin-top:0; margin-bottom:15px; padding:10px;">➕ Tambah Anak (Jika lebih dari 1)</button>
+
+            <div class="form-group">
+                <label>NOMOR WHATSAPP (ORTU):</label>
+                <input type="number" id="reg-wa" placeholder="Contoh: 08123456789">
+            </div>
+
+            <div class="box-login">
+                <label style="color:#0284c7; margin-bottom:10px; font-weight:bold; font-size:12px; display:block;">🔑 DATA AKSES LOGIN APLIKASI (NANTI)</label>
+                <div class="form-group">
+                    <label>USERNAME:</label>
+                    <input type="text" id="reg-user" placeholder="Contoh: ortu.kenzo">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>PASSWORD:</label>
+                    <input type="text" id="reg-pass" placeholder="Masukkan password...">
+                </div>
+            </div>
+
+            <button class="btn-submit" id="btn-submit" onclick="kirimData()">🚀 Daftar Sekarang</button>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================
+        // 1. INISIALISASI KONEKSI SUPABASE HARDCODE (TANPA .ENV)
+        // =========================================================
+        const supabaseUrl = "https://xwqdkvxythrewgjxhiru.supabase.co";
+        const supabaseKey = "sb_publishable_xfjCBEL-Hf77z-ssKaeZbg_-Or1pIML";
+        const sb = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // =========================================================
+        // FUNGSI TAMBAH KOLOM ANAK DINAMIS
+        // =========================================================
+        function tambahKolomAnak() {
+            const container = document.getElementById('container-anak');
+            const total = container.querySelectorAll('.box-anak').length + 1;
+            
+            const html = `
+            <div class="box-anak" style="background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:10px; position:relative;">
+                <span onclick="this.parentElement.remove()" style="position:absolute; top:12px; right:15px; color:#ef4444; font-weight:bold; cursor:pointer; font-size:20px; line-height:1;">&times;</span>
+                <label style="font-size:12px; color:#0369a1; font-weight:bold; display:block; margin-bottom:10px;">👦👧 DATA ANAK ${total}</label>
+                <div class="form-group">
+                    <label>NAMA LENGKAP ANAK:</label>
+                    <input type="text" class="input-nama" placeholder="Masukkan nama anak...">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>TANGGAL LAHIR:</label>
+                    <input type="date" class="input-tgl">
+                </div>
+            </div>`;
+            
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        // =========================================================
+        // FUNGSI KIRIM DATA KE SUPABASE
+        // =========================================================
+        async function kirimData() {
+            // Kumpulkan data semua anak
+            const container = document.getElementById('container-anak');
+            const boxes = container.querySelectorAll('.box-anak');
+            let anakData = [];
+            
+            for (let box of boxes) {
+                let n = box.querySelector('.input-nama').value.trim();
+                let t = box.querySelector('.input-tgl').value;
+                if (n && t) {
+                    anakData.push({ nama: n, tanggal_lahir: t });
+                }
+            }
+
+            const wa = document.getElementById('reg-wa').value.trim();
+            const user = document.getElementById('reg-user').value.trim();
+            const pass = document.getElementById('reg-pass').value.trim();
+
+            if (anakData.length === 0 || !wa || !user || !pass) {
+                return alert("Mohon lengkapi semua data formulir ya, Bunda!");
+            }
+
+            const btn = document.getElementById('btn-submit');
+            btn.innerHTML = "⏳ Mengirim Data...";
+            btn.disabled = true;
+
+            try {
+                // Cek apakah username sudah ada di sistem
+                const { data: cekUser } = await sb.from('users').select('username').eq('username', user).maybeSingle();
+                
+                if (cekUser) {
+                    const mauLanjut = confirm(`Username "${user}" sudah ada di sistem kami.\n\nJika ini adalah AKUN ANDA untuk anak pertama, klik OK/LANJUTKAN.\n\nJika Anda member baru, klik BATAL dan ganti Username Anda.`);
+                    if (!mauLanjut) {
+                        btn.innerHTML = "🚀 Daftar Sekarang";
+                        btn.disabled = false;
+                        return;
+                    }
+                }
+
+                // Siapkan Array untuk Bulk Insert
+                const insertArray = anakData.map(anak => ({
+                    nama: anak.nama,
+                    tanggal_lahir: anak.tanggal_lahir,
+                    no_wa: wa,
+                    username: user,
+                    password: pass,
+                    status: 'Menunggu Invoice'
+                }));
+
+                // Eksekusi insert massal ke tabel pending
+                const { error } = await sb.from('pendaftaran_pending').insert(insertArray);
+                if (error) throw error;
+
+                // Ekstrak nama-nama anak untuk notifikasi
+                let namaAnakList = anakData.map(a => a.nama).join(" & ");
+
+                // Tampilan sukses
+                document.getElementById('form-container').innerHTML = `
+                    <div style="padding: 40px 20px; text-align: center;">
+                        <h1 style="font-size: 40px; margin: 0;">🎉</h1>
+                        <h3 style="color: #0284c7;">Pendaftaran Berhasil!</h3>
+                        <p style="color: #64748b; font-size: 14px; line-height: 1.5;">Data Ananda <b>${namaAnakList}</b> telah masuk ke sistem kami.<br><br>Silakan kembali ke WhatsApp, Admin akan segera memproses Invoice resmi.</p>
+                    </div>
+                `;
+
+            } catch (err) {
+                console.error(err);
+                alert("Terjadi kesalahan sistem: " + err.message);
+                btn.innerHTML = "🚀 Daftar Sekarang";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

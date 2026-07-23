@@ -1,6 +1,127 @@
 import { sb } from './config.js';
 
 /* =========================================================
+   HEADER DYNAMIC: JAM, NAMA (USERS), DAN UPLOAD FOTO
+========================================================= */
+window.bukaModalFeeCoach = function() {
+    document.getElementById('modal-fee-coach').classList.remove('hidden');
+};
+
+window.jalankanJamCoach = function() {
+    const elJam = document.getElementById('coach-jam-realtime');
+    const elTgl = document.getElementById('coach-tgl-realtime'); 
+
+    const updateWaktu = () => {
+        try {
+            const now = new Date();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            if(elJam) elJam.innerText = `${hh}:${mm}`;
+
+            const hariList = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const blnList = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+            const namaHari = hariList[now.getDay()];
+            const tgl = now.getDate();
+            const namaBln = blnList[now.getMonth()];
+            
+            if(elTgl) elTgl.innerText = `${namaHari}, ${tgl} ${namaBln}`;
+        } catch(e) {
+            console.error("Jam Error:", e);
+        }
+    };
+
+    updateWaktu(); 
+    if(window.jamCoachInterval) clearInterval(window.jamCoachInterval);
+    window.jamCoachInterval = setInterval(updateWaktu, 1000);
+};
+
+window.loadProfilHeaderCoach = async function() {
+    const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
+    if(!currentUser) return;
+
+    const elNama = document.getElementById('header-coach-nama');
+    const elFoto = document.getElementById('header-coach-avatar');
+
+    let callName = currentUser.charAt(0).toUpperCase() + currentUser.slice(1);
+    
+    if (elNama) elNama.innerText = callName;
+    if (elFoto) elFoto.src = `https://ui-avatars.com/api/?name=${callName}&background=0284c7&color=fff`;
+
+    try {
+        const { data, error } = await sb.from('users').select('*').eq('username', currentUser).maybeSingle();
+        
+        if (data) {
+            if (elNama && data.call_name) {
+                elNama.innerText = data.call_name;
+                if(elFoto && !data.avatar_url) elFoto.src = `https://ui-avatars.com/api/?name=${data.call_name}&background=0284c7&color=fff`;
+            }
+            
+            if (elFoto && data.avatar_url) {
+                elFoto.src = data.avatar_url;
+                elFoto.onerror = () => { elFoto.src = `https://ui-avatars.com/api/?name=${data.call_name || callName}&background=0284c7&color=fff`; };
+            }
+        }
+    } catch(e) {
+        console.error("Database profil error:", e);
+    }
+};
+
+window.uploadAvatarCoach = async function(event) {
+    const file = event.target.files[0];
+    if(!file) return;
+
+    if(file.size > 2 * 1024 * 1024) {
+        return alert("🚨 Ukuran file terlalu besar! Maksimal 2MB ya Bos.");
+    }
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if(!validTypes.includes(file.type)) {
+        return alert("🚨 Format file harus JPG, PNG, atau WEBP.");
+    }
+
+    const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
+    const elFoto = document.getElementById('header-coach-avatar');
+    const oldSrc = elFoto.src; 
+    
+    elFoto.style.opacity = '0.5';
+
+    try {
+        const ext = file.name.split('.').pop();
+        const fileName = `avatar_${Date.now()}.${ext}`;
+        const filePath = `${currentUser}/${fileName}`; 
+
+        const { error: uploadError } = await sb.storage
+            .from('coach-avatars') // Bucket name, user will setup
+            .upload(filePath, file, { upsert: true, cacheControl: '3600' });
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = sb.storage
+            .from('coach-avatars')
+            .getPublicUrl(filePath);
+
+        const publicUrl = publicUrlData.publicUrl;
+
+        // Update ke table users
+        const { error: updateError } = await sb.from('users')
+            .update({ avatar_url: publicUrl })
+            .eq('username', currentUser);
+
+        if (updateError) throw updateError;
+
+        elFoto.src = publicUrl;
+        alert("✅ Foto profil berhasil diperbarui!");
+
+    } catch(e) {
+        console.error("Gagal upload avatar:", e);
+        alert("Gagal mengunggah foto: " + e.message);
+        elFoto.src = oldSrc; 
+    } finally {
+        elFoto.style.opacity = '1';
+    }
+};
+
+/* =========================================================
    FITUR CREATE MASTER & AKUN COACH (ADMIN)
 ========================================================= */
 export async function buatAkunCoach() {
@@ -934,8 +1055,6 @@ export async function downloadRaporPDF(idAssessment, namaSiswa) {
     }
 }
 
-
-
 /* =========================================================
    MODUL FEE, AKUNTING, & PROFIL - FIXED IDENTITAS
 ========================================================= */
@@ -1126,3 +1245,17 @@ window.tambahAkunting = tambahAkunting;
 window.loadCoachFee = loadCoachFee;
 window.loadProfilCoach = loadProfilCoach;
 window.simpanProfilCoach = simpanProfilCoach;
+
+// REGISTER HEADER DINAMIS COACH
+window.bukaModalFeeCoach = bukaModalFeeCoach;
+window.jalankanJamCoach = jalankanJamCoach;
+window.loadProfilHeaderCoach = loadProfilHeaderCoach;
+window.uploadAvatarCoach = uploadAvatarCoach;
+
+// TRIGGER AWAL SAAT DASHBOARD DIBUKA
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        if(document.getElementById('coach-jam-realtime')) jalankanJamCoach();
+        if(document.getElementById('header-coach-nama')) loadProfilHeaderCoach();
+    }, 500);
+});

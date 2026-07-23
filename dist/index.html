@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JR Academy Management System</title>
+    <!-- Perbaikan Title -->
+    <title>Jago Renang Academy - Les Renang Anak Terbaik</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0284c7">
     <link rel="apple-touch-icon" href="/images/logo.png">
@@ -40,77 +41,107 @@
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://jagorenang.my.id/">
-    <meta property="og:title" content="Jago Renang Academy Management System">
-    <meta property="og:description" content="Platform manajemen resmi untuk jadwal, fee, dan progres kelas renang.">
+    
+    <!-- Perbaikan og:title dan og:description -->
+    <meta property="og:title" content="Jago Renang Academy - Les Renang Anak Terbaik">
+    <meta property="og:description" content="Cetak jagoan kecil berprestasi dengan metode personal. Tersedia di Surabaya & Sidoarjo. Coba Trial Class gratis sekarang!">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
     <meta property="og:image" content="https://jagorenang.my.id/images/Home.jpg">
-  <script type="module" crossorigin src="/assets/index-D3WzOt6Y.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-BWPC9Lyd.css">
+  <script type="module" crossorigin src="/assets/index-DlzLhMyK.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-gFa_G_qY.css">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen p-4 flex flex-col items-center">
 
     <!-- ========================================== -->
     <!-- 1. LANDING PAGE & LOGIN PORTAL             -->
     <!-- ========================================== -->
-    <div id="page-login" class="min-h-screen bg-slate-50 flex items-center justify-center p-4 relative overflow-hidden transition-all duration-300">
+    <div id="page-login" class="h-[100dvh] md:h-auto md:min-h-screen bg-slate-50 overflow-y-auto overflow-x-hidden md:overflow-visible snap-y snap-mandatory md:snap-none relative transition-all duration-300 scroll-smooth">
         
         <!-- DECORATIVE BACKGROUND OMBAK & LOGO RAKSASA -->
-        <div class="absolute inset-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-            
+        <div class="fixed md:absolute inset-0 w-full h-full overflow-hidden z-0 pointer-events-none">
             <!-- LOGO JR RAKSASA TRANSPARAN -->
             <img src="/images/logo.png" alt="Background Logo" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[150%] md:w-[80%] max-w-[900px] opacity-[0.03] object-contain">
-
             <!-- SVG OMBAK BIRU -->
             <svg viewBox="0 0 1440 320" preserveAspectRatio="none" class="absolute top-0 w-full h-full text-sky-600 fill-current opacity-10">
                 <path d="M0,192L48,176C96,160,192,128,288,138.7C384,149,480,203,576,213.3C672,224,768,192,864,165.3C960,139,1056,117,1152,128C1248,139,1344,181,1392,202.7L1440,224L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
             </svg>
+            <!-- BLUR CIRCLES -->
+            <div class="absolute -top-24 -right-24 w-96 h-96 bg-sky-200 rounded-full blur-3xl opacity-50 -z-10"></div>
+            <div class="absolute bottom-10 -left-20 w-72 h-72 bg-blue-100 rounded-full blur-3xl opacity-60 -z-10"></div>
         </div>
-        <div class="absolute -top-24 -right-24 w-96 h-96 bg-sky-200 rounded-full blur-3xl opacity-50 -z-10"></div>
-        <div class="absolute bottom-10 -left-20 w-72 h-72 bg-blue-100 rounded-full blur-3xl opacity-60 -z-10"></div>
 
         <!-- SPLIT CONTAINER -->
-        <div class="max-w-6xl w-full flex flex-col md:flex-row gap-10 md:gap-16 items-center z-10 py-10 md:py-16">
+        <!-- Menghapus h-full di mobile agar Flexbox tidak memaksa menyusut -->
+        <div class="max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-0 md:gap-16 items-stretch md:items-center z-10 relative md:h-full">
 
-            <!-- LEFT: MARKETING AREA -->
-            <div class="w-full md:w-1/2 text-center md:text-left mt-2 md:mt-0 relative">
-                <div class="inline-flex items-center gap-2 bg-white border border-sky-200 text-sky-700 px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wide shadow-sm mb-6">
+            <!-- PAGE 1: MARKETING AREA (100% FIX 1 PAGE) -->
+            <!-- Tambah shrink-0 & snap-always agar tinggi mutlak 100dvh tanpa kompromi -->
+            <div class="w-full md:w-1/2 h-[100dvh] md:h-auto shrink-0 flex flex-col justify-center snap-always snap-center md:snap-align-none text-center md:text-left px-5 relative z-10 box-border">
+                
+                <div class="inline-flex mx-auto md:mx-0 items-center gap-1.5 bg-white border border-sky-200 text-sky-700 px-3 py-1 rounded-full text-[10px] md:text-[11px] font-bold tracking-wide shadow-sm mb-3">
                     <span class="animate-pulse">📍</span> TERSEDIA DI SURABAYA & SIDOARJO
                 </div>
                 
-                <h1 class="text-4xl md:text-[2.75rem] font-extrabold text-slate-800 leading-tight">
+                <!-- LOGO JR -->
+                <img src="/images/logo.png" alt="Logo JR" class="w-20 md:w-32 mx-auto md:mx-0 mb-3 drop-shadow-md">
+                
+                <h1 class="text-3xl md:text-[2.75rem] font-extrabold text-slate-800 leading-tight mb-2 md:mb-0">
                     Berenang Lebih <br class="hidden md:block">
                     <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-blue-700">Aman</span> & Menyenangkan!
                 </h1>
                 
-                <p class="mt-5 text-slate-600 text-sm md:text-base leading-relaxed max-w-md mx-auto md:mx-0">
-                    Les renang terpercaya untuk mencetak jagoan kecil berprestasi. Kami mengutamakan kenyamanan dan kemajuan setiap murid dengan metode personal dari pelatih profesional.
+                <p class="text-slate-600 text-[11px] md:text-base leading-snug max-w-sm mx-auto md:mx-0 px-2 md:px-0 mb-4 mt-1">
+                    Les renang terpercaya mencetak jagoan kecil berprestasi. Mengutamakan kenyamanan dengan metode personal dari pelatih profesional.
                 </p>
 
+                <!-- DUA TOMBOL -->
+                <div class="flex flex-row gap-2 md:gap-3 max-w-sm mx-auto md:mx-0 w-full mb-4 md:mb-8 relative z-20">
+                    <button onclick="document.getElementById('login-section').scrollIntoView({behavior: 'smooth'})" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-2 rounded-xl shadow-lg transition-all text-xs md:text-sm flex items-center justify-center gap-1.5 active:scale-95 border border-slate-800">
+                        👤 Member JR
+                    </button>
+                    <button onclick="pindahHalaman('page-nonmember')" class="flex-1 bg-white hover:bg-slate-50 text-slate-700 font-bold py-3 px-2 rounded-xl shadow-sm transition-all text-xs md:text-sm flex items-center justify-center gap-1.5 active:scale-95 border border-slate-200">
+                        👥 Non Member
+                    </button>
+                </div>
+
                 <!-- STATISTICS GRID -->
-                <div class="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 border-t border-slate-200 pt-8 max-w-lg mx-auto md:mx-0">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-6 border-t border-slate-200 pt-4 md:pt-6 max-w-lg mx-auto md:mx-0 relative z-0">
                     <div class="bg-white/50 md:bg-transparent rounded-xl p-2 md:p-0">
-                        <strong class="text-2xl md:text-3xl font-black text-slate-800 block">420<span class="text-sky-500">+</span></strong>
-                        <span class="text-[10px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Siswa Aktif</span>
+                        <strong class="text-xl md:text-3xl font-black text-slate-800 block leading-none mb-1">420<span class="text-sky-500">+</span></strong>
+                        <span class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Siswa Aktif</span>
                     </div>
                     <div class="bg-white/50 md:bg-transparent rounded-xl p-2 md:p-0">
-                        <strong class="text-2xl md:text-3xl font-black text-slate-800 flex items-center justify-center md:justify-start gap-1">4.9<span class="text-amber-400 text-xl md:text-2xl pb-1 drop-shadow-sm">★</span></strong>
-                        <span class="text-[10px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Ulasan Ortu</span>
+                        <strong class="text-xl md:text-3xl font-black text-slate-800 flex items-center justify-center md:justify-start gap-0.5 leading-none mb-1">4.9<span class="text-amber-400 text-sm md:text-2xl drop-shadow-sm">★</span></strong>
+                        <span class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Ulasan Ortu</span>
                     </div>
                     <div class="bg-white/50 md:bg-transparent rounded-xl p-2 md:p-0">
-                        <strong class="text-2xl md:text-3xl font-black text-slate-800 block">12<span class="text-sky-500">+</span></strong>
-                        <span class="text-[10px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Coach Ahli</span>
+                        <strong class="text-xl md:text-3xl font-black text-slate-800 block leading-none mb-1">12<span class="text-sky-500">+</span></strong>
+                        <span class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Coach Ahli</span>
                     </div>
                     <div class="bg-white/50 md:bg-transparent rounded-xl p-2 md:p-0">
-                        <strong class="text-2xl md:text-3xl font-black text-slate-800 block">5<span class="text-sky-500">+</span></strong>
-                        <span class="text-[10px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Lokasi Kolam</span>
+                        <strong class="text-xl md:text-3xl font-black text-slate-800 block leading-none mb-1">5<span class="text-sky-500">+</span></strong>
+                        <span class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Lokasi Kolam</span>
                     </div>
                 </div>
+
+                <!-- PANAH MENGAMBANG DI POJOK KANAN BAWAH -->
+                <div class="md:hidden absolute bottom-6 right-5 z-30 animate-bounce cursor-pointer opacity-90" onclick="document.getElementById('login-section').scrollIntoView({behavior: 'smooth'})">
+                    <div class="bg-slate-800/90 p-2.5 rounded-full shadow-lg backdrop-blur-md border border-slate-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- RIGHT: LOGIN PORTAL -->
-            <div class="w-full md:w-1/2 flex justify-center mt-6 md:mt-0">
-                <div class="bg-white px-8 pb-8 pt-12 rounded-[2rem] shadow-xl w-full max-w-md border border-slate-100 relative">
+            <!-- PAGE 2: LOGIN PORTAL (FIX 1 PAGE JUGA) -->
+            <!-- Tambah shrink-0 & snap-always agar tidak ngintip ke halaman 1 -->
+            <div id="login-section" class="w-full md:w-1/2 h-[100dvh] md:min-h-0 shrink-0 flex flex-col justify-center snap-always snap-center md:snap-align-none px-4 relative z-20 box-border">
+                <div class="bg-white px-8 pb-8 pt-12 rounded-[2rem] shadow-xl w-full max-w-md mx-auto border border-slate-100 relative">
                     
-                    <div class="absolute top-0 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] font-bold uppercase tracking-widest px-8 py-2 rounded-b-xl shadow-sm z-20">
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] font-bold uppercase tracking-widest px-8 py-2 rounded-b-xl shadow-sm z-20 whitespace-nowrap">
                         Member Portal
                     </div>
 
@@ -158,840 +189,50 @@
 
         </div>
     </div>
-
-    <!-- ========================================== -->
-    <!-- 2. GUEST / NON-MEMBER AREA                 -->
-    <!-- ========================================== -->
-    <div id="page-nonmember" class="hidden w-full max-w-md bg-white/75 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-2xl shadow-sky-950/15 border border-white/40 mt-5 mx-auto relative overflow-hidden transition-all duration-300">
-        
-        <!-- Subtle background circles for glassmorphism illusion -->
-        <div class="absolute -top-12 -left-12 w-24 h-24 bg-sky-300/30 rounded-full blur-2xl pointer-events-none"></div>
-        <div class="absolute -bottom-12 -right-12 w-24 h-24 bg-blue-300/30 rounded-full blur-2xl pointer-events-none"></div>
-
-        <!-- HERO AREA / ILLUSTRATION CARDS -->
-        <div class="gsap-item w-full h-36 bg-gradient-to-br from-sky-400 to-blue-600 rounded-3xl mb-5 flex flex-col justify-center items-center relative overflow-hidden shadow-lg shadow-sky-500/20">
-            <!-- Wave effect inside illustration -->
-            <svg class="absolute bottom-0 w-full text-white/10 fill-current" viewBox="0 0 1440 320" preserveAspectRatio="none">
-                <path d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,218.7C672,203,768,149,864,128C960,107,1056,117,1152,133.3C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-            </svg>
-            <span class="text-5xl animate-bounce mb-1 z-10 drop-shadow-md">🏊‍♂️</span>
-            <span class="text-xs text-sky-100 font-bold uppercase tracking-widest z-10">Jago Renang Academy</span>
-            <span class="text-[10px] text-sky-200 z-10">Safe & Fun Learning Experience</span>
-        </div>
-
-        <h1 class="gsap-item text-2xl font-black text-slate-800 mb-1 text-center leading-snug">
-            Halo Ayah Bunda Calon Jagoan! 👋
-        </h1>
-        <p class="gsap-item text-xs text-slate-500 mb-6 text-center leading-relaxed">
-            Selamat datang di Jago Renang Academy.<br>Pilih informasi di bawah ini untuk memulai kelas si kecil:
-        </p>
-        
-        <div class="flex flex-col gap-3">
-            <!-- PROGRAM KATALOG -->
-            <button onclick="bukaKatalog()" class="gsap-item group w-full bg-white/80 hover:bg-sky-50 text-sky-800 font-bold py-3.5 px-5 rounded-2xl border border-sky-100 hover:border-sky-200 flex items-center justify-between transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-sm">
-                <span class="flex items-center gap-3">
-                    <span class="bg-sky-100/80 p-2 rounded-xl text-base group-hover:scale-110 transition-transform">📋</span>
-                    Katalog Program & Biaya
-                </span>
-                <span class="text-sky-400 group-hover:translate-x-1.5 transition-transform duration-300">➡️</span>
-            </button>
-
-            <!-- DAFTAR BEGINNER -->
-            <button onclick="bukaModalDaftarBeginner()" class="gsap-item group w-full bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white font-bold py-3.5 px-5 rounded-2xl shadow-lg shadow-sky-500/20 flex items-center justify-between transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
-                <span class="flex items-center gap-3">
-                    <span class="bg-white/20 p-2 rounded-xl text-base group-hover:rotate-12 transition-transform">🏊‍♂️</span>
-                    Daftar Kelas Beginner (Baru)
-                </span>
-                <span class="group-hover:translate-x-1.5 transition-transform duration-300">➡️</span>
-            </button>
-
-            <!-- LOKASI & JADWAL -->
-            <button onclick="bukaJadwalUser()" class="gsap-item group w-full bg-white/80 hover:bg-slate-50 text-slate-700 font-bold py-3.5 px-5 rounded-2xl border border-slate-200 flex items-center justify-between transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-sm">
-                <span class="flex items-center gap-3">
-                    <span class="bg-slate-100 p-2 rounded-xl text-base group-hover:scale-110 transition-transform">📍</span>
-                    Lokasi Kolam & Jadwal
-                </span>
-                <span class="text-slate-400 group-hover:translate-x-1.5 transition-transform duration-300">➡️</span>
-            </button>
-
-            <!-- CTA TRIAL CLASS (MENYALA & PREMIUM) -->
-            <div class="gsap-item relative w-full mt-2 group">
-                <!-- Glowing background effect -->
-                <div class="absolute -inset-0.5 bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
-                <button onclick="window.location.href='https://wa.me/6289678159835?text=Halo%20Admin%2C%20saya%20mau%20daftar%20Trial%20Class'" class="relative w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black py-4 px-5 rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all duration-300 transform hover:scale-[1.03] active:scale-[0.97]">
-                    🔥 DAFTAR TRIAL CLASS SEKARANG <span class="group-hover:translate-x-1 transition-transform">➡️</span>
-                </button>
-            </div>
-            
-            <!-- SOCIAL PROOF TEXT -->
-            <p class="gsap-item text-[10px] text-amber-600 font-bold text-center tracking-wide">
-                🔥 15 orang tua telah mendaftar trial class minggu ini!
-            </p>
-
-            <!-- TANYA ADMIN -->
-            <button onclick="chatAdmin()" class="gsap-item group w-full bg-emerald-50/80 hover:bg-emerald-100 text-emerald-700 font-bold py-3 px-5 rounded-2xl border border-emerald-100 flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] mt-1">
-                <span class="group-hover:animate-bounce">💬</span> Tanya Admin (WhatsApp)
-            </button>
-            
-            <!-- TOMBOL KEMBALI HANGAT -->
-            <button onclick="pindahHalaman('page-login')" class="gsap-item w-full mt-4 bg-slate-100/80 hover:bg-slate-200 text-slate-500 hover:text-slate-700 font-bold py-3.5 rounded-2xl transition-all text-xs flex items-center justify-center gap-1.5">
-                ← Belum siap daftar? Kembali ke Beranda
-            </button>
-        </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- HALAMAN KATALOG                            -->
-    <!-- ========================================== -->
-    <div id="page-katalog" class="hidden w-full max-w-2xl bg-white/75 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-2xl border border-white/40 mt-5 mx-auto">
-        <div class="flex items-center gap-3.5 border-b border-slate-100 pb-4 mb-5 gsap-katalog-item">
-            <span class="text-3xl bg-sky-100 p-2.5 rounded-2xl">📋</span>
-            <div>
-                <h1 class="text-2xl font-extrabold text-sky-700">Katalog Program</h1>
-                <p class="text-xs text-slate-500">Pilihan program renang terbaik teruji di JR Academy</p>
-            </div>
-        </div>
-        <div id="katalog-container" class="grid gap-4 min-h-[100px] gsap-katalog-item">
-            <p class="text-center text-slate-400 py-6 italic text-sm">Memuat data program...</p>
-        </div>
-        <button onclick="pindahHalaman('page-nonmember')" class="gsap-katalog-item w-full mt-6 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3.5 rounded-2xl flex justify-center items-center gap-1.5 transition-all">
-            ← Kembali ke Menu Pilihan
-        </button>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- HALAMAN JADWAL                             -->
-    <!-- ========================================== -->
-    <div id="page-jadwal" class="hidden w-full max-w-2xl bg-white/75 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-2xl border border-white/40 mt-5 mx-auto">
-        <div class="flex items-center gap-3.5 border-b border-slate-100 pb-4 mb-5 gsap-jadwal-item">
-            <span class="text-3xl bg-sky-100 p-2.5 rounded-2xl">📍</span>
-            <div>
-                <h1 class="text-2xl font-extrabold text-sky-700">Jadwal Beginner Class</h1>
-                <p id="jadwal-sub" class="text-xs text-slate-500">Memuat informasi minggu ini...</p>
-            </div>
-        </div>
-        <div id="jadwal-container" class="grid gap-4 min-h-[100px] gsap-jadwal-item">
-            <p class="text-center text-slate-400 py-6 italic text-sm">Memuat data jadwal...</p>
-        </div>
-        <button onclick="pindahHalaman('page-nonmember')" class="gsap-jadwal-item w-full mt-6 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3.5 rounded-2xl flex justify-center items-center gap-1.5 transition-all">
-            ← Kembali ke Menu Pilihan
-        </button>
-    </div>
-
-    <!-- ===================================== -->
-    <!-- 3. DASHBOARD ADMIN & MODULNYA         -->
-    <!-- ===================================== -->
-    <div id="dashboard-admin" class="hidden w-full max-w-2xl mt-5">
-        <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100">
-            <h2 class="text-2xl font-bold text-sky-700 mb-2">👨‍💼 Admin Hub</h2>
-            <p class="text-slate-500 mb-4 text-sm">Silakan pilih modul manajemen:</p>
-
-            <div id="admin-notif-pending" class="hidden bg-red-50 border border-red-200 p-4 rounded-xl mb-4">
-                <div class="flex justify-between items-center mb-2">
-                    <label class="text-red-600 font-bold text-xs">🚨 CALON JAGOAN BARU:</label>
-                    <button onclick="loadPendingPendaftaran()" class="text-red-500 hover:text-red-700 font-bold">🔄 Refresh</button>
-                </div>
-                <div id="list-pendaftar-pending" class="max-h-60 overflow-y-auto space-y-2"></div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <button onclick="pindahHalaman('admin-modul-beginner');" class="bg-sky-600 hover:bg-sky-700 text-white p-4 rounded-xl font-bold text-left shadow-sm">🏊‍♂️ 1. Jadwal Beginner</button>
-                <button onclick="pindahHalaman('admin-modul-coach'); loadCoachAdmin(); if(typeof initDropdownCoach === 'function') initDropdownCoach();" class="bg-slate-700 hover:bg-slate-800 text-white p-4 rounded-xl font-bold text-left shadow-sm">👔 2. Jadwal Coach</button>
-                <button onclick="pindahHalaman('admin-modul-katalog'); loadKatalogAdmin();" class="bg-emerald-600 hover:bg-emerald-700 text-white p-4 rounded-xl font-bold text-left shadow-sm">📋 3. Katalog Program</button>
-                <button onclick="pindahHalaman('admin-modul-siswa'); loadSiswaAdmin(); if(typeof loadDropdownMuridForWali === 'function') loadDropdownMuridForWali();" class="bg-amber-500 hover:bg-amber-600 text-white p-4 rounded-xl font-bold text-left shadow-sm">👥 4. Data Master Siswa</button>
-                <button onclick="pindahHalaman('admin-modul-fee'); loadAntreanFeeAdmin(); loadFeeAdmin(); if(typeof initDropdownCoach === 'function') initDropdownCoach(); loadRekapFee();" class="bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-xl font-bold text-left shadow-sm">💰 5. Manajemen Fee</button>
-                <button onclick="pindahHalaman('admin-modul-akunting'); loadAkuntingAdmin();" class="bg-red-600 hover:bg-red-700 text-white p-4 rounded-xl font-bold text-left shadow-sm">📊 6. Arus Kas (Akunting)</button>
-            </div>
-            
-            <!-- TOMBOL LOGOUT FIX CACHE -->
-            <button onclick="localStorage.clear(); pindahHalaman('page-login')" class="w-full mt-6 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold shadow-md">🚪 Logout Sistem</button>
-        </div>
-    </div>
-
-    <div id="admin-modul-beginner" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Manajemen Beginner Class</h2>
-        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl mb-4">
-            <label class="block text-xs font-bold text-slate-600 mb-2">✍️ EDIT TEXT GREETING/MINGGU INI:</label>
-            <input type="text" id="input-sub-jadwal" placeholder="Jadwal minggu ini..." class="w-full p-2 bg-white border border-slate-300 rounded-lg mb-2">
-            <button onclick="simpanSubJudul()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 rounded-lg">💾 Simpan Teks</button>
-        </div>
-        <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
-            <label class="block text-xs font-bold text-sky-800 mb-2">➕ TAMBAH/EDIT SLOT JADWAL:</label>
-            <div class="grid grid-cols-2 gap-2 mb-2">
-                <select id="form-hari" class="p-2 border border-slate-300 rounded-lg w-full">
-                    <option value="Senin">Senin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option>
-                    <option value="Kamis">Kamis</option><option value="Jumat">Jumat</option><option value="Sabtu">Sabtu</option><option value="Minggu">Minggu</option>
-                </select>
-                <select id="form-lokasi" class="p-2 border border-slate-300 rounded-lg w-full"><option value="">Memuat Kolam...</option></select>
-            </div>
-            <input type="text" id="form-jam" placeholder="Jam Kelas (cth: 10.00)" class="w-full p-2 border border-slate-300 rounded-lg mb-3">
-            <div class="bg-sky-100 p-3 rounded-lg border border-sky-300">
-                <label class="block text-xs font-bold text-sky-700 mb-2">Pilih Murid (Sisa Sesi > 0):</label>
-                <select id="dropdown-murid-aktif" class="w-full p-2 border border-sky-300 rounded-lg mb-2"><option value="">Memuat Murid...</option></select>
-                <button onclick="tambahMuridKeJadwal()" class="w-full bg-white border border-sky-300 text-sky-700 font-bold py-2 rounded-lg text-sm">➕ Masukkan Murid</button>
-            </div>
-            <input type="text" id="form-peserta" value="Kosong" placeholder="Daftar Murid" class="w-full p-2 mt-3 bg-slate-100 border border-slate-300 rounded-lg" readonly>
-            <input type="hidden" id="murid-to-deduct" value="">
-            <input type="hidden" id="jadwal-edit-id">
-            <button id="btn-jadwal" onclick="simpanJadwal()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 mt-3 rounded-lg shadow-md">⚡ Insert Slot</button>
-        </div>
-        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
-            <label class="block text-xs font-bold text-slate-600 mb-2">📋 LIVE JADWAL AKTIF:</label>
-            <div id="admin-jadwal-list" class="max-h-60 overflow-y-auto"></div>
-        </div>
-        <button onclick="pindahHalaman('dashboard-admin')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Hub</button>
-    </div>
-
-    <div id="admin-modul-coach" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Jadwal & Penugasan Coach</h2>
-        <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
-            <label class="block text-xs font-bold text-sky-800 mb-2">➕ INPUT JADWAL COACH:</label>
-            <input type="hidden" id="coach-edit-id"> 
-            <select id="coach-nama" class="w-full p-2 border border-slate-300 rounded-lg mb-2"><option value="">Memuat Coach...</option></select>
-            <div class="grid grid-cols-2 gap-2 mb-2">
-                <select id="coach-hari" class="w-full p-2 border border-slate-300 rounded-lg">
-                    <option value="Senin">Senin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option><option value="Kamis">Kamis</option><option value="Jumat">Jumat</option><option value="Sabtu">Sabtu</option><option value="Minggu">Minggu</option>
-                </select>
-                <input type="time" id="coach-jam" class="w-full p-2 border border-slate-300 rounded-lg">
-            </div>
-            <input type="text" id="coach-lokasi" placeholder="📍 Lokasi Kolam" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
-            <select id="coach-tipe" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
-                <option value="Beginner">Beginner</option><option value="Private">Private</option>
-            </select>
-            
-            <div class="bg-sky-100 p-3 rounded-lg border border-sky-300 mt-2">
-                <label class="block text-xs font-bold text-sky-700 mb-2">Pilih Murid (Bisa lebih dari 1):</label>
-                <select id="coach-murid" class="w-full p-2 border border-sky-300 rounded-lg mb-2"><option value="">-- Pilih Murid Aktif --</option></select>
-                <button onclick="tambahMuridKeListCoach()" class="w-full bg-white border border-sky-300 text-sky-700 font-bold py-2 rounded-lg text-sm mb-2">➕ Tambah Murid</button>
-                <input type="text" id="coach-list-nama" placeholder="Belum ada murid terpilih..." class="w-full p-2 bg-slate-100 border border-slate-300 rounded-lg text-sm font-bold" readonly>
-                <input type="hidden" id="coach-list-id" value="">
-                <button onclick="resetListCoach()" class="w-full bg-red-100 text-red-600 font-bold py-2 rounded-lg mt-2 text-xs">🔄 Reset Pilihan Murid</button>
-            </div>
-            <button id="btn-coach" onclick="simpanJadwalCoach()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 mt-4 rounded-lg shadow-md">⚡ Simpan Penugasan</button>
-        </div>
-        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
-            <label class="block text-xs font-bold text-slate-600 mb-2">📋 JADWAL COACH AKTIF:</label>
-            <div id="admin-coach-list" class="max-h-60 overflow-y-auto"></div>
-        </div>
-        <button onclick="pindahHalaman('dashboard-admin')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Hub</button>
-    </div>
-
-    <div id="admin-modul-katalog" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Manajemen Katalog Program</h2>
-        <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
-            <label class="block text-xs font-bold text-sky-800 mb-2">➕ TAMBAH/EDIT PROGRAM:</label>
-            <input type="hidden" id="kat-edit-id">
-            <input type="hidden" id="kat-gambar-lama">
-            <input type="text" id="kat-nama" placeholder="Nama Kelas / Program" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
-            <input type="text" id="kat-deskripsi" placeholder="Deskripsi Singkat" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
-            <input type="text" id="kat-harga" placeholder="Harga (Contoh: Rp 500.000)" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
-            <label class="block text-xs font-bold text-slate-500 mb-1 mt-2">Upload Foto Cover:</label>
-            <input type="file" id="kat-file" accept="image/*" class="w-full p-2 border border-slate-300 rounded-lg bg-white mb-4">
-            <button id="btn-katalog" onclick="simpanKatalog()" class="w-full bg-sky-600 text-white font-bold py-3 rounded-lg shadow-md">⚡ Upload Program</button>
-        </div>
-        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
-            <label class="block text-xs font-bold text-slate-600 mb-2">📋 DAFTAR PROGRAM AKTIF:</label>
-            <div id="admin-katalog-list" class="max-h-60 overflow-y-auto"></div>
-        </div>
-        <button onclick="pindahHalaman('dashboard-admin')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Hub</button>
-    </div>
-
-    <div id="admin-modul-siswa" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Master Data Siswa</h2>
-        
-        <input type="text" id="search-murid" placeholder="🔍 Cari nama murid..." onkeyup="filterMurid()" class="w-full p-3 bg-slate-100 border border-slate-300 rounded-lg mb-4">
-        
-        <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
-            <label class="block text-xs font-bold text-sky-800 mb-2">➕ REGISTER / EDIT SISWA:</label>
-            <input type="hidden" id="sis-edit-id">
-            <input type="text" id="sis-nama" placeholder="Nama Lengkap Siswa" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
-            <input type="text" id="sis-panggilan" placeholder="Nama Panggilan (Utk Absen)" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
-            <input type="number" id="sis-wa" placeholder="Nomor WA Ortu (Cth: 0812...)" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
-            
-            <label class="block text-xs font-bold text-slate-500 mb-1 mt-2">Tanggal Lahir Siswa:</label>
-            <input type="date" id="sis-tgl-lahir" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
-            
-            <select id="sis-status" class="w-full p-2 border border-slate-300 rounded-lg mb-2">
-                <option value="Aktif">Aktif</option>
-                <option value="Tidak Aktif">Tidak Aktif</option>
-            </select>
-            
-            <div class="grid grid-cols-2 gap-2 mb-2 mt-2">
-                <input type="text" id="sis-paket" placeholder="Jenis Paket" oninput="autoHitungExpiredSiswa()" class="p-2 border border-slate-300 rounded-lg w-full">
-                <input type="number" id="sis-sesi" placeholder="Sisa Sesi" class="p-2 border border-slate-300 rounded-lg w-full">
-            </div>
-            
-            <div class="grid grid-cols-2 gap-2 mb-4">
-                <div>
-                    <label class="block text-xs font-bold text-sky-700 mb-1">🗓️ Mulai Sesi 1:</label>
-                    <input type="date" id="sis-sesi-1" onchange="autoHitungExpiredSiswa()" class="w-full p-2 border border-slate-300 rounded-lg">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-red-600 mb-1">⏳ Batas Expired:</label>
-                    <input type="date" id="sis-expired" class="w-full p-2 border border-red-300 bg-red-50 text-red-700 font-bold rounded-lg">
-                </div>
-            </div>
-            <button id="btn-simpan-siswa" onclick="simpanSiswa()" class="w-full bg-sky-600 text-white font-bold py-3 rounded-lg shadow-md">⚡ Simpan Siswa</button>
-        </div> 
-
-        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl mb-4">
-            <label class="block text-xs font-bold text-slate-600 mb-2">👥 DATA MURID & AUTO INVOICE:</label>
-            <div id="admin-siswa-list" class="max-h-80 overflow-y-auto space-y-2"></div>
-        </div>
-
-        <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl mb-4">
-            <label class="block text-xs font-bold text-amber-800 mb-2">👨‍👩‍👧 BUAT AKUN WALI MURID:</label>
-            <select id="form-wali-murid" class="w-full p-2 border border-amber-300 rounded-lg mb-2"><option value="">Memuat Daftar Murid...</option></select>
-            <input type="text" id="form-wali-user" placeholder="Username Ortu (cth: ortu.kenzo)" class="w-full p-2 border border-amber-300 rounded-lg mb-2">
-            <input type="text" id="form-wali-pass" placeholder="Password (cth: 123456)" class="w-full p-2 border border-amber-300 rounded-lg mb-3">
-            <button onclick="buatAkunWali()" class="w-full bg-amber-600 text-white font-bold py-2 rounded-lg">🔑 Create Akun & Hubungkan</button>
-        </div>
-
-        <div class="bg-yellow-50 border border-yellow-300 p-4 rounded-xl">
-            <label class="block text-xs font-bold text-yellow-800 mb-2">🏆 INPUT PRESTASI SISWA:</label>
-            <select id="prestasi-murid" class="w-full p-2 border border-yellow-300 rounded-lg mb-2"><option value="">Memuat Daftar Murid...</option></select>
-            <input type="text" id="prestasi-event" placeholder="Nama Event (cth: Kejurda 2026)" class="w-full p-2 border border-yellow-300 rounded-lg mb-2">
-            <input type="text" id="prestasi-pencapaian" placeholder="Pencapaian (cth: Juara 1)" class="w-full p-2 border border-yellow-300 rounded-lg mb-2">
-            <input type="date" id="prestasi-tanggal" class="w-full p-2 border border-yellow-300 rounded-lg mb-3">
-            <button onclick="simpanPrestasiAdmin()" class="w-full bg-yellow-600 text-white font-bold py-2 rounded-lg">💾 Simpan Prestasi</button>
-        </div>
-
-        <button onclick="pindahHalaman('dashboard-admin')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Hub</button>
-    </div>
-
-    <div id="admin-modul-fee" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Manajemen Coach & Rekap Fee</h2>
-        
-        <!-- INBOX ANTREAN FEE (BARU DITAMBAHKAN) -->
-        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl mb-4 shadow-sm">
-            <div class="flex justify-between items-center mb-3">
-                <label class="block text-xs font-bold text-emerald-800">📥 INBOX LAPORAN KELAS SELESAI:</label>
-                <button onclick="loadAntreanFeeAdmin()" class="bg-emerald-200 hover:bg-emerald-300 text-emerald-800 text-[10px] font-bold px-2 py-1 rounded">🔄 Refresh</button>
-            </div>
-            <div id="admin-antrean-fee-list" class="max-h-60 overflow-y-auto space-y-2">
-                <p class="text-center text-xs text-slate-500 italic">Memuat laporan masuk...</p>
-            </div>
-        </div>
-
-        <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl mb-4">
-            <label class="block text-xs font-bold text-amber-800 mb-2">👨‍🏫 REGISTRASI MASTER COACH:</label>
-            <div class="grid grid-cols-2 gap-2 mb-2">
-                <input type="text" id="form-coach-nama" placeholder="Nama Lengkap Coach" class="w-full p-2 border border-amber-300 rounded-lg">
-                <input type="number" id="form-coach-wa" placeholder="No. WA (cth: 08123...)" class="w-full p-2 border border-amber-300 rounded-lg">
-            </div>
-            <select id="form-coach-spesialisasi" class="w-full p-2 border border-amber-300 rounded-lg mb-4">
-                <option value="All Rounder">All Rounder (Semua Kelas)</option><option value="Beginner Class">Spesialis Beginner</option><option value="Private Class">Spesialis Private</option>
-            </select>
-            <hr class="border-amber-300 border-dashed mb-3">
-            <label class="block text-xs font-bold text-amber-700 mb-2">Akses Login Coach:</label>
-            <div class="grid grid-cols-2 gap-2 mb-3">
-                <input type="text" id="form-coach-user" placeholder="Username" class="w-full p-2 border border-amber-300 rounded-lg">
-                <input type="text" id="form-coach-pass" placeholder="Password Login" class="w-full p-2 border border-amber-300 rounded-lg">
-            </div>
-            <button onclick="buatAkunCoach()" class="w-full bg-amber-600 text-white font-bold py-2 rounded-lg shadow">💾 Simpan Coach & Buat Akun</button>
-        </div>
-
-        <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
-            <label class="block text-xs font-bold text-sky-800 mb-2">➕ INPUT RECORD MENGAJAR:</label>
-            <div class="grid grid-cols-2 gap-2 mb-2">
-                <select id="fee-nama" class="w-full p-2 border border-sky-300 rounded-lg"><option value="">Memuat Coach...</option></select>
-                <select id="fee-jenis" class="w-full p-2 border border-sky-300 rounded-lg">
-                    <option value="Beginner">Beginner Class</option><option value="Private">Private Class</option>
-                </select>
-            </div>
-            <div class="grid grid-cols-2 gap-2 mb-2">
-                <input type="text" id="fee-murid" placeholder="Nama Murid (Cth: Kenzo)" class="w-full p-2 border border-sky-300 rounded-lg">
-                <input type="date" id="fee-tanggal" class="w-full p-2 border border-sky-300 rounded-lg">
-            </div>
-            <div class="grid grid-cols-2 gap-2 mb-3">
-                <input type="number" id="fee-sesi" placeholder="Jml Sesi" class="w-full p-2 border border-sky-300 rounded-lg">
-                <input type="number" id="fee-total" placeholder="Total (Rp)" class="w-full p-2 border border-sky-300 rounded-lg">
-            </div>
-            <button onclick="tambahFee()" class="w-full bg-sky-600 text-white font-bold py-3 rounded-lg shadow">⚡ Rekap Gaji</button>
-        </div>
-
-        <div id="rekap-fee-container" class="mb-4"></div>
-        
-        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
-            <label class="block text-xs font-bold text-slate-600 mb-2">💰 REKAPAN FEE TERKINI:</label>
-            <div id="admin-fee-list" class="max-h-48 overflow-y-auto space-y-2"></div>
-        </div>
-        
-        <button onclick="pindahHalaman('dashboard-admin')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Hub</button>
-    </div>
-
-    <div id="admin-modul-akunting" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">📊 Laporan Akunting (Cashflow)</h2>
-        
-        <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
-            <label class="block text-xs font-bold text-sky-800 mb-2">➕ INPUT ARUS KAS:</label>
-            <div class="grid grid-cols-2 gap-2 mb-2">
-                <input type="date" id="akun-tanggal" class="w-full p-2 border border-sky-300 rounded-lg">
-                <select id="akun-jenis" class="w-full p-2 border border-sky-300 rounded-lg">
-                    <option value="Pemasukan">Pemasukan</option><option value="Pengeluaran">Pengeluaran</option>
-                </select>
-            </div>
-            <input type="text" id="akun-ket" placeholder="Keterangan Transaksi" class="w-full p-2 border border-sky-300 rounded-lg mb-2">
-            <input type="number" id="akun-jumlah" placeholder="Jumlah (Rupiah)" class="w-full p-2 border border-sky-300 rounded-lg mb-3">
-            <button onclick="tambahAkunting()" class="w-full bg-sky-600 text-white font-bold py-3 rounded-lg shadow-md">💾 Simpan Transaksi</button>
-        </div>
-
-        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl mb-4">
-            <label class="block text-xs font-bold text-slate-600 mb-2">🧾 INVOICE TERCETAK (HISTORY)</label>
-            <div id="admin-invoice-list" class="max-h-60 overflow-y-auto text-sm space-y-2"><p>Memuat invoice...</p></div>
-        </div>
-
-        <div class="mb-4" id="rekap-akunting-container">Memuat rekap...</div>
-
-        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
-            <label class="block text-xs font-bold text-slate-600 mb-2">📒 JURNAL ARUS KAS</label>
-            <div id="admin-akunting-list" class="max-h-60 overflow-y-auto space-y-2">Memuat...</div>
-        </div>
-        <button onclick="pindahHalaman('dashboard-admin')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Hub</button>
-    </div>
-
-    <!-- ===================================== -->
-    <!-- 4. DASHBOARD COACH & MODULNYA         -->
-    <!-- ===================================== -->
-    <div id="dashboard-coach" class="hidden w-full max-w-2xl mt-5">
-        <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100">
-            <h1 class="text-2xl font-bold text-sky-600 mb-2">Halo Coach! 👋</h1>
-            <p class="text-sm text-slate-500 mb-6">Silakan pilih menu tugas hari ini:</p>
-            
-            <div class="flex flex-col gap-3">
-                <button onclick="pindahHalaman('coach-modul-jadwal'); loadCoachJadwal();" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-4 rounded-xl text-left border border-slate-200">📅 1. Cek Jadwal Penugasan</button>
-                <button onclick="pindahHalaman('coach-modul-fee'); loadCoachFee();" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-4 rounded-xl text-left border border-slate-200">💰 2. Lihat Rekapan Fee</button>
-                <button onclick="pindahHalaman('coach-modul-assessment'); loadCoachAssessment();" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-4 rounded-xl text-left border border-slate-200">📝 3. Assessment Siswa</button>
-                <button onclick="pindahHalaman('coach-modul-profil'); loadProfilCoach();" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-4 rounded-xl text-left border border-slate-200">👤 4. Profil & Foto Coach</button>
-            </div>
-            
-            <!-- TOMBOL LOGOUT FIX CACHE -->
-            <button onclick="localStorage.clear(); pindahHalaman('page-login')" class="w-full mt-6 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold">Logout ⬅</button>
-        </div>
-    </div>
-
-    <div id="coach-modul-jadwal" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Jadwal Saya</h2>
-        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl mb-4">
-            <label class="block text-xs font-bold text-slate-600 mb-2">📋 1. JADWAL PENUGASAN (DARI ADMIN):</label>
-            <div id="coach-jadwal-penugasan" class="max-h-48 overflow-y-auto space-y-2">Memuat...</div>
-        </div>
-        <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
-            <label class="block text-xs font-bold text-sky-800 mb-2">🏊‍♂️ 2. JADWAL BEGINNER (SEMUA KOLAM):</label>
-            <div id="coach-jadwal-beginner" class="bg-white border border-sky-200 rounded-lg p-3 max-h-48 overflow-y-auto mb-4 space-y-2">Memuat...</div>
-            <hr class="border-sky-200 mb-3">
-            <label class="block text-xs font-bold text-sky-800 mb-2">➕ MASUKKAN MURID KE JADWAL BEGINNER:</label>
-            <select id="coach-pilih-jadwal" class="w-full p-2 border border-sky-300 rounded-lg mb-2"><option>Memuat Jadwal...</option></select>
-            <select id="coach-pilih-murid" class="w-full p-2 border border-sky-300 rounded-lg mb-3"><option>Memuat Murid Aktif...</option></select>
-            <button onclick="coachInsertMurid()" class="w-full bg-sky-600 text-white font-bold py-2 rounded-lg shadow">⚡ Masukkan Murid & Kurangi Sesi</button>
-        </div>
-        <button onclick="pindahHalaman('dashboard-coach')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Menu Coach</button>
-    </div>
-
-    <div id="coach-modul-fee" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Rekapan Fee Saya</h2>
-        <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4 text-center">
-            <h3 id="coach-total-fee" class="text-2xl font-bold text-sky-700 m-0">Total Fee: Rp 0</h3>
-        </div>
-        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
-            <label class="block text-xs font-bold text-slate-600 mb-2">Rincian Mengajar:</label>
-            <div id="coach-fee-list" class="max-h-60 overflow-y-auto space-y-2">Memuat...</div>
-        </div>
-        <button onclick="pindahHalaman('dashboard-coach')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Menu Coach</button>
-    </div>
-
-    <div id="coach-modul-assessment" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Assessment Siswa</h2>
-        <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
-            <label class="block text-xs font-bold text-sky-800 mb-2">📝 INPUT / UPDATE NILAI (0-100):</label>
-            <select id="assess-murid" class="w-full p-2 border border-sky-300 rounded-lg mb-3" onchange="loadAssessmentDetail()">
-                <option value="">-- Pilih Murid --</option>
-            </select>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
-                <input type="number" id="ass-float" placeholder="Floating" min="0" max="100" class="w-full p-2 border border-sky-300 rounded-lg text-sm">
-                <input type="number" id="ass-breath" placeholder="Breathing" min="0" max="100" class="w-full p-2 border border-sky-300 rounded-lg text-sm">
-                <input type="number" id="ass-kick" placeholder="Free Kicking" min="0" max="100" class="w-full p-2 border border-sky-300 rounded-lg text-sm">
-                <input type="number" id="ass-free" placeholder="Free Stroke" min="0" max="100" class="w-full p-2 border border-sky-300 rounded-lg text-sm">
-                <input type="number" id="ass-breast" placeholder="Breaststroke" min="0" max="100" class="w-full p-2 border border-sky-300 rounded-lg text-sm">
-                <input type="number" id="ass-back" placeholder="Backstroke" min="0" max="100" class="w-full p-2 border border-sky-300 rounded-lg text-sm">
-                <input type="number" id="ass-fly" placeholder="Butterfly" min="0" max="100" class="w-full p-2 border border-sky-300 rounded-lg text-sm">
-            </div>
-            <textarea id="ass-catatan" placeholder="Catatan Coach untuk Jagoan..." class="w-full p-2 border border-sky-300 rounded-lg mb-3 h-20 text-sm"></textarea>
-            <button onclick="simpanAssessment()" class="w-full bg-sky-600 text-white font-bold py-3 rounded-lg shadow">💾 Simpan Assessment</button>
-            
-            <div class="mt-4 bg-red-50 border border-red-200 p-4 rounded-xl">
-                <h4 class="text-xs font-bold text-red-700 mb-2">⚠️ To-Do List: Belum Punya Rapor Assessment</h4>
-                <div id="list-belum-assessment" class="flex flex-wrap gap-2 text-xs">
-                    <span class="text-slate-500">Memuat data murid...</span>
-                </div>
-            </div>
-        </div>
-        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
-            <label class="block text-xs font-bold text-slate-600 mb-2">📋 RIWAYAT ASSESSMENT:</label>
-            <div id="coach-assessment-list" class="max-h-48 overflow-y-auto space-y-2">Belum ada data...</div>
-        </div>
-        <button onclick="pindahHalaman('dashboard-coach')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Menu Coach</button>
-    </div>
-
-    <div id="coach-modul-profil" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Profil Coach</h2>
-        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center">
-            <img id="coach-view-foto" src="/images/default-avatar.png" alt="Foto Profil" class="w-24 h-24 rounded-full mx-auto object-cover border-4 border-amber-400 bg-amber-50 mb-3">
-            <h3 id="coach-nama-display" class="text-lg font-bold text-slate-800 mb-1">Memuat Nama...</h3>
-            <p id="coach-info-spesialisasi" class="text-xs text-slate-500 font-bold">Spesialisasi: -</p>
-            <p id="coach-info-wa" class="text-xs text-emerald-600 font-bold mb-4">WhatsApp: -</p>
-            
-            <div class="text-left border-t pt-4">
-                <label class="block text-xs font-bold text-slate-600 mb-2">📸 UPLOAD/GANTI FOTO PROFIL:</label>
-                <input type="file" id="coach-upload-foto" accept="image/*" class="w-full p-2 border border-slate-300 rounded-lg bg-white mb-4">
-                <button onclick="simpanProfilCoach()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-lg shadow">💾 Simpan Foto Profil</button>
-            </div>
-        </div>
-        <button onclick="pindahHalaman('dashboard-coach')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Menu</button>
-    </div>
-
-    <!-- ===================================== -->
-    <!-- 5. DASHBOARD PARENT & MODULNYA        -->
-    <!-- ===================================== -->
-    <div id="dashboard-parent" class="hidden w-full max-w-2xl mt-5">
-        <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100">
-            <h1 class="text-2xl font-bold text-emerald-600 mb-2">Halo Ayah & Bunda! 👋</h1>
-            <p class="text-sm text-slate-500 mb-6">Selamat datang di Dashboard Orang Tua</p>
-            
-            <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl mb-6">
-                <label class="block text-xs font-bold text-emerald-700 mb-2">👫 PILIH JAGOAN (ANAK):</label>
-                <select id="parent-pilih-anak" onchange="gantiAnakAktif(); if(typeof cekSisaSesi === 'function') cekSisaSesi();" class="w-full p-2 border border-emerald-300 rounded-lg font-bold text-emerald-800">
-                    <option value="">-- Pilih Anak --</option>
-                </select>
-                
-                <div id="badge-sisa-sesi" class="hidden mt-3 bg-sky-100 border border-sky-300 p-3 rounded-lg text-center text-sky-800 font-bold text-sm">
-                    🏊‍♂️ Sisa Sesi: <span id="angka-sisa-sesi" class="text-xl text-sky-600">0</span> Pertemuan
-                </div>
-            </div>
-
-            <div id="parent-main-menu" class="hidden flex flex-col gap-3">
-                <button onclick="pindahHalaman('parent-modul-profil'); loadProfilAnak();" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-4 rounded-xl text-left border border-slate-200 flex justify-between"><span>👤 1. Data Perenang & Dokumen</span> <span>➡️</span></button>
-                <button onclick="pindahHalaman('parent-modul-assessment'); loadAssessmentAnak();" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-4 rounded-xl text-left border border-slate-200 flex justify-between"><span>📊 2. Lihat Assessment / Progress</span> <span>➡️</span></button>
-                <button onclick="pindahHalaman('parent-modul-prestasi'); loadPrestasiAnak();" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-4 rounded-xl text-left border border-slate-200 flex justify-between"><span>🏆 3. Prestasi & Medali</span> <span>➡️</span></button>
-                <button onclick="pindahHalaman('parent-modul-event'); loadEventAnak();" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-4 rounded-xl text-left border border-slate-200 flex justify-between"><span>📅 4. Schedule Event & Lomba</span> <span>➡️</span></button>
-            </div>
-            
-            <div id="parent-area-sertifikat" class="mt-4"></div>
-
-            <!-- TOMBOL LOGOUT FIX CACHE -->
-            <button onclick="localStorage.clear(); pindahHalaman('page-login')" class="w-full mt-6 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold">Logout Sistem ⬅</button>
-        </div>
-    </div>
-
-    <div id="parent-modul-profil" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Data Perenang</h2>
-        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
-            <div class="text-center mb-4">
-                <img id="parent-view-foto" src="/images/default-avatar.png" alt="Foto Profil" class="w-24 h-24 rounded-full mx-auto object-cover border-4 border-sky-400 bg-slate-200 mb-3">
-                <h3 id="parent-nama-anak" class="text-lg font-bold text-slate-800 mb-1">Nama Lengkap</h3>
-                <p id="parent-info-paket" class="text-xs text-slate-500 font-bold">Paket: - | Sisa Sesi: -</p>
-            </div>
-            <div class="border-t pt-4 text-left space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">📸 UPLOAD FOTO PROFIL:</label>
-                    <input type="file" id="parent-upload-foto" accept="image/*" class="w-full p-2 border border-slate-300 rounded-lg bg-white">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">📄 UPLOAD AKTA LAHIR (Lomba):</label>
-                    <input type="file" id="parent-upload-akta" accept="image/*,application/pdf" class="w-full p-2 border border-slate-300 rounded-lg bg-white mb-1">
-                    <div id="parent-status-akta" class="text-xs text-red-500 font-bold">Status Akta: Belum Tersedia</div>
-                </div>
-                <button onclick="simpanProfilAnak()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-lg shadow">💾 Simpan & Upload Dokumen</button>
-            </div>
-        </div>
-        <button onclick="pindahHalaman('dashboard-parent')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali</button>
-    </div>
-
-    <div id="parent-modul-assessment" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Assessment & Progress Report</h2>
-        <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-4">
-            <h3 class="text-sm font-bold text-sky-700 mb-3">🏊‍♂️ Nilai Skill Terkini (0-100)</h3>
-            <div id="parent-assessment-score" class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm font-bold"></div>
-        </div>
-        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
-            <label class="block text-xs font-bold text-slate-600 mb-2">💬 CATATAN DARI COACH:</label>
-            <p id="parent-assessment-catatan" class="italic bg-white p-3 rounded-lg border border-slate-200 text-sm min-h-[50px]">Belum ada catatan dari pelatih.</p>
-        </div>
-        <button onclick="pindahHalaman('dashboard-parent')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali</button>
-    </div>
-
-    <div id="parent-modul-prestasi" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">🏆 Prestasi Jagoan</h2>
-        <div id="parent-prestasi-list" class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3"></div>
-        <button onclick="pindahHalaman('dashboard-parent')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali</button>
-    </div>
-
-    <div id="parent-modul-event" class="hidden w-full max-w-2xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">📅 Schedule Event & Lomba</h2>
-        <div id="parent-event-list" class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3"></div>
-        <button onclick="pindahHalaman('dashboard-parent')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali</button>
-    </div>
-
-    <!-- ===================================== -->
-    <!-- 6. DASHBOARD OWNER & MODULNYA         -->
-    <!-- ===================================== -->
-    <div id="page-owner" class="hidden w-full max-w-3xl mt-5">
-        <div class="bg-slate-900 rounded-t-2xl p-6 border-b-4 border-amber-500">
-            <h2 class="text-2xl font-bold text-amber-400 m-0 flex items-center gap-2">👑 Owner Dashboard</h2>
-            <p class="text-sm text-slate-400 mt-1">Pusat Kendali Bisnis Jago Renang</p>
-        </div>
-        
-        <div class="bg-white p-6 rounded-b-2xl shadow-lg border border-slate-200">
-            <p class="font-bold text-slate-700 mb-4">Pilih Modul Analitik & Hak Akses Khusus:</p>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-                <button onclick="pindahHalaman('owner-modul-siswa'); loadSiswaOwner();" class="flex justify-between items-center bg-slate-50 hover:bg-slate-100 border border-slate-200 p-4 rounded-xl font-bold text-slate-700 transition"><span>📊 Master Siswa (Retensi)</span> <span>➡️</span></button>
-                <button onclick="pindahHalaman('owner-modul-coach'); loadCoachKPI();" class="flex justify-between items-center bg-slate-50 hover:bg-slate-100 border border-slate-200 p-4 rounded-xl font-bold text-slate-700 transition"><span>👔 Master Coach (KPI)</span> <span>➡️</span></button>
-                <button onclick="pindahHalaman('owner-modul-robot'); loadRobotData();" class="flex justify-between items-center bg-slate-50 hover:bg-slate-100 border border-slate-200 p-4 rounded-xl font-bold text-slate-700 transition"><span>🤖 Asisten AI & Kas</span> <span>➡️</span></button>
-                <button onclick="pindahHalaman('owner-modul-matadewa'); loadMataDewaDropdown();" class="flex justify-between items-center bg-gradient-to-r from-blue-900 to-blue-700 text-white p-4 rounded-xl font-bold shadow-md transition"><span>👁️ Simulasi Akun (POV Ortu)</span> <span>➡️</span></button>
-                <button onclick="pindahHalaman('owner-modul-log'); loadLoginLogs();" class="flex justify-between items-center bg-gradient-to-r from-slate-700 to-slate-900 text-white p-4 rounded-xl font-bold shadow-md transition"><span>🕵️ CCTV Sistem (Log)</span> <span>➡️</span></button>
-            </div>
-
-            <div class="flex flex-col gap-3">
-                <button onclick="pindahHalaman('owner-modul-rahasia'); loadRahasiaMurid();" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-900 to-red-950 text-white font-bold p-4 rounded-xl shadow-md border border-red-500">🛠️ Database Editor (Direct Access)</button>
-                <button onclick="window.open('https://vercel.com/dashboard', '_blank')" class="w-full flex items-center justify-center gap-2 bg-black text-white font-bold p-4 rounded-xl shadow-md border border-slate-700">📈 Cek Visitor Web (Vercel) ↗️</button>
-                
-                <div class="grid grid-cols-2 gap-3 mt-4">
-                    <button onclick="masukRuangDewa('dashboard-admin')" class="bg-slate-800 hover:bg-slate-900 text-white font-bold p-3 rounded-xl shadow-sm">🚪 Admin Master</button>
-                    <button onclick="masukRuangDewa('dashboard-coach')" class="bg-sky-600 hover:bg-sky-700 text-white font-bold p-3 rounded-xl shadow-sm">🚪 Coach Master</button>
-                </div>
-                
-                <!-- TOMBOL LOGOUT FIX CACHE -->
-                <button onclick="localStorage.clear(); pindahHalaman('page-login')" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl mt-6 shadow-md">🚪 Logout Sistem ⬅</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="owner-modul-siswa" class="hidden w-full max-w-3xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">📊 Retensi Master Siswa</h2>
-        <div class="overflow-x-auto bg-slate-50 border border-slate-200 rounded-xl p-2">
-            <table class="w-full text-sm text-left">
-                <thead class="bg-slate-100 text-slate-600 border-b-2 border-slate-200">
-                    <tr><th class="p-3">Nama Murid</th><th class="p-3">Program</th><th class="p-3 text-center">Sisa</th><th class="p-3 text-center">Status</th></tr>
-                </thead>
-                <tbody id="tabel-body-owner-siswa" class="divide-y divide-slate-200">
-                    <tr><td colspan="4" class="text-center p-4">Memuat data...</td></tr>
-                </tbody>
-            </table>
-        </div>
-        <button onclick="pindahHalaman('page-owner')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Owner Hub</button>
-    </div>
-
-    <div id="owner-modul-coach" class="hidden w-full max-w-3xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-1">👔 KPI Performa Coach</h2>
-        <p class="text-xs text-slate-500 mb-4 border-b pb-2">Rekap aktivitas & gaji bulan berjalan</p>
-        <div id="tabel-kpi-coach" class="bg-slate-50 border border-slate-200 rounded-xl p-4 overflow-x-auto text-sm space-y-2">Memuat data KPI...</div>
-        <button onclick="pindahHalaman('page-owner')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Owner Hub</button>
-    </div>
-
-    <div id="owner-modul-robot" class="hidden w-full max-w-3xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">🤖 Analisis AI & Arus Kas</h2>
-        <div class="grid grid-cols-2 gap-3 mb-4">
-            <div class="bg-emerald-500 text-white p-4 rounded-xl text-center shadow">
-                <span class="text-xs opacity-90">Potensi Omset Aktif</span>
-                <h3 id="robot-inflow" class="text-lg font-bold m-0 mt-1">Rp 0</h3>
-            </div>
-            <div class="bg-red-500 text-white p-4 rounded-xl text-center shadow">
-                <span class="text-xs opacity-90">Beban Gaji Coach</span>
-                <h3 id="robot-outflow" class="text-lg font-bold m-0 mt-1">Rp 0</h3>
-            </div>
-        </div>
-        <div class="bg-slate-800 border-2 border-amber-400 p-4 rounded-xl text-white">
-            <label class="block text-sm font-bold text-amber-400 mb-2">⚡ Taktik Berdasarkan Data (Template):</label>
-            <select id="robot-prompt" class="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 mb-3 text-sm">
-                <option value="1">Analisa Potensi Penghasilan (Macro)</option>
-                <option value="2">Siapa coach paling menguntungkan? (KPI)</option>
-                <option value="3">Evaluasi Retensi Murid & Taktik (Micro)</option>
-            </select>
-            <button onclick="tanyaRobotTemplate()" class="w-full bg-sky-400 hover:bg-sky-500 text-slate-900 font-bold py-3 rounded-lg mb-4 shadow">Jawab Pakai Template 📊</button>
-            <hr class="border-slate-600 mb-4">
-            <label class="block text-sm font-bold text-amber-400 mb-2">🧠 Free Asking (Tanya Gemini):</label>
-            <textarea id="robot-free-prompt" placeholder="Tanya apa saja seputar bisnis ke Gemini..." class="w-full p-3 rounded-lg bg-slate-700 border border-slate-600 mb-3 text-sm min-h-[80px]"></textarea>
-            <button onclick="tanyaGeminiLangsung()" class="w-full bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold py-3 rounded-lg shadow">Tanya Gemini Flash ✨</button>
-            
-            <div id="robot-jawaban" class="mt-4 p-4 bg-slate-900 border border-slate-700 rounded-lg text-sm min-h-[80px]">
-                <em class="text-slate-400">Sistem AI siap... Silakan pilih template atau ketik pertanyaan.</em>
-            </div>
-        </div>
-        <button onclick="pindahHalaman('page-owner')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Owner Hub</button>
-    </div>
-
-    <div id="owner-modul-matadewa" class="hidden w-full max-w-3xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-1">👁️ Simulasi Akun (POV Ortu)</h2>
-        <p class="text-xs text-slate-500 mb-4 border-b pb-2">Masuk ke dashboard sebagai Orang Tua tanpa memerlukan password.</p>
-        <div class="bg-slate-50 border border-slate-200 p-5 rounded-xl text-center">
-            <label class="block text-sm font-bold text-slate-800 mb-3">Pilih Akun Wali Murid:</label>
-            <select id="dewa-pilih-ortu" class="w-full p-3 border border-slate-400 rounded-lg font-bold mb-4">
-                <option value="">-- Memuat Data Akun Ortu... --</option>
-            </select>
-            <button onclick="simulasiLoginOrtu()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-lg shadow-md">🚀 Login Sebagai Orang Tua</button>
-        </div>
-        <button onclick="pindahHalaman('page-owner')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Owner Hub</button>
-    </div>
-
-    <div id="owner-modul-log" class="hidden w-full max-w-3xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-slate-800 mb-1">🕵️ CCTV Sistem</h2>
-        <p class="text-xs text-slate-500 mb-4 border-b pb-2">Riwayat aktivitas login pengguna secara real-time</p>
-        <div class="overflow-x-auto bg-slate-50 border border-slate-200 rounded-xl p-2">
-            <table class="w-full text-xs text-left">
-                <thead class="bg-slate-100 text-slate-600 border-b-2 border-slate-200">
-                    <tr><th class="p-2">Waktu & Tanggal</th><th class="p-2">Username</th><th class="p-2 text-center">Role</th></tr>
-                </thead>
-                <tbody id="tabel-body-owner-log" class="divide-y divide-slate-200">
-                    <tr><td colspan="3" class="text-center p-4">Memuat riwayat...</td></tr>
-                </tbody>
-            </table>
-        </div>
-        <button onclick="pindahHalaman('page-owner')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Kembali ke Owner Hub</button>
-    </div>
-
-    <div id="owner-modul-rahasia" class="hidden w-full max-w-3xl bg-white p-6 rounded-2xl shadow-lg border border-slate-100 mt-5">
-        <h2 class="text-xl font-bold text-red-800 mb-1">🛠️ Database Editor</h2>
-        <p class="text-xs text-slate-500 mb-4 border-b pb-2">Akses langsung ke tabel database. Perubahan bersifat permanen.</p>
-        <div class="bg-red-50 border border-red-200 p-4 rounded-xl mb-4">
-            <label class="block text-xs font-bold text-red-800 mb-1">1. EDIT TABEL MURID (Sambung Akun):</label>
-            <p class="text-[10px] text-red-700 mb-3">Samakan <b>Username Ortu</b> jika ada 2 anak dari keluarga yang sama.</p>
-            <div class="overflow-x-auto bg-white rounded-lg border border-red-100">
-                <table class="w-full text-[11px] text-left">
-                    <thead class="bg-red-100 text-red-800 border-b border-red-200">
-                        <tr><th class="p-2">Nama Murid</th><th class="p-2">No WA Ortu</th><th class="p-2">Username Ortu</th><th class="p-2 text-center">Save</th></tr>
-                    </thead>
-                    <tbody id="tabel-rahasia-murid" class="divide-y divide-red-50">
-                        <tr><td colspan="4" class="text-center p-3">Memuat data...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
-            <label class="block text-xs font-bold text-emerald-800 mb-3">2. EDIT TABEL USERS (Reset Password):</label>
-            <div class="overflow-x-auto bg-white rounded-lg border border-emerald-100">
-                <table class="w-full text-[11px] text-left">
-                    <thead class="bg-emerald-100 text-emerald-900 border-b border-emerald-200">
-                        <tr><th class="p-2">Username</th><th class="p-2">Password</th><th class="p-2">Role</th><th class="p-2 text-center">Save</th></tr>
-                    </thead>
-                    <tbody id="tabel-rahasia-users" class="divide-y divide-emerald-50">
-                        <tr><td colspan="4" class="text-center p-3">Memuat data...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <button onclick="pindahHalaman('page-owner')" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold py-2">⬅ Keluar dari Editor</button>
-    </div>
+<div id="dryland-container"></div>
 
 
-    <!-- ===================================== -->
-    <!-- 7. SEMUA MODAL (POPUP)                -->
-    <!-- ===================================== -->
-    <div id="modal-katalog-detail" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex justify-center items-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden relative">
-            <span onclick="document.getElementById('modal-katalog-detail').classList.add('hidden')" class="absolute top-3 right-4 cursor-pointer text-2xl font-bold text-red-500 bg-white w-8 h-8 rounded-full text-center leading-8 shadow-md z-10">&times;</span>
-            <img id="modal-kat-img" src="" class="w-full h-48 object-cover bg-slate-200">
-            <div class="p-5">
-                <h3 id="modal-kat-nama" class="text-xl font-bold text-sky-700 mb-1">Nama Program</h3>
-                <p id="modal-kat-desc" class="text-sm text-slate-600 mb-4 leading-relaxed">Deskripsi program...</p>
-                <div id="modal-kat-harga" class="text-lg font-bold text-emerald-500 mb-4">Rp 0</div>
-                <button id="btn-wa-katalog" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-lg shadow-md">💬 Tanya via WhatsApp</button>
-            </div>
-        </div>
-    </div>
+<!-- ========================================== -->
+<!-- 2. GUEST / NON-MEMBER AREA                 -->
+<!-- ========================================== -->
+<div id="nonmember-container"></div>
 
-    <div id="modal-daftar-beginner" class="hidden fixed inset-0 bg-slate-900/70 z-50 flex justify-center items-center p-4">
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="bg-sky-600 p-4 text-center relative shrink-0">
-                <h3 class="m-0 text-white font-bold tracking-wide">FORM PENDAFTARAN</h3>
-                <p class="m-0 text-xs text-sky-200 mt-1">Kelas Beginner Jago Renang Academy</p>
-                <span onclick="tutupModalDaftarBeginner()" class="absolute top-2 right-4 text-2xl text-white hover:text-sky-200 font-bold cursor-pointer">&times;</span>
-            </div>
-            <div class="p-5 text-sm text-slate-700 overflow-y-auto">
-                <div class="space-y-3 mb-4">
-                    <div><label class="block text-xs font-bold text-slate-500 mb-1">NAMA LENGKAP ANAK:</label><input type="text" id="reg-nama" class="w-full p-2 border border-slate-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-bold text-slate-500 mb-1">NAMA PANGGILAN (Untuk Absen):</label><input type="text" id="reg-panggilan" class="w-full p-2 border border-slate-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-bold text-slate-500 mb-1">TANGGAL LAHIR:</label><input type="date" id="reg-tgl-lahir" class="w-full p-2 border border-slate-300 rounded-lg"></div>
-                    <div><label class="block text-xs font-bold text-slate-500 mb-1">NOMOR WHATSAPP (ORTU):</label><input type="number" id="reg-wa" class="w-full p-2 border border-slate-300 rounded-lg"></div>
-                </div>
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-2">
-                    <label class="block text-xs font-bold text-sky-600 mb-3">🔑 DATA AKSES LOGIN (NANTI)</label>
-                    <div class="space-y-2">
-                        <div><span class="block text-[10px] font-bold text-slate-500">USERNAME:</span><input type="text" id="reg-user" class="w-full p-2 text-xs border border-slate-300 rounded-lg"></div>
-                        <div><span class="block text-[10px] font-bold text-slate-500">PASSWORD:</span><input type="text" id="reg-pass" class="w-full p-2 text-xs border border-slate-300 rounded-lg"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="flex gap-2 p-4 pt-0 shrink-0 border-t border-slate-100">
-                <button onclick="tutupModalDaftarBeginner()" class="flex-1 bg-slate-200 text-slate-700 font-bold py-3 rounded-lg">Batal</button>
-                <button id="btn-submit-daftar" onclick="submitPendaftaranOnline()" class="flex-[2] bg-emerald-500 text-white font-bold py-3 rounded-lg shadow-md">🚀 Daftar Sekarang</button>
-            </div>
-        </div>
-    </div>
 
-    <div id="modal-invoice" class="hidden fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm flex justify-center items-center p-4">
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="bg-sky-600 p-4 text-center relative shrink-0">
-                <h3 class="m-0 text-white font-bold tracking-wide">JAGO RENANG ACADEMY</h3>
-                <p class="m-0 text-xs text-sky-200 mt-1">Formulir Penerbitan Tagihan</p>
-                <button onclick="tutupModalInvoice()" class="absolute top-2 right-4 text-2xl text-white hover:text-red-200 font-bold">&times;</button>
-            </div>
-            <div class="p-5 text-sm text-slate-700 overflow-y-auto">
-                <div class="flex justify-between border-b border-dashed border-slate-300 pb-3 mb-4">
-                    <div><span class="block text-[10px] text-slate-500 font-bold">NOMOR INVOICE</span><b id="inv-nomor" class="text-slate-900 text-base">Memuat...</b></div>
-                    <div class="text-right"><span class="block text-[10px] text-slate-500 font-bold">TANGGAL TERBIT</span><b id="inv-tanggal" class="text-slate-900 text-base">-</b></div>
-                </div>
-                <div class="space-y-3 mb-4">
-                    <div><label class="block text-xs font-bold text-slate-500 mb-1">KEPADA WALIMURID:</label><input type="text" id="inv-input-nama" class="w-full p-2 border border-slate-300 rounded-lg text-sky-700 font-bold bg-slate-50"></div>
-                    <div><label class="block text-xs font-bold text-slate-500 mb-1">DESKRIPSI PAKET:</label><input type="text" id="inv-input-paket" class="w-full p-2 border border-slate-300 rounded-lg font-bold bg-slate-50"></div>
-                </div>
-                <div class="flex gap-2 mb-4">
-                    <div class="flex-1">
-                        <label class="block text-xs font-bold text-slate-500 mb-1">BIAYA (Rp):</label>
-                        <input type="number" id="inv-input-biaya" oninput="hitungTotalInvoice()" class="w-full p-2 border border-slate-300 rounded-lg text-right font-bold">
-                    </div>
-                    <div class="flex-1">
-                        <label class="block text-xs font-bold text-red-500 mb-1">DISKON (Rp):</label>
-                        <input type="number" id="inv-input-diskon" oninput="hitungTotalInvoice()" class="w-full p-2 border border-red-300 rounded-lg text-right font-bold text-red-600 bg-red-50">
-                    </div>
-                </div>
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
-                    <label class="block text-xs font-bold text-slate-800 mb-3">📅 JADWAL SESI & EXPIRED</label>
-                    <div class="grid grid-cols-2 gap-2 text-xs">
-                        <div><span class="text-slate-500">Sesi 1:</span><input type="date" id="inv-sesi-1" onchange="hitungTotalInvoice()" class="w-full p-1 border rounded"></div>
-                        <div><span class="text-slate-500">Sesi 2:</span><input type="date" id="inv-sesi-2" class="w-full p-1 border rounded"></div>
-                        <div><span class="text-slate-500">Sesi 3:</span><input type="date" id="inv-sesi-3" class="w-full p-1 border rounded"></div>
-                        <div><span class="text-slate-500">Sesi 4:</span><input type="date" id="inv-sesi-4" class="w-full p-1 border rounded"></div>
-                    </div>
-                    <div id="inv-info-expired" class="mt-3 text-[10px] text-amber-600 font-bold text-center">Isi Tgl Sesi 1 untuk menghitung masa Expired!</div>
-                </div>
-                <div class="bg-sky-50 p-4 rounded-xl flex justify-between items-center mb-2">
-                    <span class="font-bold text-sky-800">TOTAL TAGIHAN</span>
-                    <h2 id="inv-total-display" class="text-xl font-bold text-sky-600 m-0">Rp 0</h2>
-                </div>
-            </div>
-            <div class="flex gap-2 p-4 pt-0 shrink-0 border-t border-slate-100">
-                <button onclick="tutupModalInvoice()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 rounded-lg">Batal</button>
-                <button onclick="submitInvoiceDatabase()" class="flex-[2] bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-lg shadow-md">💾 Submit & Kirim WA</button>
-            </div>
-            <input type="hidden" id="hidden-inv-murid-id">
-            <input type="hidden" id="hidden-inv-expired-date">
-        </div>
-    </div>
+<!-- ===================================== -->
+<!-- 3. DASHBOARD ADMIN & MODULNYA         -->
+<!-- ===================================== -->
+<div id="admin-container"></div>
 
-    <div id="modal-detail-fee" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex justify-center items-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[80vh]">
-            <div class="bg-sky-700 text-white p-4 text-center relative shrink-0">
-                <h3 class="m-0 font-bold text-lg">Detail Rekap <span id="detail-fee-nama"></span></h3>
-                <p class="m-0 text-xs text-sky-200 mt-1" id="detail-fee-periode"></p>
-                <span onclick="document.getElementById('modal-detail-fee').classList.add('hidden')" class="absolute top-2 right-4 cursor-pointer text-2xl font-bold">&times;</span>
-            </div>
-            <div id="detail-fee-list" class="p-4 overflow-y-auto text-sm text-slate-700 flex-1 space-y-2">Memuat data...</div>
-            <div class="p-4 bg-slate-50 text-right border-t border-slate-200 font-bold text-lg text-sky-700 shrink-0">
-                Total: <span id="detail-fee-total"></span>
-            </div>
-        </div>
-    </div>
+<!-- ===================================== -->
+<!-- DASHBOARD ADMIN 2 (FREELANCE)         -->
+<!-- ===================================== -->
+<div id="admin2-container"></div>
+
+
+<!-- ===================================== -->
+<!-- 4. DASHBOARD COACH & MODULNYA         -->
+<!-- ===================================== -->
+<div id="coach-container"></div>
+
+
+<!-- ===================================== -->
+<!-- 5. DASHBOARD PARENT & MODULNYA        -->
+<!-- ===================================== -->
+<div id="parent-container"></div>
+
+
+<!-- ===================================== -->
+<!-- 6. DASHBOARD OWNER & MODULNYA         -->
+<!-- ===================================== -->
+<div id="owner-container"></div>
+
+<!-- ===================================== -->
+<!-- 7. SEMUA MODAL (POPUP)                -->
+<!-- ===================================== -->
+<div id="modal-container"></div>
+
+
+
 
     <!-- ===================================== -->
     <!-- SERVICE WORKER REGISTRATION           -->
