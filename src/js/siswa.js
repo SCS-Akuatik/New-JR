@@ -1,7 +1,7 @@
 import { sb } from './config.js';
 
 // ========================================================
-// SCRIPT MANAJEMEN MASTER SISWA (ADMIN)
+// SCRIPT MANAJEMEN MASTER SISWA (ADMIN) - PURE CRUD
 // ========================================================
 let tempDurasiMinggu = 0;
 let tempWaMurid = ""; 
@@ -66,56 +66,6 @@ export async function loadSiswaAdmin() {
     list.innerHTML = html || '<p>Belum ada data murid.</p>';
 }
 
-export async function simpanSiswa() {
-    const id = document.getElementById('sis-edit-id').value;
-    const nama = document.getElementById('sis-nama').value.trim();
-    const panggilan = document.getElementById('sis-panggilan').value.trim();
-    const wa = document.getElementById('sis-wa').value.trim(); 
-    const tglLahir = document.getElementById('sis-tgl-lahir').value; 
-    const status = document.getElementById('sis-status').value;
-    const paket = document.getElementById('sis-paket').value.trim();
-    const sesi = document.getElementById('sis-sesi').value;
-    const expired = document.getElementById('sis-expired').value; 
-
-    if (!nama) return alert("Nama murid wajib diisi!");
-
-    const dataObj = {
-        nama_murid: nama, 
-        nama_panggilan: panggilan || null, 
-        no_wa: wa || null, 
-        tanggal_lahir: tglLahir || null, 
-        status: status, 
-        jenis_paket: paket || 'Private Class', 
-        sisa_sesi: sesi ? parseInt(sesi) : 4,
-        expired_sesi: expired || null 
-    };
-
-    if (id) {
-        const { error } = await sb.from('murid').update(dataObj).eq('id_murid', id);
-        if(error) return alert("Gagal update: " + error.message);
-        alert("Data siswa diupdate!");
-    } else {
-        const { error } = await sb.from('murid').insert([{ ...dataObj, tipe_kelas: 'Beginner' }]);
-        if(error) return alert("Gagal tambah: " + error.message);
-        alert("Siswa ditambahkan!");
-    }
-
-    document.getElementById('sis-edit-id').value = '';
-    document.getElementById('sis-nama').value = '';
-    document.getElementById('sis-panggilan').value = ''; 
-    document.getElementById('sis-wa').value = ''; 
-    document.getElementById('sis-tgl-lahir').value = '';
-    document.getElementById('sis-paket').value = '';
-    document.getElementById('sis-sesi').value = '';
-    
-    if(document.getElementById('sis-sesi-1')) document.getElementById('sis-sesi-1').value = ''; 
-    document.getElementById('sis-expired').value = ''; 
-    document.getElementById('btn-simpan-siswa').innerText = "⚡ Simpan Siswa";
-    
-    loadSiswaAdmin();
-    if(typeof window.loadDropdownMuridForWali === 'function') window.loadDropdownMuridForWali(); 
-}
-
 export function editSiswa(id, nama, panggilan, wa, tgl, status, paket, sesi, expired) {
     document.getElementById('sis-edit-id').value = id;
     document.getElementById('sis-nama').value = nama;
@@ -129,7 +79,9 @@ export function editSiswa(id, nama, panggilan, wa, tgl, status, paket, sesi, exp
     if(document.getElementById('sis-sesi-1')) document.getElementById('sis-sesi-1').value = ''; 
     document.getElementById('sis-expired').value = (!expired || expired === 'null') ? '' : expired; 
     
-    document.getElementById('btn-simpan-siswa').innerText = "💾 Update Siswa";
+    // Ambil formnya dan arahkan focus layar
+    const btn = document.getElementById('btn-simpan-siswa');
+    if(btn) btn.innerText = "💾 Update Siswa";
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -142,30 +94,9 @@ export function filterMurid() {
     });
 }
 
-export function autoHitungExpiredSiswa() {
-    const tglSesi1 = document.getElementById('sis-sesi-1')?.value;
-    const paket = document.getElementById('sis-paket')?.value.toLowerCase() || "";
-    
-    if (!tglSesi1) return; 
-
-    let durasiMinggu = 5; 
-    
-    if (paket.includes("beginner") && (paket.includes("8") || paket.includes("delapan"))) {
-        durasiMinggu = 10; 
-    } else if (paket.includes("beginner")) {
-        durasiMinggu = 6;  
-    } else if (paket.includes("8") || paket.includes("delapan")) {
-        durasiMinggu = 9;  
-    } else {
-        durasiMinggu = 5;  
-    }
-
-    let dateSesi1 = new Date(tglSesi1);
-    dateSesi1.setDate(dateSesi1.getDate() + (durasiMinggu * 7));
-    
-    document.getElementById('sis-expired').value = dateSesi1.toISOString().split('T')[0];
-}
-
+// ========================================================
+// GENERATOR INVOICE SISWA LAMA
+// ========================================================
 export async function generateInvoice(idMurid, namaSiswa, jenisPaket, noWa) {
     tempWaMurid = noWa || ""; 
     
@@ -289,7 +220,6 @@ export async function submitInvoiceDatabase(event) {
         return;
     }
 
-    // 🔥 TANGKAP IDENTITAS ADMIN YANG LAGI LOGIN 🔥
     const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
 
     try {
@@ -308,7 +238,7 @@ export async function submitInvoiceDatabase(event) {
             sesi_4: s4,
             expired_sesi: expDate,
             status: 'Unpaid',
-            admin_id: currentUser // <--- INJEKSI BONUS DI SINI BOS!
+            admin_id: currentUser 
         }]);
 
         if (error) {
@@ -366,6 +296,9 @@ Mohon konfirmasi dengan mengirimkan bukti pembayaran. Terima kasih! 🌟`
         tutupModalInvoice();
         alert("Invoice berhasil disimpan ke Database!");
 
+        // Auto Refresh Tagihan Pending di Admin 2
+        if (typeof window.loadPendingInvoiceAdmin2 === 'function') window.loadPendingInvoiceAdmin2();
+
     } catch (err) {
         console.error("Error Simpan Invoice:", err);
         alert(`Gagal menyimpan: ${err.message}`);
@@ -379,120 +312,11 @@ export function tutupModalInvoice() {
     if(modal) modal.style.display = 'none';
 }
 
-export async function loadDropdownMuridForWali() {
-    const dropWali = document.getElementById('form-wali-murid');
-    const dropPrestasi = document.getElementById('prestasi-murid'); 
-    
-    if (!dropWali || !dropPrestasi) return;
-
-    try {
-        const { data, error } = await sb.from('murid')
-            .select('id_murid, nama_murid')
-            .order('nama_murid', { ascending: true });
-
-        if (error) throw error;
-
-        dropWali.innerHTML = '<option value="">-- Pilih Murid --</option>';
-        dropPrestasi.innerHTML = '<option value="">-- Pilih Murid untuk Prestasi --</option>'; 
-        
-        if (data) {
-            data.forEach(m => {
-                const option = `<option value="${m.id_murid}">${m.nama_murid}</option>`;
-                dropWali.innerHTML += option;
-                dropPrestasi.innerHTML += option; 
-            });
-        }
-    } catch (err) {
-        console.error("Gagal load dropdown murid:", err);
-    }
-}
-
-export async function buatAkunWali() {
-    const muridId = document.getElementById('form-wali-murid').value;
-    const user = document.getElementById('form-wali-user').value.trim();
-    const pass = document.getElementById('form-wali-pass').value.trim();
-
-    if (!muridId || !user) {
-        return alert("Mohon lengkapi pilihan murid dan username!");
-    }
-
-    try {
-        const { error: errUser } = await sb.from('users').insert([{
-            username: user,
-            password: pass || '123456', 
-            role: ['parent']
-        }]);
-
-        if (errUser) {
-            if (errUser.code === '23505') {
-                const confirmLink = confirm(`Username "${user}" sudah ada (Mungkin akun untuk anak pertamanya).\n\nMau langsung hubungkan anak ini ke akun wali tersebut?`);
-                if (!confirmLink) return; 
-            } else {
-                throw errUser; 
-            }
-        }
-
-        const { error: errMurid } = await sb.from('murid')
-            .update({ parent_username: user })
-            .eq('id_murid', muridId);
-
-        if (errMurid) throw errMurid;
-
-        alert(`Berhasil! Anak telah dihubungkan ke akun wali murid: ${user}`);
-        
-        document.getElementById('form-wali-user').value = "";
-        document.getElementById('form-wali-pass').value = "";
-        
-        loadSiswaAdmin(); 
-
-    } catch (err) {
-        console.error(err);
-        alert("Terjadi kesalahan sistem saat membuat/menghubungkan akun.");
-    }
-}
-
-export async function simpanPrestasiAdmin() {
-    const muridId = document.getElementById('prestasi-murid').value;
-    const namaEvent = document.getElementById('prestasi-event').value.trim();
-    const pencapaian = document.getElementById('prestasi-pencapaian').value.trim();
-    const tanggal = document.getElementById('prestasi-tanggal').value;
-
-    if (!muridId || !namaEvent || !pencapaian || !tanggal) {
-        return alert("Mohon lengkapi semua data prestasi (Nama, Event, Pencapaian, dan Tanggal)!");
-    }
-
-    try {
-        const { error } = await sb.from('prestasi').insert([{
-            murid_id: parseInt(muridId),
-            nama_event: namaEvent,
-            pencapaian: pencapaian,
-            tanggal: tanggal
-        }]);
-
-        if (error) throw error;
-
-        alert("Prestasi Jagoan berhasil ditambahkan ke database!");
-        
-        document.getElementById('prestasi-event').value = "";
-        document.getElementById('prestasi-pencapaian').value = "";
-        document.getElementById('prestasi-tanggal').value = "";
-        
-    } catch (err) {
-        console.error(err);
-        alert("Terjadi kesalahan saat menyimpan prestasi.");
-    }
-}
-
 // REGISTER TO WINDOW
 window.loadSiswaAdmin = loadSiswaAdmin;
-window.simpanSiswa = simpanSiswa;
 window.editSiswa = editSiswa;
 window.filterMurid = filterMurid;
-window.autoHitungExpiredSiswa = autoHitungExpiredSiswa;
 window.generateInvoice = generateInvoice;
 window.hitungTotalInvoice = hitungTotalInvoice;
 window.submitInvoiceDatabase = submitInvoiceDatabase;
 window.tutupModalInvoice = tutupModalInvoice;
-window.loadDropdownMuridForWali = loadDropdownMuridForWali;
-window.buatAkunWali = buatAkunWali;
-window.simpanPrestasiAdmin = simpanPrestasiAdmin;

@@ -3,6 +3,7 @@ import './js/config.js';
 import './js/helper.js'; 
 import './js/app.js';
 import './js/beginner.js'; 
+import './js/admin.js'
 import './js/login.js';
 import './js/coach.js'; 
 import './js/katalog.js';

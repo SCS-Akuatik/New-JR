@@ -121,58 +121,7 @@ window.uploadAvatarCoach = async function(event) {
     }
 };
 
-/* =========================================================
-   FITUR CREATE MASTER & AKUN COACH (ADMIN)
-========================================================= */
-export async function buatAkunCoach() {
-    const nama = document.getElementById('form-coach-nama').value.trim();
-    const wa = document.getElementById('form-coach-wa').value.trim();
-    const spesialisasi = document.getElementById('form-coach-spesialisasi').value;
-    const user = document.getElementById('form-coach-user').value.trim();
-    const pass = document.getElementById('form-coach-pass').value.trim();
 
-    if (!nama || !user || !pass) {
-        return alert("Mohon lengkapi Nama Coach, Username, dan Password!");
-    }
-
-    if (!confirm(`Yakin ingin meregistrasi Coach ${nama} dan membuat akses login?`)) return;
-
-    try {
-        const { error: errUser } = await sb.from('users').insert([{
-            username: user,
-            password: pass,
-            role: ['coach']
-        }]);
-
-        if (errUser) {
-            if (errUser.code === '23505') alert("Gagal: Username tersebut sudah digunakan.");
-            else throw errUser;
-            return;
-        }
-
-        const { error: errCoach } = await sb.from('coach').insert([{
-            nama_coach: nama,
-            username: user,
-            no_wa: wa,
-            spesialisasi: spesialisasi
-        }]);
-
-        if (errCoach) throw errCoach;
-
-        alert("Berhasil! Master data Coach dan Akun login telah dibuat.");
-        
-        document.getElementById('form-coach-nama').value = "";
-        document.getElementById('form-coach-wa').value = "";
-        document.getElementById('form-coach-user').value = "";
-        document.getElementById('form-coach-pass').value = "";
-        
-        if (typeof initDropdownCoach === "function") initDropdownCoach();
-
-    } catch (err) {
-        console.error(err);
-        alert("Terjadi kesalahan sistem saat membuat akun coach.");
-    }
-}
 
 /* =========================================================
    BAGIAN ADMIN JADWAL PENUGASAN COACH
@@ -1210,7 +1159,6 @@ export async function simpanProfilCoach() {
 // =========================================================
 // REGISTER TO WINDOW (BIAR ONCLICK HTML TETAP JALAN)
 // =========================================================
-window.buatAkunCoach = buatAkunCoach;
 window.loadDropdownMuridCoach = loadDropdownMuridCoach;
 window.tambahMuridKeListCoach = tambahMuridKeListCoach;
 window.resetListCoach = resetListCoach;
