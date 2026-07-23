@@ -12,7 +12,15 @@ import './js/fee.js';
 import './js/akunting.js'
 // Import logika untuk Admin Freelance
 import './js/admin2.js';
-import './dryland.js';
+// Import logika JS-nya
+import './js/dryland.js';
+
+// Import komponen HTML-nya dan suntikkan ke index.html
+import drylandHtml from './components/dryland.html?raw';
+const containerDryland = document.getElementById('dryland-container');
+if(containerDryland) {
+    containerDryland.innerHTML = drylandHtml;
+}
 
 
 // KULI KASTA TERTINGGI (BOS BESAR) MASUK SINI 👇
@@ -49,3 +57,11 @@ import modalHtml from './components/modal.html?raw';
 document.getElementById('modal-container').innerHTML = modalHtml;
 import admin2Html from './components/admin2.html?raw';
 document.getElementById('admin2-container').innerHTML = admin2Html;
+// Auto-Routing: Buka halaman Dryland kalau link-nya di-share pakai #dryland
+window.addEventListener('DOMContentLoaded', () => {
+    if (window.location.hash === '#dryland') {
+        if(typeof pindahHalaman === 'function') {
+            pindahHalaman('page-dryland');
+        }
+    }
+});

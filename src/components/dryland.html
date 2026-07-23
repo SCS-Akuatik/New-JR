@@ -1,21 +1,6 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dryland & Chills - Jago Academy</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .bg-pattern { background-image: radial-gradient(#bae6fd 1px, transparent 1px); background-size: 20px 20px; }
-        .upload-box { transition: all 0.2s; }
-        .upload-box:hover { border-color: #0284c7; background-color: #f0f9ff; }
-    </style>
-</head>
-<body class="bg-slate-50 bg-pattern pb-12">
-
+<!-- Cukup bungkus dengan 1 div utama (id="page-dryland") -->
+<div id="page-dryland" class="hidden w-full min-h-screen bg-slate-50 pb-12" style="background-image: radial-gradient(#bae6fd 1px, transparent 1px); background-size: 20px 20px;">
+    
     <!-- HERO SECTION -->
     <div class="bg-gradient-to-br from-sky-600 to-indigo-700 w-full pt-12 pb-16 px-6 text-center text-white relative shadow-lg rounded-b-[40px]">
         <span class="inline-block bg-white/20 text-white font-bold text-[10px] tracking-widest uppercase px-3 py-1 rounded-full mb-3 backdrop-blur-sm border border-white/30">Jago Academy Special Event</span>
@@ -99,7 +84,6 @@
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
-                        <!-- BOX 1 -->
                         <label class="upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-3 cursor-pointer overflow-hidden">
                             <input type="file" id="file-cicil-1" accept="image/*" class="hidden" onchange="previewFileName(1)">
                             <span class="text-2xl mb-1">🧾</span>
@@ -107,7 +91,6 @@
                             <span id="label-file-1" class="text-[9px] text-slate-400 mt-1 text-center truncate w-full px-1">Belum ada file</span>
                         </label>
 
-                        <!-- BOX 2 -->
                         <label class="upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-3 cursor-pointer overflow-hidden">
                             <input type="file" id="file-cicil-2" accept="image/*" class="hidden" onchange="previewFileName(2)">
                             <span class="text-2xl mb-1">🧾</span>
@@ -115,7 +98,6 @@
                             <span id="label-file-2" class="text-[9px] text-slate-400 mt-1 text-center truncate w-full px-1">Belum ada file</span>
                         </label>
 
-                        <!-- BOX 3 -->
                         <label class="upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-3 cursor-pointer overflow-hidden">
                             <input type="file" id="file-cicil-3" accept="image/*" class="hidden" onchange="previewFileName(3)">
                             <span class="text-2xl mb-1">🧾</span>
@@ -123,7 +105,6 @@
                             <span id="label-file-3" class="text-[9px] text-slate-400 mt-1 text-center truncate w-full px-1">Belum ada file</span>
                         </label>
 
-                        <!-- BOX 4 -->
                         <label class="upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-3 cursor-pointer overflow-hidden">
                             <input type="file" id="file-cicil-4" accept="image/*" class="hidden" onchange="previewFileName(4)">
                             <span class="text-2xl mb-1">🏆</span>
@@ -138,10 +119,5 @@
                 </button>
             </div>
         </div>
-
     </div>
-
-    <!-- Load module JS -->
-    <script type="module" src="./dryland.js"></script>
-</body>
-</html>
+</div>
