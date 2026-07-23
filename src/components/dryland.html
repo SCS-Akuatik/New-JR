@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dryland & Chills - Jago Academy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .bg-pattern { background-image: radial-gradient(#bae6fd 1px, transparent 1px); background-size: 20px 20px; }
+        .upload-box { transition: all 0.2s; }
+        .upload-box:hover { border-color: #0284c7; background-color: #f0f9ff; }
+    </style>
+</head>
+<body class="bg-slate-50 bg-pattern pb-12">
+
+    <!-- HERO SECTION -->
+    <div class="bg-gradient-to-br from-sky-600 to-indigo-700 w-full pt-12 pb-16 px-6 text-center text-white relative shadow-lg rounded-b-[40px]">
+        <span class="inline-block bg-white/20 text-white font-bold text-[10px] tracking-widest uppercase px-3 py-1 rounded-full mb-3 backdrop-blur-sm border border-white/30">Jago Academy Special Event</span>
+        <h1 class="text-4xl font-black tracking-tight mb-2 drop-shadow-md">DRYLAND & CHILLS</h1>
+        <p class="text-sky-100 font-medium text-sm max-w-sm mx-auto mb-4">"FFP Program: Fundamentals, Funs & Plays"</p>
+        <div class="inline-flex items-center gap-2 bg-sky-800/50 px-4 py-2 rounded-xl text-xs font-bold border border-sky-500/30">
+            <span>📅 September 2026</span>
+            <span class="text-sky-300">|</span>
+            <span>📍 Narita Hotel</span>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <div class="max-w-md mx-auto px-4 -mt-8 relative z-10 space-y-5">
+        
+        <!-- INFO CARD -->
+        <div class="bg-white p-5 rounded-2xl shadow-xl border border-slate-100">
+            <h3 class="text-xs font-black text-sky-800 uppercase tracking-wider border-b-2 border-sky-100 pb-2 mb-3">👨‍🏫 By Coach Nisa & JR Specialist</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <h4 class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">🤔 Apa saja yang akan dilakukan?</h4>
+                    <ul class="text-xs text-slate-600 space-y-2">
+                        <li class="flex items-start gap-2"><span class="text-emerald-500">✅</span> <b>Stretching Culture:</b> Membiasakan peregangan sebelum berolahraga untuk mencegah cedera.</li>
+                        <li class="flex items-start gap-2"><span class="text-emerald-500">✅</span> <b>10 Dryland Movements:</b> Melatih 10 teknik gerakan renang di luar air (Dry) dengan bimbingan Coach Nisa.</li>
+                        <li class="flex items-start gap-2"><span class="text-emerald-500">✅</span> <b>Game & Play:</b> Bermain games edukatif sambil berkesempatan memenangkan hadiah menarik!</li>
+                    </ul>
+                </div>
+
+                <div class="bg-sky-50 p-4 rounded-xl border border-sky-100">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-bold text-slate-500">Hari & Tanggal</span>
+                        <span class="text-sm font-black text-sky-700 bg-white px-2 py-1 rounded border border-sky-200 shadow-sm">🗓️ Menyusul</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-500">Biaya Program</span>
+                        <span class="text-lg font-black text-emerald-600">Rp 300.000</span>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">🎁 Including:</h4>
+                    <div class="grid grid-cols-2 gap-2 text-[11px] font-bold text-slate-600">
+                        <div class="bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-center gap-2">👕 Jersey Jago Academy</div>
+                        <div class="bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-center gap-2">🍱 Kid Meal Narita</div>
+                        <div class="bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-center gap-2">📜 e-Sertifikat</div>
+                        <div class="bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-center gap-2">🏆 Hadiah Games</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REGISTRATION FORM -->
+        <div class="bg-white p-5 rounded-2xl shadow-xl border border-slate-100">
+            <h3 class="text-sm font-black text-indigo-700 border-b-2 border-indigo-100 pb-2 mb-4 flex items-center gap-2">📝 Form Pendaftaran & Pembayaran</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Nama Lengkap Peserta</label>
+                    <input type="text" id="dry-nama" placeholder="Masukkan nama peserta..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Ukuran Jersey</label>
+                    <select id="dry-ukuran" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition">
+                        <option value="">-- Pilih Ukuran --</option>
+                        <option value="S Anak">S Anak</option>
+                        <option value="M Anak">M Anak</option>
+                        <option value="L Anak">L Anak</option>
+                        <option value="XL Anak">XL Anak</option>
+                        <option value="S Dewasa">S Dewasa (Remaja)</option>
+                        <option value="M Dewasa">M Dewasa</option>
+                    </select>
+                </div>
+
+                <!-- 4 BOX PEMBAYARAN CICILAN -->
+                <div class="pt-2 border-t border-slate-100">
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="block text-xs font-black text-emerald-600">💸 UPLOAD PEMBAYARAN (CICIL 4X)</label>
+                        <span class="text-[9px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">Wajib diisi urut</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- BOX 1 -->
+                        <label class="upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-3 cursor-pointer overflow-hidden">
+                            <input type="file" id="file-cicil-1" accept="image/*" class="hidden" onchange="previewFileName(1)">
+                            <span class="text-2xl mb-1">🧾</span>
+                            <span class="text-[10px] font-bold text-slate-700 text-center">Cicilan 1 (DP)</span>
+                            <span id="label-file-1" class="text-[9px] text-slate-400 mt-1 text-center truncate w-full px-1">Belum ada file</span>
+                        </label>
+
+                        <!-- BOX 2 -->
+                        <label class="upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-3 cursor-pointer overflow-hidden">
+                            <input type="file" id="file-cicil-2" accept="image/*" class="hidden" onchange="previewFileName(2)">
+                            <span class="text-2xl mb-1">🧾</span>
+                            <span class="text-[10px] font-bold text-slate-700 text-center">Cicilan 2</span>
+                            <span id="label-file-2" class="text-[9px] text-slate-400 mt-1 text-center truncate w-full px-1">Belum ada file</span>
+                        </label>
+
+                        <!-- BOX 3 -->
+                        <label class="upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-3 cursor-pointer overflow-hidden">
+                            <input type="file" id="file-cicil-3" accept="image/*" class="hidden" onchange="previewFileName(3)">
+                            <span class="text-2xl mb-1">🧾</span>
+                            <span class="text-[10px] font-bold text-slate-700 text-center">Cicilan 3</span>
+                            <span id="label-file-3" class="text-[9px] text-slate-400 mt-1 text-center truncate w-full px-1">Belum ada file</span>
+                        </label>
+
+                        <!-- BOX 4 -->
+                        <label class="upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-3 cursor-pointer overflow-hidden">
+                            <input type="file" id="file-cicil-4" accept="image/*" class="hidden" onchange="previewFileName(4)">
+                            <span class="text-2xl mb-1">🏆</span>
+                            <span class="text-[10px] font-bold text-emerald-600 text-center">Cicilan 4 (Lunas)</span>
+                            <span id="label-file-4" class="text-[9px] text-slate-400 mt-1 text-center truncate w-full px-1">Belum ada file</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button id="btn-submit-dryland" onclick="submitDryland()" class="w-full bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-black py-4 rounded-xl shadow-lg mt-4 transition transform hover:scale-[1.02]">
+                    🚀 KIRIM PENDAFTARAN
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Load module JS -->
+    <script type="module" src="./dryland.js"></script>
+</body>
+</html>

@@ -12,6 +12,8 @@ import './js/fee.js';
 import './js/akunting.js'
 // Import logika untuk Admin Freelance
 import './js/admin2.js';
+import './dryland.js';
+
 
 // KULI KASTA TERTINGGI (BOS BESAR) MASUK SINI 👇
 import './js/owner.js';
