@@ -125,6 +125,14 @@ export function pindahHalaman(idTarget, pushState = true) {
         if(typeof window.loadInvoiceHistory === "function") window.loadInvoiceHistory(); 
     }
     
+    if (idTarget === 'page-owner' || idTarget === 'dashboard-coach' || idTarget === 'dashboard-admin') {
+        document.getElementById('btn-dewa-back')?.remove();
+    }
+
+    if (idTarget === 'dashboard-coach' || idTarget === 'dashboard-admin') {
+        if (typeof window.syncHubActionButton === "function") window.syncHubActionButton(idTarget);
+    }
+
     if (idTarget === 'coach-modul-jadwal' && typeof window.loadCoachJadwal === "function") window.loadCoachJadwal();
     
     if (idTarget === 'coach-modul-assessment' && typeof window.loadCoachAssessment === "function") window.loadCoachAssessment();

@@ -188,28 +188,66 @@ export async function tanyaGeminiLangsung() {
 // FITUR HAK AKSES DEWA (GOD MODE OWNER)
 // =========================================================
 
-// 1. Fungsi Pintu Kemana Saja & Tombol Melayang
+function isOwnerRole() {
+    const role = localStorage.getItem('userRole') || '';
+    return role === 'owner' || role.includes('owner');
+}
+
+/** Owner: ganti Logout jadi "Kembali ke Owner Hub". Coach/Admin asli: tetap Logout. Hapus tombol melayang lama. */
+export function syncHubActionButton(dashboardId) {
+    document.getElementById('btn-dewa-back')?.remove();
+
+    if (dashboardId === 'dashboard-coach') {
+        const btn = document.getElementById('btn-coach-session-action');
+        if (!btn) return;
+        if (isOwnerRole()) {
+            btn.innerHTML = '👑 Kembali ke Owner Hub';
+            btn.className = 'w-full bg-amber-400 hover:bg-amber-500 text-slate-900 py-3 rounded-xl font-bold shadow-sm text-sm border-2 border-amber-600';
+            btn.onclick = () => {
+                if (typeof window.pindahHalaman === 'function') window.pindahHalaman('page-owner');
+            };
+        } else {
+            btn.innerHTML = '🚪 Logout Sistem';
+            btn.className = 'w-full bg-slate-100 hover:bg-slate-200 text-slate-600 py-3 rounded-xl font-bold shadow-sm text-sm';
+            btn.onclick = () => {
+                localStorage.clear();
+                if (typeof window.pindahHalaman === 'function') window.pindahHalaman('page-login');
+            };
+        }
+        return;
+    }
+
+    if (dashboardId === 'dashboard-admin') {
+        const btn = document.getElementById('btn-admin-session-action');
+        if (!btn) return;
+        if (isOwnerRole()) {
+            btn.innerHTML = '👑 Kembali ke Owner Hub';
+            btn.className = 'w-full mt-6 bg-amber-400 hover:bg-amber-500 text-slate-900 py-3 rounded-xl font-bold shadow-md border-2 border-amber-600';
+            btn.onclick = () => {
+                if (typeof window.pindahHalaman === 'function') window.pindahHalaman('page-owner');
+            };
+        } else {
+            btn.innerHTML = '🚪 Logout Sistem';
+            btn.className = 'w-full mt-6 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold shadow-md';
+            btn.onclick = () => {
+                localStorage.clear();
+                if (typeof window.pindahHalaman === 'function') window.pindahHalaman('page-login');
+            };
+        }
+    }
+}
+
+// 1. Fungsi Pintu Owner → Admin/Coach (tanpa tombol melayang)
 export function masukRuangDewa(idRuangan) {
-    if(typeof window.pindahHalaman === 'function') window.pindahHalaman(idRuangan);
-    
-    if (idRuangan === 'dashboard-admin' && typeof window.loadPendingPendaftaran === "function") {
+    document.getElementById('btn-dewa-back')?.remove();
+
+    if (typeof window.pindahHalaman === 'function') window.pindahHalaman(idRuangan);
+
+    if (idRuangan === 'dashboard-admin' && typeof window.loadPendingPendaftaran === 'function') {
         window.loadPendingPendaftaran();
     }
-    
-    let btnDewa = document.getElementById('btn-dewa-back');
-    if (!btnDewa) {
-        btnDewa = document.createElement('button');
-        btnDewa.id = 'btn-dewa-back';
-        btnDewa.innerHTML = '👑 Kembali ke Owner Hub';
-        btnDewa.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#fbbf24; color:#0f172a; font-weight:bold; border:2px solid #b45309; padding:12px 20px; border-radius:30px; box-shadow:0 6px 8px rgba(0,0,0,0.4); cursor:pointer; z-index:9999; display:flex; align-items:center; gap:5px; font-size: 14px;';
-        
-        btnDewa.onclick = function() {
-            if(typeof window.pindahHalaman === 'function') window.pindahHalaman('page-owner');
-            this.style.display = 'none'; 
-        };
-        document.body.appendChild(btnDewa);
-    }
-    btnDewa.style.display = 'flex';
+
+    syncHubActionButton(idRuangan);
 }
 
 // 2. Fungsi Mata Dewa (Tarik Semua Parent Username & Gabung Anak) - VERSI POV ORTU
@@ -486,6 +524,7 @@ window.loadRobotData = loadRobotData;
 window.tanyaRobotTemplate = tanyaRobotTemplate;
 window.tanyaGeminiLangsung = tanyaGeminiLangsung;
 window.masukRuangDewa = masukRuangDewa;
+window.syncHubActionButton = syncHubActionButton;
 window.loadMataDewaDropdown = loadMataDewaDropdown;
 window.simulasiLoginOrtu = simulasiLoginOrtu;
 window.loadLoginLogs = loadLoginLogs;
