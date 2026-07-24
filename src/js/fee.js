@@ -1,7 +1,7 @@
 import { sb } from './config.js';
 
 /* =========================================================
-   MANAJEMEN REKAP FEE COACH (ADMIN)[span_9](start_span)[span_9](end_span)
+   MANAJEMEN REKAP FEE COACH (ADMIN)
 ========================================================= */
 
 export async function initDropdownCoach() {
@@ -9,7 +9,6 @@ export async function initDropdownCoach() {
     const selectFee = document.getElementById('fee-nama');
     
     try {
-        // FIX: Tarik data langsung dari tabel master 'coach', bukan 'users'
         const { data, error } = await sb.from('coach')
             .select('nama_coach')
             .order('nama_coach', { ascending: true });
@@ -33,7 +32,23 @@ export async function loadFeeAdmin() {
     if(!list) return;
     list.innerHTML = 'Memuat data...';
     
-    const { data, error } = await sb.from('fee_coach').select('*').order('tanggal', { ascending: false }).limit(30);
+    // 1. Ambil filter bulan & tahun (Biar sinkron dengan dropdown rekap)
+    const bulanEl = document.getElementById('filter-bulan');
+    const tahunEl = document.getElementById('filter-tahun');
+    const bulan = bulanEl ? parseInt(bulanEl.value) : (new Date().getMonth() + 1);
+    const tahun = tahunEl ? parseInt(tahunEl.value) : new Date().getFullYear();
+
+    // 2. Kunci range dari tanggal 1 sampai 31 di bulan yang dipilih
+    const startDate = `${tahun}-${String(bulan).padStart(2, '0')}-01`;
+    const endDate = `${tahun}-${String(bulan).padStart(2, '0')}-31`;
+
+    // 3. Tarik data tanpa .limit(30), murni berdasarkan rentang bulan
+    const { data, error } = await sb.from('fee_coach')
+        .select('*')
+        .gte('tanggal', startDate)
+        .lte('tanggal', endDate)
+        .order('tanggal', { ascending: false });
+
     if(error) return list.innerHTML = 'Gagal load data: ' + error.message;
 
     let html = '';
@@ -46,10 +61,10 @@ export async function loadFeeAdmin() {
                 <small style="color:#64748b;">📅 ${f.tanggal || '-'} | 👤 Murid: <b style="color:#334155;">${f.nama_murid || '-'}</b></small><br>
                 <span style="font-size:12px; color:#334155;">Total: ${f.total_sesi} Sesi (Rp ${parseInt(f.total_fee).toLocaleString('id-ID')})</span>
             </div>
-            <button class="btn-danger" onclick="hapusData('fee_coach', ${f.id}, loadFeeAdmin)" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:5px;">❌</button>
+            <button class="btn-danger" onclick="hapusData('fee_coach', ${f.id}, function(){ loadFeeAdmin(); loadRekapFee(); })" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:5px;">❌</button>
         </div>`;
     });
-    list.innerHTML = html || 'Belum ada record fee terkini.';
+    list.innerHTML = html || '<p style="color:#64748b; font-size:12px;">Belum ada record fee di bulan ini.</p>';
 }
 
 export async function tambahFee() {
@@ -115,12 +130,13 @@ export async function loadRekapFee() {
         opsiTahun += `<option value="${t}" ${t === tahun ? "selected" : ""}>${t}</option>`;
     }
 
+    // UPDATE: Tambahkan fungsi loadFeeAdmin() di event onchange agar list bawah ikut berubah
     let html = `
     <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:15px; margin-bottom:15px;">
         <div style="margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #cbd5e1;">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                 <strong style="color:#334155;">📅 Rekap Total Fee</strong>
-                <select id="filter-bulan" style="padding:6px; border-radius:4px; border:1px solid #cbd5e1; font-size:12px;" onchange="loadRekapFee()">
+                <select id="filter-bulan" style="padding:6px; border-radius:4px; border:1px solid #cbd5e1; font-size:12px;" onchange="loadRekapFee(); loadFeeAdmin();">
                     <option value="1" ${bulan==1?"selected":""}>Januari</option>
                     <option value="2" ${bulan==2?"selected":""}>Februari</option>
                     <option value="3" ${bulan==3?"selected":""}>Maret</option>
@@ -134,7 +150,7 @@ export async function loadRekapFee() {
                     <option value="11" ${bulan==11?"selected":""}>November</option>
                     <option value="12" ${bulan==12?"selected":""}>Desember</option>
                 </select>
-                <select id="filter-tahun" style="padding:6px; border-radius:4px; border:1px solid #cbd5e1; font-size:12px;" onchange="loadRekapFee()">
+                <select id="filter-tahun" style="padding:6px; border-radius:4px; border:1px solid #cbd5e1; font-size:12px;" onchange="loadRekapFee(); loadFeeAdmin();">
                     ${opsiTahun}
                 </select>
             </div>
@@ -204,8 +220,16 @@ export async function bukaDetailFee(namaCoach, bulan, tahun) {
     document.getElementById('detail-fee-total').innerText = `Rp ${total.toLocaleString('id-ID')}`;
 }
 
+export function tutupDetailFee() {
+    const modal = document.getElementById('modal-detail-fee');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
 window.initDropdownCoach = initDropdownCoach;
 window.loadFeeAdmin = loadFeeAdmin;
 window.tambahFee = tambahFee;
 window.loadRekapFee = loadRekapFee;
 window.bukaDetailFee = bukaDetailFee;
+window.tutupDetailFee = tutupDetailFee;
