@@ -3,7 +3,6 @@ import { sb } from './config.js';
 // ========================================================
 // SCRIPT MANAJEMEN MASTER SISWA (ADMIN) - PURE CRUD
 // ========================================================
-let tempDurasiMinggu = 0;
 let tempWaMurid = ""; 
 
 export async function loadSiswaAdmin() {
@@ -34,6 +33,7 @@ export async function loadSiswaAdmin() {
             aktaHTML = `<span style="display: flex; align-items: center; justify-content: center; gap: 5px; height: 32px; font-size: 11px; background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; border-radius: 6px; font-weight: bold; width: 100%; box-sizing: border-box;">❌ Akta Kosong</span>`;
         }
 
+        // TAMPILAN BERUBAH PAKAI tipe_kelas
         html += `
         <div class="list-item-admin murid-item" style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); box-sizing: border-box;">
             <div style="flex: 1; padding-right: 15px; min-width: 0;">
@@ -43,7 +43,7 @@ export async function loadSiswaAdmin() {
                 </div>
                 <div style="font-size: 12px; color: #334155; line-height: 1.6;">
                     <span>📅 Lahir: ${tglIndo} | <b>${kuTampil}</b></span><br>
-                    <span style="color: #0284c7; font-weight: bold;">📦 ${m.jenis_paket || 'Belum Set'} (${m.sisa_sesi ?? 0} Sesi Sisa)</span><br>
+                    <span style="color: #0284c7; font-weight: bold;">📦 Kelas ${m.tipe_kelas || 'Beginner'} (${m.sisa_sesi ?? 0} Sesi Sisa)</span><br>
                     <span style="color: ${warnaExp}; font-size: 11px; font-weight: bold;">⏳ Expired: ${expTampil}</span><br>
                     <span style="color: #64748b; font-size: 11px;">👨‍👩‍👧 Ortu: ${m.parent_username || 'Belum ditautkan'}</span><br>
                     <span style="color: #f59e0b; font-size: 11px; font-weight: bold;">🏷️ Panggilan: ${m.nama_panggilan || '-'} | 📱 WA: ${m.no_wa || '-'}</span>
@@ -52,11 +52,11 @@ export async function loadSiswaAdmin() {
             <div style="display: flex; flex-direction: column; gap: 6px; width: 115px; flex-shrink: 0; box-sizing: border-box;">
                 ${aktaHTML}
                 <button style="display: flex; align-items: center; justify-content: center; gap: 5px; height: 32px; font-size: 11px; background: #0284c7; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; box-sizing: border-box; transition: 0.2s;" 
-                    onclick="generateInvoice(${m.id_murid}, '${m.nama_murid}', '${m.jenis_paket || 'Kelas'}', '${m.no_wa || ''}')">
+                    onclick="generateInvoice(${m.id_murid}, '${m.nama_murid}', '${m.tipe_kelas || 'Beginner'}', '${m.no_wa || ''}')">
                     🧾 Invoice
                 </button>
                 <button style="display: flex; align-items: center; justify-content: center; gap: 5px; height: 32px; font-size: 11px; background: #f59e0b; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; box-sizing: border-box; transition: 0.2s;" 
-                    onclick="editSiswa(${m.id_murid}, '${m.nama_murid}', '${m.nama_panggilan || ''}', '${m.no_wa || ''}', '${m.tanggal_lahir || ''}', '${m.status}', '${m.jenis_paket || ''}', ${m.sisa_sesi || 0}, '${m.expired_sesi || ''}')">
+                    onclick="editSiswa(${m.id_murid}, '${m.nama_murid}', '${m.nama_panggilan || ''}', '${m.no_wa || ''}', '${m.tanggal_lahir || ''}', '${m.status}', '${m.tipe_kelas || 'Beginner'}', ${m.sisa_sesi || 0}, '${m.expired_sesi || ''}')">
                     ✏️ Edit
                 </button>
             </div>
@@ -66,20 +66,22 @@ export async function loadSiswaAdmin() {
     list.innerHTML = html || '<p>Belum ada data murid.</p>';
 }
 
-export function editSiswa(id, nama, panggilan, wa, tgl, status, paket, sesi, expired) {
+export function editSiswa(id, nama, panggilan, wa, tgl, status, tipeKelas, sesi, expired) {
     document.getElementById('sis-edit-id').value = id;
     document.getElementById('sis-nama').value = nama;
     document.getElementById('sis-panggilan').value = panggilan; 
     document.getElementById('sis-wa').value = wa; 
     document.getElementById('sis-tgl-lahir').value = tgl;
     document.getElementById('sis-status').value = status;
-    document.getElementById('sis-paket').value = paket;
+    
+    const tipeKelasEl = document.getElementById('sis-tipe-kelas');
+    if(tipeKelasEl) tipeKelasEl.value = tipeKelas || 'Beginner';
+    
     document.getElementById('sis-sesi').value = sesi;
     
     if(document.getElementById('sis-sesi-1')) document.getElementById('sis-sesi-1').value = ''; 
     document.getElementById('sis-expired').value = (!expired || expired === 'null') ? '' : expired; 
     
-    // Ambil formnya dan arahkan focus layar
     const btn = document.getElementById('btn-simpan-siswa');
     if(btn) btn.innerText = "💾 Update Siswa";
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -97,30 +99,15 @@ export function filterMurid() {
 // ========================================================
 // GENERATOR INVOICE SISWA LAMA
 // ========================================================
-export async function generateInvoice(idMurid, namaSiswa, jenisPaket, noWa) {
+export async function generateInvoice(idMurid, namaSiswa, tipeKelas, noWa) {
     tempWaMurid = noWa || ""; 
     
     const modal = document.getElementById('modal-invoice');
     if(modal) modal.style.display = 'flex';
     document.getElementById('inv-nomor').innerText = "Sedang generate...";
     
-    let hargaDasar = 750000;
-    let paketClean = jenisPaket.toLowerCase();
+    let hargaDasar = tipeKelas === 'Private' ? 1500000 : 750000;
     
-    if (paketClean.includes("beginner") && paketClean.includes("8")) {
-        hargaDasar = 900000; 
-        tempDurasiMinggu = 8 + 2; 
-    } else if (paketClean.includes("beginner")) {
-        hargaDasar = 450000; 
-        tempDurasiMinggu = 4 + 2; 
-    } else if (paketClean.includes("8") || paketClean.includes("delapan")) {
-        hargaDasar = 1500000; 
-        tempDurasiMinggu = 8 + 1; 
-    } else {
-        hargaDasar = 750000;
-        tempDurasiMinggu = 4 + 1; 
-    }
-
     const now = new Date();
     const bulan = String(now.getMonth() + 1).padStart(2, '0');
     const tahun = String(now.getFullYear()).slice(-2);
@@ -155,7 +142,7 @@ export async function generateInvoice(idMurid, namaSiswa, jenisPaket, noWa) {
     
     document.getElementById('hidden-inv-murid-id').value = idMurid;
     document.getElementById('inv-input-nama').value = namaSiswa;
-    document.getElementById('inv-input-paket').value = jenisPaket;
+    document.getElementById('inv-input-paket').value = tipeKelas; // Set jadi tipe kelas aja
     document.getElementById('inv-input-biaya').value = hargaDasar;
     document.getElementById('inv-input-diskon').value = 0;
     
@@ -180,7 +167,7 @@ export function hitungTotalInvoice() {
     
     if (tglSesi1) {
         let dateSesi1 = new Date(tglSesi1);
-        dateSesi1.setDate(dateSesi1.getDate() + (tempDurasiMinggu * 7));
+        dateSesi1.setDate(dateSesi1.getDate() + 35); // Hardcode 5 minggu (35 hari) untuk kesederhanaan invoice
         
         document.getElementById('hidden-inv-expired-date').value = dateSesi1.toISOString().split('T')[0];
         
@@ -190,7 +177,7 @@ export function hitungTotalInvoice() {
     } else {
         document.getElementById('hidden-inv-expired-date').value = "";
         infoText.style.color = "#d97706";
-        infoText.innerHTML = `Masa Aktif: ${tempDurasiMinggu} Minggu (Isi Sesi 1 untuk hitung expired)`;
+        infoText.innerHTML = `Masa Aktif Standar: 5 Minggu`;
     }
 }
 
@@ -264,7 +251,7 @@ Berikut rincian tagihan resmi program *Jago Renang Academy* 🏊‍♂️:
 
 📝 *No Invoice:* ${noInv}
 📅 *Tgl Terbit:* ${tglCantikTerbit}
-📦 *Paket:* ${paket}
+📦 *Program:* Kelas ${paket}
 -----------------------------
 💵 *Biaya:* Rp ${biaya.toLocaleString('id-ID')}${teksDiskon}
 💰 *TOTAL TAGIHAN: Rp ${total.toLocaleString('id-ID')}*
@@ -296,7 +283,6 @@ Mohon konfirmasi dengan mengirimkan bukti pembayaran. Terima kasih! 🌟`
         tutupModalInvoice();
         alert("Invoice berhasil disimpan ke Database!");
 
-        // Auto Refresh Tagihan Pending di Admin 2
         if (typeof window.loadPendingInvoiceAdmin2 === 'function') window.loadPendingInvoiceAdmin2();
 
     } catch (err) {

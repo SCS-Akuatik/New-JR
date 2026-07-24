@@ -21,12 +21,11 @@ export async function buatAkunCoach() {
     if(btn) btn.innerText = "⏳ Memproses...";
 
     try {
-        // 1. Simpan di tabel users (untuk login)
         const { error: errUser } = await sb.from('users').insert([{
             username: user,
             password: pass,
             role: ['coach'],
-            call_name: nama.split(' ')[0] // Nama panggilan otomatis ambil kata pertama
+            call_name: nama.split(' ')[0] 
         }]);
 
         if (errUser) {
@@ -35,7 +34,6 @@ export async function buatAkunCoach() {
             return;
         }
 
-        // 2. Simpan di tabel master coach (untuk data absensi & fee)
         const { error: errCoach } = await sb.from('coach').insert([{
             nama_coach: nama,
             username: user,
@@ -47,13 +45,11 @@ export async function buatAkunCoach() {
 
         alert("✅ Berhasil! Master data Coach dan Akun login telah dibuat.");
         
-        // Reset Form
         document.getElementById('form-coach-nama').value = "";
         document.getElementById('form-coach-wa').value = "";
         document.getElementById('form-coach-user').value = "";
         document.getElementById('form-coach-pass').value = "";
         
-        // Refresh dropdown jika ada
         if (typeof initDropdownCoach === "function") initDropdownCoach();
 
     } catch (err) {
@@ -75,7 +71,6 @@ export async function buatAkunWali() {
     if (!idMurid || !user || !pass) return alert("Pilih Murid, isi Username, dan Password!");
 
     try {
-        // 1. Buat akun di tabel users
         const { error: errUser } = await sb.from('users').insert([{ 
             username: user, 
             password: pass, 
@@ -87,7 +82,6 @@ export async function buatAkunWali() {
             throw errUser;
         }
 
-        // 2. Tautkan username wali ke data murid
         const { error: errMurid } = await sb.from('murid').update({ parent_username: user }).eq('id_murid', idMurid);
         if (errMurid) throw errMurid;
 
@@ -103,7 +97,6 @@ export async function buatAkunWali() {
    3. CREATE AKUN ADMIN (VIA PROMPT)
 ========================================================= */
 export async function buatAkunAdmin() {
-    // Karena ini rahasia, kita tembak lewat prompt popup aja biar ga menuhin form HTML
     const user = prompt("🛡️ BIKIN AKUN ADMIN BARU\n\nMasukkan Username Admin Baru:");
     if(!user) return;
     const pass = prompt("Masukkan Password Login:");
@@ -130,39 +123,50 @@ export async function buatAkunAdmin() {
    4. MASTER DATA: INPUT SISWA BARU
 ========================================================= */
 export function autoHitungExpiredSiswa() {
-    const tglSesi1 = document.getElementById('sis-sesi-1').value;
+    const tglSesi1 = document.getElementById('sis-sesi-1')?.value;
+    const jumlahSesi = parseInt(document.getElementById('sis-jumlah-sesi')?.value || 4);
     const expEl = document.getElementById('sis-expired');
+    const sesiEl = document.getElementById('sis-sesi');
     
-    if(!tglSesi1) return;
+    if (!tglSesi1) return;
+
+    if(sesiEl && !sesiEl.value) {
+        sesiEl.value = jumlahSesi;
+    }
+
+    let durasiMinggu = (jumlahSesi > 4) ? 9 : 5; 
     
-    // Logika Default: Expired adalah 1 bulan dari sesi pertama
-    let date = new Date(tglSesi1);
-    date.setMonth(date.getMonth() + 1);
-    expEl.value = date.toISOString().split('T')[0];
+    let dateSesi1 = new Date(tglSesi1);
+    dateSesi1.setDate(dateSesi1.getDate() + (durasiMinggu * 7));
+    
+    if(expEl) expEl.value = dateSesi1.toISOString().split('T')[0];
 }
 
 export async function simpanSiswa() {
     const id = document.getElementById('sis-edit-id').value;
-    const nama = document.getElementById('sis-nama').value;
-    const panggilan = document.getElementById('sis-panggilan').value;
-    const wa = document.getElementById('sis-wa').value;
+    const nama = document.getElementById('sis-nama').value.trim();
+    const panggilan = document.getElementById('sis-panggilan').value.trim();
+    const wa = document.getElementById('sis-wa').value.trim();
     const tglLahir = document.getElementById('sis-tgl-lahir').value;
     const status = document.getElementById('sis-status').value;
-    const paket = document.getElementById('sis-paket').value;
+    
+    // TARIK TIPE KELAS AJA
+    const tipeKelas = document.getElementById('sis-tipe-kelas').value;
     const sesi = document.getElementById('sis-sesi').value;
     const exp = document.getElementById('sis-expired').value;
 
     if(!nama) return alert("Nama lengkap wajib diisi ya Bos!");
 
+    // PAYLOAD BERSIH TANPA JENIS_PAKET
     const payload = {
         nama_murid: nama,
-        nama_panggilan: panggilan,
-        no_wa: wa,
-        tanggal_lahir: tglLahir,
-        status_aktif: status,
-        jenis_paket: paket,
+        nama_panggilan: panggilan || null,
+        no_wa: wa || null,
+        tanggal_lahir: tglLahir || null,
+        status: status,
+        tipe_kelas: tipeKelas, 
         sisa_sesi: parseInt(sesi) || 0,
-        expired_sesi: exp
+        expired_sesi: exp || null
     };
 
     const btn = document.getElementById('btn-simpan-siswa');
@@ -177,20 +181,17 @@ export async function simpanSiswa() {
             alert("✅ Jagoan (Siswa) baru berhasil ditambahkan!");
         }
         
-        // Clear form
         document.getElementById('sis-edit-id').value = '';
         document.getElementById('sis-nama').value = '';
         document.getElementById('sis-panggilan').value = '';
         document.getElementById('sis-wa').value = '';
         document.getElementById('sis-tgl-lahir').value = '';
-        document.getElementById('sis-paket').value = '';
         document.getElementById('sis-sesi').value = '';
         document.getElementById('sis-expired').value = '';
-        document.getElementById('sis-sesi-1').value = '';
+        if(document.getElementById('sis-sesi-1')) document.getElementById('sis-sesi-1').value = '';
 
-        // Reload data UI
         if(typeof window.loadSiswaAdmin === "function") window.loadSiswaAdmin();
-        loadDropdownMuridMaster(); // Refresh list wali & prestasi
+        if(typeof window.loadDropdownMuridMaster === "function") window.loadDropdownMuridMaster(); 
     } catch(err) {
         alert("Gagal simpan data siswa: " + err.message);
     } finally {
@@ -198,7 +199,6 @@ export async function simpanSiswa() {
     }
 }
 
-// Helper untuk ngisi dropdown Wali & Prestasi setelah input siswa
 export async function loadDropdownMuridMaster() {
     const dpWali = document.getElementById('form-wali-murid');
     const dpPrestasi = document.getElementById('prestasi-murid');
@@ -249,7 +249,7 @@ export async function simpanPrestasiAdmin() {
 export async function createInvoiceManual() {
     const nama = prompt("📝 BUAT TAGIHAN MANUAL\n\nMasukkan Nama Customer/Murid:");
     if(!nama) return;
-    const paket = prompt("Masukkan Nama Paket/Program (Cth: Beginner 4 Sesi):");
+    const paket = prompt("Masukkan Tipe Kelas (Cth: Beginner / Private):");
     if(!paket) return;
     const nominal = prompt("Masukkan Nominal Tagihan (Angka Saja, cth: 350000):");
     if(!nominal) return;
@@ -272,11 +272,9 @@ export async function createInvoiceManual() {
         
         const konfirm = confirm(`✅ Invoice Manual ${noInv} berhasil dibuat!\n\nApakah kamu mau langsung mengirimkan link/teks tagihannya via WhatsApp sekarang?`);
         
-        // Refresh tabel Invoice di Admin kalau ada
         if (typeof window.loadPendingInvoiceAdmin2 === 'function') window.loadPendingInvoiceAdmin2();
         if (typeof window.loadInvoiceHistory === 'function') window.loadInvoiceHistory();
         
-        // Lempar ke WA kalau di YES
         if(konfirm) {
             const pesanWA = `Halo Bunda dari *${nama}* 👋%0A%0ABerikut adalah tagihan manual untuk program Jago Renang Academy:%0A%0A🧾 *No. Invoice:* ${noInv}%0A📦 *Program:* ${paket}%0A💰 *Total Tagihan:* Rp ${parseInt(nominal).toLocaleString('id-ID')}%0A%0ASilakan lakukan transfer dan kirim bukti pembayarannya ke pesan ini ya Bun. Terima kasih! 🏊‍♂️`;
             window.open(`https://wa.me/62${(wa||'').replace(/^0/,'')}?text=${pesanWA}`, '_blank');
@@ -291,7 +289,7 @@ export async function createInvoiceManual() {
 // =========================================================
 window.buatAkunCoach = buatAkunCoach;
 window.buatAkunWali = buatAkunWali;
-window.buatAkunAdmin = buatAkunAdmin; // Tinggal dipanggil lewat console/button custom
+window.buatAkunAdmin = buatAkunAdmin; 
 window.simpanSiswa = simpanSiswa;
 window.autoHitungExpiredSiswa = autoHitungExpiredSiswa;
 window.loadDropdownMuridMaster = loadDropdownMuridMaster;
