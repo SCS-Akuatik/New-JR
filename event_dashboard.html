@@ -11,31 +11,32 @@
     <!-- 2. Panggil Supabase (Vanilla) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-50 min-h-screen p-6 font-sans">
+<body class="bg-slate-50 min-h-screen p-4 md:p-6 font-sans">
 
     <div class="max-w-6xl mx-auto">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200">
             <div>
-                <h1 class="text-2xl font-black text-slate-800">🏆 Dashboard Admin Dryland</h1>
-                <p class="text-sm text-slate-500 mt-1">Kelola pendaftaran dan konfirmasi pembayaran event.</p>
+                <h1 class="text-xl md:text-2xl font-black text-slate-800 flex items-center gap-2">🏆 Admin Dryland</h1>
+                <p class="text-xs md:text-sm text-slate-500 mt-1">Kelola pendaftaran dan konfirmasi pembayaran event.</p>
             </div>
-            <!-- Tombol Kembali ke Dashboard Utama & Refresh -->
-            <div class="flex gap-3">
-                <a href="index.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-lg transition text-sm flex items-center gap-2">
+            <!-- Tombol Kembali & Refresh -->
+            <div class="flex w-full md:w-auto gap-3">
+                <a href="index.html" class="flex-1 md:flex-none justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl transition text-sm flex items-center gap-2">
                     ⬅ Kembali
                 </a>
-                <button onclick="fetchData()" class="bg-sky-100 hover:bg-sky-200 text-sky-700 font-bold py-2 px-4 rounded-lg transition text-sm flex items-center gap-2">
-                    <span>🔄</span> Refresh Data
+                <button onclick="fetchData()" class="flex-1 md:flex-none justify-center bg-sky-100 hover:bg-sky-200 text-sky-700 font-bold py-2.5 px-4 rounded-xl transition text-sm flex items-center gap-2">
+                    <span>🔄</span> Refresh
                 </button>
             </div>
         </div>
 
-        <!-- Table Container -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
+        <!-- Table / Card Container -->
+        <div class="bg-transparent md:bg-white md:rounded-2xl md:shadow-sm md:border md:border-slate-200 md:overflow-hidden">
+            <div class="w-full">
+                <table class="w-full text-left border-collapse block md:table">
+                    <!-- HEADER (Hanya tampil di Desktop >768px) -->
+                    <thead class="hidden md:table-header-group">
                         <tr class="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider">
                             <th class="p-4 font-bold border-b border-slate-200">ID / Waktu</th>
                             <th class="p-4 font-bold border-b border-slate-200">Peserta & Status</th>
@@ -45,9 +46,10 @@
                             <th class="p-4 font-bold border-b border-slate-200 text-center">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="table-body" class="text-sm text-slate-700 divide-y divide-slate-100">
-                        <tr>
-                            <td colspan="6" class="p-8 text-center text-slate-400 font-medium">⏳ Memuat data dari database...</td>
+                    <!-- BODY DATA -->
+                    <tbody id="table-body" class="text-sm text-slate-700 block md:table-row-group">
+                        <tr class="block md:table-row bg-white border border-slate-200 md:border-0 rounded-2xl md:rounded-none mb-4 md:mb-0 shadow-sm md:shadow-none">
+                            <td colspan="6" class="p-8 text-center text-slate-400 font-medium block md:table-cell">⏳ Memuat data dari database...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -65,10 +67,14 @@
         // 2. FUNGSI TARIK DATA (Nempel di window agar lolos gembok browser)
         window.fetchData = async function() {
             const tableBody = document.getElementById('table-body');
-            tableBody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium">⏳ Memuat data...</td></tr>';
+            tableBody.innerHTML = `
+                <tr class="block md:table-row bg-white border border-slate-200 md:border-0 rounded-2xl md:rounded-none mb-4 md:mb-0 shadow-sm md:shadow-none">
+                    <td colspan="6" class="p-8 text-center text-slate-400 font-medium block md:table-cell">⏳ Memuat data...</td>
+                </tr>
+            `;
 
             try {
-                // Tarik semua data pendaftaran, urutkan dari yang paling baru
+                // Tarik semua data pendaftaran
                 const { data, error } = await sb
                     .from('pendaftaran_dryland')
                     .select('*')
@@ -77,7 +83,11 @@
                 if (error) throw error;
 
                 if (!data || data.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium">Belum ada peserta yang mendaftar.</td></tr>';
+                    tableBody.innerHTML = `
+                        <tr class="block md:table-row bg-white border border-slate-200 md:border-0 rounded-2xl md:rounded-none mb-4 md:mb-0 shadow-sm md:shadow-none">
+                            <td colspan="6" class="p-8 text-center text-slate-400 font-medium block md:table-cell">Belum ada peserta yang mendaftar.</td>
+                        </tr>
+                    `;
                     return;
                 }
 
@@ -97,54 +107,90 @@
 
                     // Fungsi pembantu untuk memunculkan link bukti transfer
                     const renderBukti = (url, label) => {
-                        if (!url) return `<span class="text-slate-300 text-xs line-through mr-1">${label}</span>`;
-                        return `<a href="${url}" target="_blank" class="text-sky-600 hover:text-sky-800 font-bold text-xs underline mr-1">${label}</a>`;
+                        if (!url) return `<span class="text-slate-300 text-[11px] md:text-xs line-through mr-1">${label}</span>`;
+                        return `<a href="${url}" target="_blank" class="text-sky-600 hover:text-sky-800 font-bold text-[11px] md:text-xs underline mr-1">${label}</a>`;
                     };
                     
-                    // Format Nomor WA (pastikan pakai awalan 62)
+                    // Format Nomor WA
                     let noWa = row.no_wa || '';
                     if (noWa.startsWith('0')) {
                         noWa = '62' + noWa.substring(1);
                     }
 
                     const tr = document.createElement('tr');
-                    tr.className = 'hover:bg-slate-50 transition';
+                    // CLASS RESPONSIVE TR: Di mobile jadi kotak putih (card), di desktop jadi baris tabel biasa
+                    tr.className = 'block md:table-row bg-white hover:bg-slate-50 transition border border-slate-200 md:border-0 md:border-b md:border-slate-100 rounded-2xl md:rounded-none mb-4 md:mb-0 overflow-hidden shadow-sm md:shadow-none';
+                    
                     tr.innerHTML = `
-                        <td class="p-4">
-                            <span class="block font-bold text-slate-800">#${row.id}</span>
-                            <span class="text-xs text-slate-500">${formattedDate} • ${formattedTime}</span>
-                        </td>
-                        <td class="p-4">
-                            <span class="block font-bold text-slate-800">${row.nama_peserta}</span>
-                            <span class="inline-block mt-1 text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full font-semibold">${row.status_member || 'Tidak diketahui'}</span>
-                        </td>
-                        <td class="p-4 font-semibold text-slate-700">${row.ukuran_jersey}</td>
-                        <td class="p-4">
-                            <div class="flex gap-1 flex-wrap">
-                                ${renderBukti(row.bukti_cicilan_1, 'C1')}
-                                ${renderBukti(row.bukti_cicilan_2, 'C2')}
-                                ${renderBukti(row.bukti_cicilan_3, 'C3')}
-                                ${renderBukti(row.bukti_cicilan_4, 'C4')}
+                        <!-- TD 1: ID / WAKTU -->
+                        <td class="block md:table-cell p-3.5 md:p-4 border-b border-slate-100 md:border-0">
+                            <div class="flex md:block justify-between items-center gap-2">
+                                <span class="md:hidden font-black text-[10px] text-slate-400 uppercase tracking-widest">ID / Waktu</span>
+                                <div class="text-right md:text-left">
+                                    <span class="block font-black text-slate-800">#${row.id}</span>
+                                    <span class="text-[11px] md:text-xs text-slate-500">${formattedDate} • ${formattedTime}</span>
+                                </div>
                             </div>
                         </td>
-                        <td class="p-4">
-                            <span class="px-3 py-1 rounded-full text-xs ${statusColor}">
-                                ${row.status_pembayaran || 'Menunggu Konfirmasi'}
-                            </span>
+                        
+                        <!-- TD 2: PESERTA & STATUS -->
+                        <td class="block md:table-cell p-3.5 md:p-4 border-b border-slate-100 md:border-0">
+                            <div class="flex md:block justify-between items-center gap-2">
+                                <span class="md:hidden font-black text-[10px] text-slate-400 uppercase tracking-widest">Peserta</span>
+                                <div class="text-right md:text-left">
+                                    <span class="block font-bold text-slate-800">${row.nama_peserta}</span>
+                                    <span class="inline-block mt-1 text-[9px] md:text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full font-bold">${row.status_member || 'Tidak diketahui'}</span>
+                                </div>
+                            </div>
                         </td>
-                        <td class="p-4 text-center">
-                            <div class="flex justify-center items-center gap-2">
+                        
+                        <!-- TD 3: JERSEY -->
+                        <td class="block md:table-cell p-3.5 md:p-4 border-b border-slate-100 md:border-0">
+                            <div class="flex md:block justify-between items-center gap-2">
+                                <span class="md:hidden font-black text-[10px] text-slate-400 uppercase tracking-widest">Jersey</span>
+                                <div class="font-bold text-slate-700 text-sm md:text-sm text-right md:text-left">${row.ukuran_jersey}</div>
+                            </div>
+                        </td>
+                        
+                        <!-- TD 4: BUKTI TRANSFER -->
+                        <td class="block md:table-cell p-3.5 md:p-4 border-b border-slate-100 md:border-0">
+                            <div class="flex md:block justify-between items-center gap-2">
+                                <span class="md:hidden font-black text-[10px] text-slate-400 uppercase tracking-widest">Bukti Trf</span>
+                                <div class="flex gap-1.5 flex-wrap justify-end md:justify-start">
+                                    ${renderBukti(row.bukti_cicilan_1, 'C1')}
+                                    ${renderBukti(row.bukti_cicilan_2, 'C2')}
+                                    ${renderBukti(row.bukti_cicilan_3, 'C3')}
+                                    ${renderBukti(row.bukti_cicilan_4, 'C4')}
+                                </div>
+                            </div>
+                        </td>
+                        
+                        <!-- TD 5: STATUS PEMBAYARAN -->
+                        <td class="block md:table-cell p-3.5 md:p-4 border-b border-slate-100 md:border-0">
+                            <div class="flex md:block justify-between items-center gap-2">
+                                <span class="md:hidden font-black text-[10px] text-slate-400 uppercase tracking-widest">Status</span>
+                                <div class="text-right md:text-left">
+                                    <span class="px-2.5 py-1 md:px-3 rounded-full text-[10px] md:text-xs ${statusColor}">
+                                        ${row.status_pembayaran || 'Menunggu Konfirmasi'}
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                        
+                        <!-- TD 6: AKSI -->
+                        <td class="block md:table-cell p-3.5 md:p-4 bg-slate-50 md:bg-transparent">
+                            <div class="flex justify-end md:justify-center items-center gap-2 w-full">
                                 <a href="https://wa.me/${noWa}?text=Halo%20Bunda%20dari%20${encodeURIComponent(row.nama_peserta)},%20kami%20dari%20Admin%20Jago%20Renang%20ingin%20mengonfirmasi%20pendaftaran%20event%20Dryland..." 
                                    target="_blank" 
-                                   class="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg shadow-sm transition" title="Chat WhatsApp">
-                                    💬
+                                   class="bg-emerald-500 hover:bg-emerald-600 text-white py-2 px-3 rounded-xl shadow-sm transition flex-1 md:flex-none flex items-center justify-center gap-1.5" title="Chat WhatsApp">
+                                    💬 <span class="md:hidden text-xs font-black">WA</span>
                                 </a>
                                 ${row.status_pembayaran !== 'Lunas' ? `
-                                    <button onclick="window.updateLunas(${row.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-lg shadow-sm transition font-bold text-xs">
+                                    <button onclick="window.updateLunas(${row.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-3 rounded-xl shadow-sm transition font-black text-xs flex-1 md:flex-none">
                                         ✅ Lunas
                                     </button>
                                 ` : `
-                                    <span class="text-xs font-bold text-emerald-500 p-2">Selesai</span>
+                                    <span class="text-xs font-black text-emerald-500 p-2 flex-1 md:flex-none text-right md:text-center">Tuntas</span>
                                 `}
                             </div>
                         </td>
@@ -154,7 +200,11 @@
 
             } catch (error) {
                 console.error("Error fetching data:", error);
-                tableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-500 font-medium">❌ Gagal memuat data: ${error.message}</td></tr>`;
+                tableBody.innerHTML = `
+                    <tr class="block md:table-row bg-white border border-slate-200 md:border-0 rounded-2xl md:rounded-none mb-4 md:mb-0 shadow-sm md:shadow-none">
+                        <td colspan="6" class="p-8 text-center text-red-500 font-medium block md:table-cell">❌ Gagal memuat data: ${error.message}</td>
+                    </tr>
+                `;
             }
         };
 
@@ -171,7 +221,7 @@
                 if (error) throw error;
 
                 alert("✅ Status berhasil diubah menjadi Lunas!");
-                window.fetchData(); // Refresh tabel setelah update
+                window.fetchData(); 
             } catch (error) {
                 console.error("Error updating status:", error);
                 alert("❌ Gagal mengupdate status: " + error.message);
