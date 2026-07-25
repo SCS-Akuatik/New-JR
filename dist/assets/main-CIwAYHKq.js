@@ -1009,6 +1009,19 @@ Bonus Rp 10.000 akan masuk ke dompetmu!`))try{const s=localStorage.getItem("logg
         <button onclick="localStorage.clear(); pindahHalaman('page-login')" class="text-red-500 hover:bg-red-50 hover:text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 border border-red-100 shadow-sm">
             🚪 Out
         </button>
+            <!-- 🌟 FLOATING BUTTON EVENT DASHBOARD 🌟 -->
+    <a href="/event_dashboard.html" target="_blank" class="fixed bottom-6 right-6 z-50 flex items-center justify-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white w-14 h-14 rounded-full shadow-2xl shadow-indigo-500/40 hover:scale-110 hover:shadow-indigo-500/60 transition-all duration-300 group cursor-pointer">
+        <!-- Ikon Kalender/Event -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 group-hover:animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        
+        <!-- Tooltip Keterangan -->
+        <span class="absolute right-16 bg-slate-800 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none drop-shadow-md">
+            Data Event (Dryland)
+        </span>
+    </a>
+
     </div>
 
     <!-- WADAH KONTEN UTAMA (GRID 2 KOLOM) -->
@@ -1374,6 +1387,19 @@ Bonus Rp 10.000 akan masuk ke dompetmu!`))try{const s=localStorage.getItem("logg
                 </div>
                 <span id="coach-tgl-realtime" class="text-[10px] text-slate-400 font-medium mt-1 tracking-wide">--, -- ---</span>
             </div>
+                <!-- 🌟 FLOATING BUTTON EVENT DASHBOARD 🌟 -->
+    <a href="event_dashboard.html" class="fixed bottom-6 right-6 z-50 flex items-center justify-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white w-14 h-14 rounded-full shadow-2xl shadow-indigo-500/40 hover:scale-110 hover:shadow-indigo-500/60 transition-all duration-300 group cursor-pointer">
+        <!-- Ikon Kalender/Event -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 group-hover:animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        
+        <!-- Tooltip Keterangan (Muncul saat di-hover/ditahan) -->
+        <span class="absolute right-16 bg-slate-800 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none drop-shadow-md">
+            Data Event (Dryland)
+        </span>
+    </a>
+
         </div>
 
         <!-- BARIS 2: TAGLINE -->
