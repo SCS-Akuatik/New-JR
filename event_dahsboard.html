@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin - Dryland Event</title>
-    <!-- Tailwind CSS (Vanilla via CDN) -->
+    
+    <!-- 1. Panggil Tailwind CSS (Vanilla) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. Panggil Supabase (Vanilla) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-50 min-h-screen p-6 font-sans">
 
@@ -16,9 +20,15 @@
                 <h1 class="text-2xl font-black text-slate-800">🏆 Dashboard Admin Dryland</h1>
                 <p class="text-sm text-slate-500 mt-1">Kelola pendaftaran dan konfirmasi pembayaran event.</p>
             </div>
-            <button onclick="fetchData()" class="bg-sky-100 hover:bg-sky-200 text-sky-700 font-bold py-2 px-4 rounded-lg transition text-sm flex items-center gap-2">
-                <span>🔄</span> Refresh Data
-            </button>
+            <!-- Tombol Kembali ke Dashboard Utama & Refresh -->
+            <div class="flex gap-3">
+                <a href="index.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-lg transition text-sm flex items-center gap-2">
+                    ⬅ Kembali
+                </a>
+                <button onclick="fetchData()" class="bg-sky-100 hover:bg-sky-200 text-sky-700 font-bold py-2 px-4 rounded-lg transition text-sm flex items-center gap-2">
+                    <span>🔄</span> Refresh Data
+                </button>
+            </div>
         </div>
 
         <!-- Table Container -->
@@ -45,15 +55,20 @@
         </div>
     </div>
 
-    <!-- SCRIPT UTAMA DASHBOARD -->
-    <script type="module">
-        import { sb } from './config.js';
+    <!-- SCRIPT UTAMA DASHBOARD (VANILLA MURNI) -->
+    <script>
+        // 1. SETUP KONEKSI SUPABASE
+        const SUPABASE_URL = 'https://xwqdkvxythrewgjxhiru.supabase.co'; 
+        const SUPABASE_KEY = 'sb_publishable_xfjCBEL-Hf77z-ssKaeZbg_-Or1pIML';
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function fetchData() {
+        // 2. FUNGSI TARIK DATA (Nempel di window agar lolos gembok browser)
+        window.fetchData = async function() {
             const tableBody = document.getElementById('table-body');
             tableBody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium">⏳ Memuat data...</td></tr>';
 
             try {
+                // Tarik semua data pendaftaran, urutkan dari yang paling baru
                 const { data, error } = await sb
                     .from('pendaftaran_dryland')
                     .select('*')
@@ -69,19 +84,28 @@
                 tableBody.innerHTML = '';
 
                 data.forEach((row) => {
+                    // Format Tanggal
                     const dateObj = new Date(row.waktu_daftar);
                     const formattedDate = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
                     const formattedTime = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
+                    // Format Warna Status
                     let statusColor = 'bg-amber-100 text-amber-700';
                     if (row.status_pembayaran === 'Lunas') {
                         statusColor = 'bg-emerald-100 text-emerald-700 font-bold';
                     }
 
+                    // Fungsi pembantu untuk memunculkan link bukti transfer
                     const renderBukti = (url, label) => {
                         if (!url) return `<span class="text-slate-300 text-xs line-through mr-1">${label}</span>`;
                         return `<a href="${url}" target="_blank" class="text-sky-600 hover:text-sky-800 font-bold text-xs underline mr-1">${label}</a>`;
                     };
+                    
+                    // Format Nomor WA (pastikan pakai awalan 62)
+                    let noWa = row.no_wa || '';
+                    if (noWa.startsWith('0')) {
+                        noWa = '62' + noWa.substring(1);
+                    }
 
                     const tr = document.createElement('tr');
                     tr.className = 'hover:bg-slate-50 transition';
@@ -110,13 +134,13 @@
                         </td>
                         <td class="p-4 text-center">
                             <div class="flex justify-center items-center gap-2">
-                                <a href="https://wa.me/?text=Halo%20Bunda%20dari%20${encodeURIComponent(row.nama_peserta)},%20kami%20dari%20Admin%20Jago%20Renang..." 
+                                <a href="https://wa.me/${noWa}?text=Halo%20Bunda%20dari%20${encodeURIComponent(row.nama_peserta)},%20kami%20dari%20Admin%20Jago%20Renang%20ingin%20mengonfirmasi%20pendaftaran%20event%20Dryland..." 
                                    target="_blank" 
                                    class="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg shadow-sm transition" title="Chat WhatsApp">
                                     💬
                                 </a>
                                 ${row.status_pembayaran !== 'Lunas' ? `
-                                    <button data-id="${row.id}" class="btn-lunas bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-lg shadow-sm transition font-bold text-xs">
+                                    <button onclick="window.updateLunas(${row.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-lg shadow-sm transition font-bold text-xs">
                                         ✅ Lunas
                                     </button>
                                 ` : `
@@ -128,18 +152,14 @@
                     tableBody.appendChild(tr);
                 });
 
-                // Attach event listener untuk tombol lunas
-                document.querySelectorAll('.btn-lunas').forEach(button => {
-                    button.addEventListener('click', () => updateLunas(button.getAttribute('data-id')));
-                });
-
             } catch (error) {
                 console.error("Error fetching data:", error);
                 tableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-500 font-medium">❌ Gagal memuat data: ${error.message}</td></tr>`;
             }
-        }
+        };
 
-        async function updateLunas(id) {
+        // 3. FUNGSI UPDATE LUNAS
+        window.updateLunas = async function(id) {
             if (!confirm("Apakah Anda yakin ingin mengubah status peserta ini menjadi LUNAS?")) return;
 
             try {
@@ -151,15 +171,17 @@
                 if (error) throw error;
 
                 alert("✅ Status berhasil diubah menjadi Lunas!");
-                fetchData();
+                window.fetchData(); // Refresh tabel setelah update
             } catch (error) {
                 console.error("Error updating status:", error);
                 alert("❌ Gagal mengupdate status: " + error.message);
             }
-        }
+        };
 
-        // Panggil saat load
-        fetchData();
+        // 4. JALANKAN SAAT HALAMAN DIMUAT
+        document.addEventListener('DOMContentLoaded', () => {
+            window.fetchData();
+        });
     </script>
 </body>
 </html>
