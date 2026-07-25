@@ -534,21 +534,23 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================
-// SCRIPT UNTUK COPY LINK MARKETING
+// SCRIPT UNTUK COPY LINK MARKETING (FIX ID LOGIN)
 // ==========================================
 window.copyLinkMarketing = function() {
-    const elNama = document.getElementById('admin-nama-panggilan');
-    const namaAdmin = elNama ? elNama.innerText.trim() : 'Admin';
-    const cleanName = encodeURIComponent(namaAdmin.replace(/\s+/g, '_'));
+    // 🔥 KUNCI: Tarik Username / ID Login Asli dari memori browser 🔥
+    const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username') || 'admin';
+    const cleanName = encodeURIComponent(currentUser);
     
-    // GANTI 'sales=' MENJADI 'admin_id=' AGAR SESUAI DATABASE
+    // Sekarang linknya akan jadi: ?admin_id=admin2
     const linkReferral = `https://jagorenang.my.id/daftar.html?admin_id=${cleanName}`;
     
+    // Munculkan link aslinya di kotak input
     const inputElement = document.getElementById('input-link-referral');
     if (inputElement) {
         inputElement.value = linkReferral;
     }
     
+    // Proses salin ke clipboard HP/PC
     navigator.clipboard.writeText(linkReferral).then(() => {
         const btn = document.getElementById('btn-copy-link');
         if (btn) {
