@@ -110,12 +110,15 @@ window.loadLeadsInbox = async function() {
             let noWa = lead.no_wa ? lead.no_wa.toString() : "";
             if (noWa.startsWith("0")) noWa = "62" + noWa.substring(1);
 
+            // 🔥 TANGKAP ADMIN ID / NAMA SALES DARI DATABASE 🔥
+            const salesAsli = lead.admin_id || lead.nama_sales || 'Pusat / Organik';
+
             html += `
             <div class="bg-white border border-amber-300 shadow-sm shadow-amber-50 rounded-xl p-4 mb-3">
                 <div class="flex justify-between items-start mb-2">
                     <div>
                         <h3 class="font-bold text-slate-800 text-sm m-0">🆕 ${lead.nama}</h3>
-                        <p class="text-[11px] text-slate-500 font-bold mt-0.5">Daftar: ${tglDaftar}</p>
+                        <p class="text-[11px] text-slate-500 font-bold mt-0.5">Daftar: ${tglDaftar} | 🎯 Sales: <span class="text-indigo-600 font-black">${salesAsli}</span></p>
                         <p class="text-[11px] text-slate-600 mt-1">WA: ${lead.no_wa} | User: ${lead.username}</p>
                     </div>
                     <span class="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-1 rounded">PENDING</span>
@@ -124,7 +127,8 @@ window.loadLeadsInbox = async function() {
                     <a href="https://wa.me/${noWa}?text=${pesanWA}" target="_blank" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-lg text-xs text-center transition">
                         💬 Sapa via WA
                     </a>
-                    <button onclick="approvePendaftar(${lead.id}, '${lead.nama}', '${lead.tanggal_lahir}', '${lead.no_wa}', '${lead.username}', '${lead.password}')" class="flex-[1.5] bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs text-center transition shadow-sm">
+                    <!-- 🔥 OMPER salesAsli KE DALAM PARAMETER TOMBOL 🔥 -->
+                    <button onclick="approvePendaftar(${lead.id}, '${lead.nama}', '${lead.tanggal_lahir}', '${lead.no_wa}', '${lead.username}', '${lead.password}', '${salesAsli}')" class="flex-[1.5] bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs text-center transition shadow-sm">
                         ✅ ACC & Tagih
                     </button>
                 </div>
@@ -528,32 +532,30 @@ document.addEventListener('DOMContentLoaded', () => {
         if(document.getElementById('admin2-pending-invoice-list')) loadPendingInvoiceAdmin2();
     }, 500);
 });
+
 // ==========================================
 // SCRIPT UNTUK COPY LINK MARKETING
 // ==========================================
 window.copyLinkMarketing = function() {
-    // Tarik nama panggilan admin dari profil atas
     const elNama = document.getElementById('admin-nama-panggilan');
     const namaAdmin = elNama ? elNama.innerText.trim() : 'Admin';
     const cleanName = encodeURIComponent(namaAdmin.replace(/\s+/g, '_'));
-    const linkReferral = `https://jagorenang.my.id/daftar.html?sales=${cleanName}`;
     
-    // Munculkan link aslinya di kotak input
+    // GANTI 'sales=' MENJADI 'admin_id=' AGAR SESUAI DATABASE
+    const linkReferral = `https://jagorenang.my.id/daftar.html?admin_id=${cleanName}`;
+    
     const inputElement = document.getElementById('input-link-referral');
     if (inputElement) {
         inputElement.value = linkReferral;
     }
     
-    // Proses salin ke clipboard HP/PC
     navigator.clipboard.writeText(linkReferral).then(() => {
-        // Efek visual tombol berubah jadi Copied!
         const btn = document.getElementById('btn-copy-link');
         if (btn) {
             btn.innerText = 'Copied!';
             btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
             btn.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
             
-            // Kembalikan ke warna biru setelah 2 detik
             setTimeout(() => {
                 btn.innerText = 'Copy';
                 btn.classList.remove('bg-emerald-500', 'hover:bg-emerald-600');

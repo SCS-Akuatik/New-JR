@@ -57,79 +57,78 @@ window.loadPendingPendaftaran = async function() {
     const list = document.getElementById('list-pendaftar-pending');
     if(!container || !list) return;
 
-    // PASTIKAN pakai sb (huruf kecil) tanpa window. jika di-import di file ini
     const { data, error } = await sb.from('pendaftaran_pending')
         .select('*')
         .eq('status', 'Menunggu Invoice')
         .order('created_at', { ascending: false });
 
     if (error || !data || data.length === 0) {
-        container.classList.add('hidden'); // Pakai classList.add di vite tailwind
+        container.classList.add('hidden'); 
         return;
     }
 
-    container.classList.remove('hidden'); // Munculkan kotak 
+    container.classList.remove('hidden'); 
     let html = '';
     data.forEach(p => {
+        // 🔥 TANGKAP ADMIN ID / NAMA SALES DARI DATABASE 🔥
+        const salesAsli = p.admin_id || p.nama_sales || 'Pusat / Organik';
+
         html += `
         <div class="bg-white p-3 rounded-lg border border-red-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-2 mb-2">
             <div>
                 <strong class="text-red-700 text-sm">${p.nama}</strong><br>
                 <span class="text-xs text-slate-500">WA: ${p.no_wa} | User: ${p.username}</span>
+                <span class="block text-[10px] text-indigo-500 font-bold mt-0.5">Sales: ${salesAsli}</span>
             </div>
-            <button onclick="approvePendaftar(${p.id}, '${p.nama}', '${p.tanggal_lahir}', '${p.no_wa}', '${p.username}', '${p.password}')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-1.5 px-3 rounded text-xs w-full md:w-auto">✅ ACC & Tagih</button>
+            <!-- 🔥 LEMPAR salesAsli SEBAGAI PARAMETER KE-7 🔥 -->
+            <button onclick="approvePendaftar(${p.id}, '${p.nama}', '${p.tanggal_lahir}', '${p.no_wa}', '${p.username}', '${p.password}', '${salesAsli}')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-1.5 px-3 rounded text-xs w-full md:w-auto">✅ ACC & Tagih</button>
         </div>`;
     });
     list.innerHTML = html;
 };
-    // Auto-refresh buat Admin 2
-    if (typeof window.loadLeadsInbox === 'function') {
-        window.loadLeadsInbox();
-    }
+
+// Auto-refresh buat Admin 2
+if (typeof window.loadLeadsInbox === 'function') {
+    window.loadLeadsInbox();
+}
 
 // 2. Trik Auto-Refresh Notif setiap 5 detik (Live Tracker)
 setInterval(() => {
     const adminHub = document.getElementById('dashboard-admin');
-    // Cek apakah admin hub sedang tidak hidden
     if (adminHub && !adminHub.classList.contains('hidden')) {
         window.loadPendingPendaftaran();
     }
 }, 5000);
 
-// 3. Fungsi Mengeksekusi (Approve) Calon Murid
-window.approvePendaftar = async function(idPending, nama, tglLahir, wa, user, pass) {
-    if(!confirm(`Approve pendaftaran ${nama}? (Sistem akan otomatis membuat Akun & Data Murid)`)) return;
+// 3. Fungsi Mengeksekusi (Approve) Calon Murid (TAMBAHAN PARAMETER salesAsli)
+window.approvePendaftar = async function(idPending, nama, tglLahir, wa, user, pass, salesAsli) {
+    if(!confirm(`Approve pendaftaran ${nama}? (Sistem otomatis membuat Akun & Data)`)) return;
 
-    // 🔥 LOGIKA MULTI-ANAK: Coba buat akun
     const { error: errUser } = await sb.from('users').insert([{ username: user, password: pass, role: ['parent'] }]);
     
-    // Jika errornya BUKAN karena duplicate username (23505), maka gagalkan. 
     if (errUser && errUser.code !== '23505') {
         return alert("Gagal buat akun (Username mungkin bermasalah): " + errUser.message);
     }
 
-    // Tambahkan parent_username dan no_wa agar anak terhubung ke Ortunya!
     const { data: muridBaru, error: errMurid } = await sb.from('murid').insert([{
         nama_murid: nama,
         tanggal_lahir: tglLahir,
-        no_wa: wa, // Tembak langsung WA
-        parent_username: user, // 🔴 SUPER PENTING: Sambungkan anak ke Username Ortu
+        no_wa: wa, 
+        parent_username: user, 
         sisa_sesi: 0,
         jenis_paket: 'Kelas Beginner (Baru)' 
     }]).select('id_murid').single();
 
     if (errMurid) return alert("Gagal simpan data murid: " + errMurid.message);
 
-    // Update status pendaftaran menjadi Selesai agar hilang dari notif merah
     await sb.from('pendaftaran_pending').update({ status: 'Selesai' }).eq('id', idPending);
 
-    // Buka form Modal Invoice otomatis
     if (typeof window.generateInvoice === 'function') {
         await window.generateInvoice(muridBaru.id_murid, nama, 'Kelas Beginner (Baru)', wa);
     } else {
         const modalInv = document.getElementById('modal-invoice');
         if (modalInv) {
-            modalInv.classList.remove('hidden'); // Buka modal di Vite
+            modalInv.classList.remove('hidden'); 
             document.getElementById('hidden-inv-murid-id').value = muridBaru.id_murid;
             document.getElementById('inv-input-nama').value = nama;
             document.getElementById('inv-input-paket').value = 'Kelas Beginner (Baru)';
@@ -138,12 +137,12 @@ window.approvePendaftar = async function(idPending, nama, tglLahir, wa, user, pa
         }
     }
 
-    // Ubah fungsi tombol Invoice jadi fungsi Spesial Member Baru
     const btnSubmit = document.querySelector('button[onclick="submitInvoiceDatabase()"]');
     if (btnSubmit) {
         btnSubmit.innerHTML = "🚀 Cetak Tagihan & Kirim Akses Akun";
         btnSubmit.onclick = function() {
-            window.submitInvoiceBaruSpesial(muridBaru.id_murid, nama, wa, user, pass, btnSubmit); // Kirim btnSubmit sbg referensi
+            // 🔥 OPER salesAsli KE DALAM FUNGSI INVOICE 🔥
+            window.submitInvoiceBaruSpesial(muridBaru.id_murid, nama, wa, user, pass, salesAsli, btnSubmit); 
         };
     }
 
@@ -151,8 +150,8 @@ window.approvePendaftar = async function(idPending, nama, tglLahir, wa, user, pa
     window.loadPendingPendaftaran(); 
 };
 
-// 4. Fungsi Kirim WA Spesial Member Baru
-window.submitInvoiceBaruSpesial = async function(idMurid, nama, wa, user, pass, btnTarget) {
+// 4. Fungsi Kirim WA Spesial Member Baru & INJECT KOMISI SALES 
+window.submitInvoiceBaruSpesial = async function(idMurid, nama, wa, user, pass, salesAsli, btnTarget) {
     const btn = btnTarget || event.target;
     btn.innerText = "⏳ Menyimpan...";
     btn.disabled = true;
@@ -177,8 +176,18 @@ window.submitInvoiceBaruSpesial = async function(idMurid, nama, wa, user, pass, 
         return;
     }
 
-    // 🔥 TANGKAP IDENTITAS ADMIN YANG LAGI LOGIN 🔥
+    // ==============================================================
+    // 🔥🔥 KUNCI PENENTU KEADILAN KOMISI 🔥🔥
+    // ==============================================================
     const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
+    let adminPemilikKomisi = currentUser; // Defaultnya orang yang lagi login
+    
+    // TAPI, kalau ternyata salesAsli ada isinya (dibawa oleh marketing),
+    // Timpa hak kepemilikan tagihan ini ke nama salesAsli tersebut!
+    if (salesAsli && salesAsli !== 'Pusat / Organik' && salesAsli !== 'undefined' && salesAsli !== 'null') {
+        adminPemilikKomisi = salesAsli;
+    }
+    // ==============================================================
 
     try {
         const { error } = await sb.from('invoices').insert([{
@@ -196,7 +205,7 @@ window.submitInvoiceBaruSpesial = async function(idMurid, nama, wa, user, pass, 
             sesi_4: s4,
             expired_sesi: expDate,
             status: 'Unpaid',
-            admin_id: currentUser // <--- SUNTIKAN BONUSNYA DI SINI BOS!
+            admin_id: adminPemilikKomisi // <--- KOMISI AMAN TERKENDALI
         }]);
 
         if (error) {
@@ -223,14 +232,12 @@ window.submitInvoiceBaruSpesial = async function(idMurid, nama, wa, user, pass, 
              document.getElementById('modal-invoice').classList.add('hidden');
         }
         
-        alert("Invoice Berhasil Disimpan ke Supabase & Link WA Berhasil Dibuat!");
+        alert(`Invoice Berhasil Disimpan & Didaftarkan ke: ${adminPemilikKomisi}`);
 
-        // Auto-refresh daftar tagihan pending punya si Admin 2
         if (typeof window.loadPendingInvoiceAdmin2 === 'function') {
             window.loadPendingInvoiceAdmin2();
         }
 
-        // Kembalikan fungsi tombol asli
         if(btn) {
             btn.innerHTML = "💾 Submit & Kirim WA";
             btn.setAttribute('onclick', 'submitInvoiceDatabase()');
@@ -245,7 +252,6 @@ window.submitInvoiceBaruSpesial = async function(idMurid, nama, wa, user, pass, 
         btn.disabled = false;
     }
 };
-
 
 // ==========================================
 // DAFTARKAN SEMUA HELPER KE GLOBAL WINDOW

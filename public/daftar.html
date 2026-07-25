@@ -106,7 +106,8 @@
         // 2. TANGKAP NAMA SALES DARI LINK URL
         // =========================================================
         const urlParams = new URLSearchParams(window.location.search);
-        let namaSales = urlParams.get('sales'); // Narik kata setelah ?sales=
+        // Tangkap baik dari parameter admin_id maupun sales (biar aman)
+        let namaSales = urlParams.get('admin_id') || urlParams.get('sales'); 
         
         if (namaSales) {
             // Jika ada nama sales, tampilkan di header web biar elegan
@@ -183,7 +184,9 @@
                     }
                 }
 
-                // Siapkan Array untuk Bulk Insert (MASUKKAN NAMA SALES DI SINI)
+                // =========================================================
+                // 🔥 SUNTIKKAN NAMA SALES KE DATABASE SAAT ORTU SUBMIT 🔥
+                // =========================================================
                 const insertArray = anakData.map(anak => ({
                     nama: anak.nama,
                     tanggal_lahir: anak.tanggal_lahir,
@@ -191,7 +194,7 @@
                     username: user,
                     password: pass,
                     status: 'Menunggu Invoice',
-                    nama_sales: namaSales // <--- Data sales disuntikkan ke database
+                    admin_id: namaSales // <--- Pastikan masuk ke kolom admin_id
                 }));
 
                 // Eksekusi insert massal ke tabel pending
