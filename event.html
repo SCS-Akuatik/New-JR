@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Event - Jago Renang</title>
+    <!-- Tailwind CSS (Vanilla) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans pb-12">
+
+    <!-- HEADER -->
+    <div class="bg-gradient-to-br from-indigo-700 to-sky-600 pt-12 pb-16 px-6 text-center text-white shadow-md rounded-b-[2.5rem]">
+        <h1 class="text-3xl font-black tracking-tight mb-2">🎟️ Portal Event JR</h1>
+        <p class="text-sky-100 text-sm font-medium">Pusat informasi, pendaftaran, dan memori event Jago Renang.</p>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="max-w-md mx-auto px-5 -mt-8 relative z-10 space-y-8">
+        
+        <!-- ========================================== -->
+        <!-- SECTION 1: EVENT WAITING (OPEN)            -->
+        <!-- ========================================== -->
+        <div>
+            <div class="flex items-center gap-2 mb-3 px-1">
+                <span class="text-xl">⏳</span>
+                <h3 class="font-black text-slate-700 uppercase tracking-wider text-sm">Event Waiting</h3>
+            </div>
+
+            <!-- KARTU DRYLAND -->
+            <div class="bg-white rounded-3xl shadow-xl border border-sky-50 overflow-hidden transform transition hover:scale-[1.02]">
+                <div class="bg-gradient-to-r from-sky-400 to-blue-500 p-4 text-white flex justify-between items-center">
+                    <span class="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2 py-1 rounded text-white backdrop-blur-sm animate-pulse">Sedang Berjalan</span>
+                    <span class="text-xs font-bold">13 Sept 2026</span>
+                </div>
+                
+                <div class="p-5">
+                    <h2 class="text-xl font-black text-slate-800 mb-2">Dryland & Fun Games</h2>
+                    <p class="text-sm text-slate-500 leading-relaxed mb-4">FFP Program: Fundamentals, Funs & Plays + Time Trial Swim Race di Narita Hotel.</p>
+                    
+                    <div class="flex gap-3">
+                        <a href="/dryland.html" class="flex-1 bg-sky-100 hover:bg-sky-200 text-sky-700 text-center font-bold py-3 rounded-xl transition text-sm">
+                            👀 Lihat / Daftar
+                        </a>
+                        <button onclick="copyLink('https://jagorenang.my.id/dryland.html')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 p-3 rounded-xl transition flex items-center justify-center" title="Copy Link Form">
+                            🔗
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SECTION 2: EVENT DONE (PESAN & KESAN)      -->
+        <!-- ========================================== -->
+        <div class="pt-2">
+            <div class="flex items-center gap-2 mb-3 px-1">
+                <span class="text-xl">✅</span>
+                <h3 class="font-black text-slate-700 uppercase tracking-wider text-sm">Event Done</h3>
+            </div>
+
+            <!-- KARTU EVENT SELESAI -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden opacity-95">
+                <div class="bg-slate-200 p-4 text-slate-600 flex justify-between items-center">
+                    <span class="text-[10px] font-black uppercase tracking-wider bg-slate-300 px-2 py-1 rounded">Telah Selesai</span>
+                    <span class="text-xs font-bold">Event Sebelumnya</span>
+                </div>
+                
+                <div class="p-5">
+                    <h2 class="text-lg font-black text-slate-700 mb-4 border-b border-slate-100 pb-2">💬 Pesan & Kesan</h2>
+                    
+                    <!-- Kumpulan Testimoni -->
+                    <div class="space-y-3">
+                        <!-- Testimoni 1 -->
+                        <div class="bg-slate-50 border-l-4 border-emerald-400 p-3 rounded-r-xl">
+                            <p class="text-xs text-slate-600 italic font-medium">"Seru banget acaranya Coach! Anak saya jadi lebih berani masuk air dan makin semangat latihannya."</p>
+                            <p class="text-[10px] font-bold text-slate-400 mt-1.5">— Bunda Azka</p>
+                        </div>
+                        
+                        <!-- Testimoni 2 -->
+                        <div class="bg-slate-50 border-l-4 border-sky-400 p-3 rounded-r-xl">
+                            <p class="text-xs text-slate-600 italic font-medium">"Fasilitasnya top, games-nya mendidik. Next event pasti ikut lagi. Terima kasih tim Jago Renang!"</p>
+                            <p class="text-[10px] font-bold text-slate-400 mt-1.5">— Papa Kenzo</p>
+                        </div>
+
+                        <!-- Testimoni 3 -->
+                        <div class="bg-slate-50 border-l-4 border-amber-400 p-3 rounded-r-xl">
+                            <p class="text-xs text-slate-600 italic font-medium">"Organized banget dari awal pendaftaran sampai acara selesai. Keren!"</p>
+                            <p class="text-[10px] font-bold text-slate-400 mt-1.5">— Bunda Gendis</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DIVIDER -->
+        <div class="flex items-center gap-3 my-6">
+            <div class="h-px bg-slate-200 flex-1"></div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Menu Navigasi</span>
+            <div class="h-px bg-slate-200 flex-1"></div>
+        </div>
+        
+        <!-- KEMBALI KE HOME -->
+        <a href="/index.html" class="block w-full text-center bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold py-3.5 rounded-2xl text-sm transition">
+            ⬅ Kembali ke Dashboard Sistem
+        </a>
+
+    </div>
+
+    <script>
+        // Fungsi untuk copy link form pendaftaran buat di-share via WA
+        function copyLink(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert("✅ Link Form Pendaftaran berhasil di-copy!\nSilakan paste di WhatsApp.");
+            }).catch(err => {
+                console.error('Gagal copy link: ', err);
+            });
+        }
+    </script>
+</body>
+</html>
