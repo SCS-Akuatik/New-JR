@@ -18,13 +18,22 @@
                 </div>
             </div>
 
-            <!-- KANAN: Stacked Clock & Date -->
-            <div class="flex flex-col items-end text-right">
-                <div class="flex items-baseline gap-1.5">
-                    <span id="admin-jam-realtime" class="text-xl font-black text-white font-mono tracking-wider leading-none">--:--</span>
-                    <span class="text-[9px] font-bold text-slate-900 bg-teal-400 px-1.5 py-0.5 rounded uppercase tracking-wider">WIB</span>
+            <!-- KANAN: Stacked Clock, Date & TOMBOL LOGOUT PINTU BARU -->
+            <div class="flex items-center gap-4">
+                <div class="flex flex-col items-end text-right">
+                    <div class="flex items-baseline gap-1.5">
+                        <span id="admin-jam-realtime" class="text-xl font-black text-white font-mono tracking-wider leading-none">--:--</span>
+                        <span class="text-[9px] font-bold text-slate-900 bg-teal-400 px-1.5 py-0.5 rounded uppercase tracking-wider">WIB</span>
+                    </div>
+                    <span id="admin-tgl-realtime" class="text-[10px] text-slate-400 font-medium mt-1 tracking-wide">--, -- ---</span>
                 </div>
-                <span id="admin-tgl-realtime" class="text-[10px] text-slate-400 font-medium mt-1 tracking-wide">--, -- ---</span>
+                
+                <!-- TOMBOL LOGOUT (ICON PINTU KELUAR) -->
+                <button onclick="localStorage.clear(); pindahHalaman('page-login')" class="bg-slate-800 hover:bg-red-500 text-slate-400 hover:text-white p-2.5 rounded-xl transition shadow-inner" title="Logout Sistem">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </button>
             </div>
         </div>
 
@@ -79,7 +88,11 @@
             </div>
         </div>
 
-        <button onclick="localStorage.clear(); pindahHalaman('page-login')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 py-3 rounded-xl font-bold shadow-sm text-sm">🚪 Logout Sistem</button>
+        <!-- TOMBOL COPY LINK PENDAFTARAN (MENGGANTIKAN TOMBOL LOGOUT LAMA) -->
+        <button onclick="copyLinkMarketing()" class="w-full bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 py-3 rounded-xl font-bold shadow-sm text-sm flex items-center justify-center gap-2 transition group">
+            <span class="text-lg group-hover:scale-110 transition">🔗</span> 
+            Copy Link Pendaftaran (by Admin)
+        </button>
     </div>
 </div>
 
@@ -213,3 +226,25 @@
         
     </div>
 </div>
+
+<!-- ========================================== -->
+<!-- SCRIPT UNTUK COPY LINK MARKETING           -->
+<!-- ========================================== -->
+<script>
+    function copyLinkMarketing() {
+        // Tarik nama panggilan admin dari header
+        const namaAdmin = document.getElementById('admin-nama-panggilan').innerText.trim() || 'Admin';
+        
+        // Buat link URL referral (Ganti spasi jadi underscore untuk keamanan URL)
+        const cleanName = encodeURIComponent(namaAdmin.replace(/\s+/g, '_'));
+        const linkReferral = `https://jagorenang.my.id/daftar.html?sales=${cleanName}`;
+        
+        // Proses salin ke clipboard HP/PC
+        navigator.clipboard.writeText(linkReferral).then(() => {
+            alert(`✅ LINK BERHASIL DISALIN!\n\n${linkReferral}\n\nSilakan Paste dan kirim ke WhatsApp calon wali murid. Komisi akan otomatis tercatat atas nama ${namaAdmin}! 💰`);
+        }).catch(err => {
+            console.error('Gagal menyalin link:', err);
+            alert("Sistem clipboard diblokir browser. Silakan copy manual link ini:\n" + linkReferral);
+        });
+    }
+</script>

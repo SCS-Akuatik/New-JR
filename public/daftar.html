@@ -9,35 +9,35 @@
     <!-- META TAGS UNTUK PREVIEW LINK WHATSAPP (OPEN GRAPH) -->
     <!-- ========================================================== -->
     <meta name="description" content="Formulir pendaftaran resmi Kelas Beginner Jago Renang Academy.">
-    
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.jagorenang.my.id/daftar.html">
     <meta property="og:title" content="🏊‍♂️ Pendaftaran Jago Renang Academy">
     <meta property="og:description" content="Daftarkan ananda sekarang! Sistem manajemen kelas profesional dengan jadwal & raport digital.">
-    
-    <!-- URL GAMBAR HARUS LENGKAP BIAR DITARIK SAMA WHATSAPP -->
     <meta property="og:image" content="https://www.jagorenang.my.id/images/Daftar.jpg">
     <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="800">
     <meta property="og:image:height" content="800">
-    <!-- ========================================================== -->
     
     <!-- 1. Panggil library Supabase dari CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- HAPUS SCRIPT config.js AGAR TIDAK ERROR 404 DI PUBLIC FOLDER -->
-
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #e0f2fe; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; box-sizing: border-box; }
         .card { background: white; width: 100%; max-width: 400px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
-        .header { background: #0284c7; color: white; padding: 20px; text-align: center; }
+        .header { background: #0284c7; color: white; padding: 20px; text-align: center; position: relative; }
         .header h2 { margin: 0; font-size: 18px; }
         .header p { margin: 5px 0 0 0; font-size: 12px; color: #bae6fd; }
+        
+        /* Badge Sales */
+        .badge-sales { display: inline-block; background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; margin-top: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .hidden { display: none !important; }
+
         .body-form { padding: 20px; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 12px; color: #64748b; font-weight: bold; margin-bottom: 5px; }
         .form-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        .btn-submit { width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-submit { width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-submit:hover { background: #059669; }
         .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
         .box-login { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-top: 20px; }
     </style>
@@ -48,6 +48,10 @@
         <div class="header">
             <h2>FORM PENDAFTARAN</h2>
             <p>Kelas Beginner/Private Jago Renang Academy</p>
+            <!-- Badge Info Sales (Tampil Otomatis) -->
+            <div id="sales-badge" class="badge-sales hidden">
+                🤝 Direkomendasikan oleh: <span id="nama-sales-display"></span>
+            </div>
         </div>
         <div class="body-form">
             
@@ -67,7 +71,7 @@
             </div>
             
             <!-- TOMBOL TAMBAH ANAK -->
-            <button class="btn-submit" onclick="tambahKolomAnak()" style="background:#e0f2fe; color:#0369a1; border:1px dashed #0284c7; margin-top:0; margin-bottom:15px; padding:10px;">➕ Tambah Anak (Jika lebih dari 1)</button>
+            <button class="btn-submit" onclick="tambahKolomAnak()" style="background:#e0f2fe; color:#0369a1; border:1px dashed #0284c7; margin-top:0; margin-bottom:15px; padding:10px; box-shadow:none;">➕ Tambah Anak (Jika lebih dari 1)</button>
 
             <div class="form-group">
                 <label>NOMOR WHATSAPP (ORTU):</label>
@@ -92,11 +96,26 @@
 
     <script>
         // =========================================================
-        // 1. INISIALISASI KONEKSI SUPABASE HARDCODE (TANPA .ENV)
+        // 1. INISIALISASI KONEKSI SUPABASE
         // =========================================================
         const supabaseUrl = "https://xwqdkvxythrewgjxhiru.supabase.co";
         const supabaseKey = "sb_publishable_xfjCBEL-Hf77z-ssKaeZbg_-Or1pIML";
         const sb = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // =========================================================
+        // 2. TANGKAP NAMA SALES DARI LINK URL
+        // =========================================================
+        const urlParams = new URLSearchParams(window.location.search);
+        let namaSales = urlParams.get('sales'); // Narik kata setelah ?sales=
+        
+        if (namaSales) {
+            // Jika ada nama sales, tampilkan di header web biar elegan
+            document.getElementById('nama-sales-display').innerText = namaSales.toUpperCase();
+            document.getElementById('sales-badge').classList.remove('hidden');
+        } else {
+            // Jika tidak pakai link khusus, set jadi Pusat
+            namaSales = "Pusat / Organik";
+        }
 
         // =========================================================
         // FUNGSI TAMBAH KOLOM ANAK DINAMIS
@@ -164,14 +183,15 @@
                     }
                 }
 
-                // Siapkan Array untuk Bulk Insert
+                // Siapkan Array untuk Bulk Insert (MASUKKAN NAMA SALES DI SINI)
                 const insertArray = anakData.map(anak => ({
                     nama: anak.nama,
                     tanggal_lahir: anak.tanggal_lahir,
                     no_wa: wa,
                     username: user,
                     password: pass,
-                    status: 'Menunggu Invoice'
+                    status: 'Menunggu Invoice',
+                    nama_sales: namaSales // <--- Data sales disuntikkan ke database
                 }));
 
                 // Eksekusi insert massal ke tabel pending
