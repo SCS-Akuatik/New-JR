@@ -528,3 +528,40 @@ document.addEventListener('DOMContentLoaded', () => {
         if(document.getElementById('admin2-pending-invoice-list')) loadPendingInvoiceAdmin2();
     }, 500);
 });
+// ==========================================
+// SCRIPT UNTUK COPY LINK MARKETING
+// ==========================================
+window.copyLinkMarketing = function() {
+    // Tarik nama panggilan admin dari profil atas
+    const elNama = document.getElementById('admin-nama-panggilan');
+    const namaAdmin = elNama ? elNama.innerText.trim() : 'Admin';
+    const cleanName = encodeURIComponent(namaAdmin.replace(/\s+/g, '_'));
+    const linkReferral = `https://jagorenang.my.id/daftar.html?sales=${cleanName}`;
+    
+    // Munculkan link aslinya di kotak input
+    const inputElement = document.getElementById('input-link-referral');
+    if (inputElement) {
+        inputElement.value = linkReferral;
+    }
+    
+    // Proses salin ke clipboard HP/PC
+    navigator.clipboard.writeText(linkReferral).then(() => {
+        // Efek visual tombol berubah jadi Copied!
+        const btn = document.getElementById('btn-copy-link');
+        if (btn) {
+            btn.innerText = 'Copied!';
+            btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            btn.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
+            
+            // Kembalikan ke warna biru setelah 2 detik
+            setTimeout(() => {
+                btn.innerText = 'Copy';
+                btn.classList.remove('bg-emerald-500', 'hover:bg-emerald-600');
+                btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            }, 2000);
+        }
+    }).catch(err => {
+        console.error('Gagal menyalin link:', err);
+        alert("Gagal otomatis. Silakan blok manual teks di kotak lalu copy.");
+    });
+};

@@ -2301,13 +2301,22 @@ Bonus Rp 10.000 akan masuk ke dompetmu!`))try{const s=localStorage.getItem("logg
                 </div>
             </div>
 
-            <!-- KANAN: Stacked Clock & Date -->
-            <div class="flex flex-col items-end text-right">
-                <div class="flex items-baseline gap-1.5">
-                    <span id="admin-jam-realtime" class="text-xl font-black text-white font-mono tracking-wider leading-none">--:--</span>
-                    <span class="text-[9px] font-bold text-slate-900 bg-teal-400 px-1.5 py-0.5 rounded uppercase tracking-wider">WIB</span>
+            <!-- KANAN: Stacked Clock, Date & TOMBOL LOGOUT PINTU BARU -->
+            <div class="flex items-center gap-4">
+                <div class="flex flex-col items-end text-right">
+                    <div class="flex items-baseline gap-1.5">
+                        <span id="admin-jam-realtime" class="text-xl font-black text-white font-mono tracking-wider leading-none">--:--</span>
+                        <span class="text-[9px] font-bold text-slate-900 bg-teal-400 px-1.5 py-0.5 rounded uppercase tracking-wider">WIB</span>
+                    </div>
+                    <span id="admin-tgl-realtime" class="text-[10px] text-slate-400 font-medium mt-1 tracking-wide">--, -- ---</span>
                 </div>
-                <span id="admin-tgl-realtime" class="text-[10px] text-slate-400 font-medium mt-1 tracking-wide">--, -- ---</span>
+                
+                <!-- TOMBOL LOGOUT (ICON PINTU KELUAR) -->
+                <button onclick="localStorage.clear(); pindahHalaman('page-login')" class="bg-slate-800 hover:bg-red-500 text-slate-400 hover:text-white p-2.5 rounded-xl transition shadow-inner" title="Logout Sistem">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </button>
             </div>
         </div>
 
@@ -2362,9 +2371,23 @@ Bonus Rp 10.000 akan masuk ke dompetmu!`))try{const s=localStorage.getItem("logg
             </div>
         </div>
 
-        <button onclick="localStorage.clear(); pindahHalaman('page-login')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 py-3 rounded-xl font-bold shadow-sm text-sm">🚪 Logout Sistem</button>
-    </div>
-</div>
+        <!-- KOTAK COPY LINK PENDAFTARAN (DESAIN BARU) -->
+        <div class="bg-white border border-blue-100 p-4 rounded-2xl shadow-sm mt-2">
+            <div class="flex items-center gap-2 mb-3 text-blue-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                <h3 class="font-bold text-sm tracking-wide m-0">Link Pendaftaran</h3>
+            </div>
+            
+            <div class="flex w-full items-stretch shadow-sm rounded-xl overflow-hidden">
+                <input type="text" id="input-link-referral" readonly value="https://jagorenang.my.id/daftar.html?..." class="w-full bg-slate-50 border border-slate-200 border-r-0 px-3 py-3 text-xs font-mono text-slate-500 outline-none focus:bg-white transition cursor-text">
+                <button onclick="copyLinkMarketing()" id="btn-copy-link" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-3 transition text-sm flex-shrink-0">
+                    Copy
+                </button>
+            </div>
+        </div>
+
 
 <!-- ========================================== -->
 <!-- MODUL RENEWAL QUEUE (TAMPIL SAAT DIKLIK)   -->
@@ -2496,4 +2519,42 @@ Bonus Rp 10.000 akan masuk ke dompetmu!`))try{const s=localStorage.getItem("logg
         
     </div>
 </div>
+
+<!-- ========================================== -->
+<!-- SCRIPT UNTUK COPY LINK MARKETING           -->
+<!-- ========================================== -->
+<script>
+    function copyLinkMarketing() {
+        // Tarik nama panggilan admin dari profil atas
+        const namaAdmin = document.getElementById('admin-nama-panggilan').innerText.trim() || 'Admin';
+        const cleanName = encodeURIComponent(namaAdmin.replace(/\\s+/g, '_'));
+        const linkReferral = \`https://jagorenang.my.id/daftar.html?sales=\${cleanName}\`;
+        
+        // Munculkan link aslinya di kotak input
+        const inputElement = document.getElementById('input-link-referral');
+        inputElement.value = linkReferral;
+        
+        // Proses salin ke clipboard HP/PC
+        navigator.clipboard.writeText(linkReferral).then(() => {
+            // Efek visual tombol berubah jadi Copied!
+            const btn = document.getElementById('btn-copy-link');
+            const originalText = btn.innerText;
+            
+            btn.innerText = 'Copied!';
+            btn.classList.replace('bg-blue-600', 'bg-emerald-500');
+            btn.classList.replace('hover:bg-blue-700', 'hover:bg-emerald-600');
+            
+            // Kembalikan ke warna biru setelah 2 detik
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.classList.replace('bg-emerald-500', 'bg-blue-600');
+                btn.classList.replace('hover:bg-emerald-600', 'hover:bg-blue-700');
+            }, 2000);
+            
+        }).catch(err => {
+            console.error('Gagal menyalin link:', err);
+            alert("Gagal otomatis. Silakan blok manual teks di kotak lalu copy.");
+        });
+    }
+<\/script>
 `,mn=document.getElementById("dryland-container");mn&&(mn.innerHTML=xo);document.getElementById("admin-container").innerHTML=Oo;document.getElementById("coach-container").innerHTML=Co;document.getElementById("parent-container").innerHTML=Mo;document.getElementById("owner-container").innerHTML=jo;document.getElementById("nonmember-container").innerHTML=Do;document.getElementById("modal-container").innerHTML=No;document.getElementById("admin2-container").innerHTML=Uo;window.addEventListener("DOMContentLoaded",()=>{window.location.hash==="#dryland"&&typeof pindahHalaman=="function"&&pindahHalaman("page-dryland")});

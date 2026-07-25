@@ -88,11 +88,22 @@
             </div>
         </div>
 
-        <!-- TOMBOL COPY LINK PENDAFTARAN (MENGGANTIKAN TOMBOL LOGOUT LAMA) -->
-        <button onclick="copyLinkMarketing()" class="w-full bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 py-3 rounded-xl font-bold shadow-sm text-sm flex items-center justify-center gap-2 transition group">
-            <span class="text-lg group-hover:scale-110 transition">🔗</span> 
-            Copy Link Pendaftaran (by Admin)
-        </button>
+        <!-- KOTAK COPY LINK PENDAFTARAN (DESAIN BARU) -->
+        <div class="bg-white border border-blue-100 p-4 rounded-2xl shadow-sm mt-2">
+            <div class="flex items-center gap-2 mb-3 text-blue-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                <h3 class="font-bold text-sm tracking-wide m-0">Link Pendaftaran</h3>
+            </div>
+            
+            <div class="flex w-full items-stretch shadow-sm rounded-xl overflow-hidden">
+                <input type="text" id="input-link-referral" readonly value="https://jagorenang.my.id/daftar.html?..." class="w-full bg-slate-50 border border-slate-200 border-r-0 px-3 py-3 text-xs font-mono text-slate-500 outline-none focus:bg-white transition cursor-text">
+                <button type="button" onclick="copyLinkMarketing()" id="btn-copy-link" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-3 transition text-sm flex-shrink-0">
+                    Copy
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -226,25 +237,3 @@
         
     </div>
 </div>
-
-<!-- ========================================== -->
-<!-- SCRIPT UNTUK COPY LINK MARKETING           -->
-<!-- ========================================== -->
-<script>
-    function copyLinkMarketing() {
-        // Tarik nama panggilan admin dari header
-        const namaAdmin = document.getElementById('admin-nama-panggilan').innerText.trim() || 'Admin';
-        
-        // Buat link URL referral (Ganti spasi jadi underscore untuk keamanan URL)
-        const cleanName = encodeURIComponent(namaAdmin.replace(/\s+/g, '_'));
-        const linkReferral = `https://jagorenang.my.id/daftar.html?sales=${cleanName}`;
-        
-        // Proses salin ke clipboard HP/PC
-        navigator.clipboard.writeText(linkReferral).then(() => {
-            alert(`✅ LINK BERHASIL DISALIN!\n\n${linkReferral}\n\nSilakan Paste dan kirim ke WhatsApp calon wali murid. Komisi akan otomatis tercatat atas nama ${namaAdmin}! 💰`);
-        }).catch(err => {
-            console.error('Gagal menyalin link:', err);
-            alert("Sistem clipboard diblokir browser. Silakan copy manual link ini:\n" + linkReferral);
-        });
-    }
-</script>
