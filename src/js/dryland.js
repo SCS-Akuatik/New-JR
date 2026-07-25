@@ -1,102 +1,145 @@
 import { sb } from './config.js';
 
-// Fungsi untuk mengganti teks saat gambar di-select
-window.previewFileName = function(num) {
-    const input = document.getElementById(`file-cicil-${num}`);
-    const label = document.getElementById(`label-file-${num}`);
-    const box = input.parentElement;
+// ==========================================
+// 1. FUNGSI MEMUNCULKAN WA (PELURU KENDALI)
+// ==========================================
+window.toggleWA = function() {
+    const memberSelect = document.querySelector('#page-dryland #dry-member');
+    const waContainer = document.querySelector('#page-dryland #dryland-wa-container');
     
-    if (input.files && input.files[0]) {
-        label.innerText = "✅ " + input.files[0].name;
-        label.classList.replace('text-slate-400', 'text-emerald-600');
-        box.classList.replace('border-slate-300', 'border-emerald-400');
-        box.classList.replace('bg-slate-50', 'bg-emerald-50');
+    if (!memberSelect || !waContainer) return;
+    
+    if (memberSelect.value === 'Non-Member') {
+        waContainer.classList.remove('hidden');
     } else {
-        label.innerText = "Belum ada file";
-        label.classList.replace('text-emerald-600', 'text-slate-400');
-        box.classList.replace('border-emerald-400', 'border-slate-300');
-        box.classList.replace('bg-emerald-50', 'bg-slate-50');
+        waContainer.classList.add('hidden');
     }
 };
 
+// ==========================================
+// 2. FUNGSI PREVIEW FILE
+// ==========================================
+window.previewFile = function(num) {
+    const input = document.querySelector(`#page-dryland #file-cicil-${num}`);
+    const label = document.querySelector(`#page-dryland #label-file-${num}`);
+    if (!input || !label) return;
+    
+    const box = input.parentElement;
+
+    if (input.files && input.files[0]) {
+        label.innerText = "✅ " + input.files[0].name;
+        label.className = "text-[10px] font-bold text-emerald-600 text-center truncate w-full px-1 mt-1";
+        box.className = "upload-box relative flex flex-col items-center justify-center bg-emerald-50 border-2 border-dashed border-emerald-400 rounded-2xl p-4 cursor-pointer overflow-hidden transition";
+    } else {
+        label.innerText = "Belum ada file";
+        label.className = "text-[9px] text-slate-400 mt-1 text-center truncate w-full px-1";
+        box.className = "upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-4 cursor-pointer overflow-hidden transition hover:bg-sky-50";
+    }
+};
+
+// ==========================================
+// 3. FUNGSI UTAMA SUBMIT DATA
+// ==========================================
 window.submitDryland = async function() {
-    const btn = document.getElementById('btn-submit-dryland');
-    const nama = document.getElementById('dry-nama').value.trim();
-    const ukuran = document.getElementById('dry-ukuran').value;
+    const btn = document.querySelector('#page-dryland #btn-submit-dryland');
     
-    // Ambil input file
-    const file1 = document.getElementById('file-cicil-1').files[0];
-    const file2 = document.getElementById('file-cicil-2').files[0];
-    const file3 = document.getElementById('file-cicil-3').files[0];
-    const file4 = document.getElementById('file-cicil-4').files[0];
+    const namaInput = document.querySelector('#page-dryland #dry-nama');
+    const ukuranInput = document.querySelector('#page-dryland #dry-ukuran');
+    const memberInput = document.querySelector('#page-dryland #dry-member');
+    
+    if (!namaInput || !ukuranInput || !memberInput) {
+        return alert("🚨 Form tidak terbaca sistem. Coba refresh halaman!");
+    }
 
-    // Validasi Minimal
-    if (!nama || !ukuran) {
-        return alert("🚨 Nama dan Ukuran Jersey wajib diisi ya!");
+    const nama = namaInput.value.trim();
+    const ukuran = ukuranInput.value;
+    const status_member = memberInput.value;
+    
+    const file1 = document.querySelector('#page-dryland #file-cicil-1').files[0];
+    const file2 = document.querySelector('#page-dryland #file-cicil-2').files[0];
+    const file3 = document.querySelector('#page-dryland #file-cicil-3').files[0];
+    const file4 = document.querySelector('#page-dryland #file-cicil-4').files[0];
+
+    // Validasi Wajib Isi
+    if (!nama || !ukuran || !status_member) {
+        return alert("🚨 Mohon lengkapi Nama, Status Member, dan Ukuran Jersey!");
     }
     
-    // Minimal harus ada bukti pembayaran Cicilan 1 (DP) untuk mendaftar pertama kali
-    // (Atau hilangkan blok IF ini kalau boleh daftar tanpa bayar dulu)
     if (!file1 && !file2 && !file3 && !file4) {
-        return alert("🚨 Silakan upload minimal Bukti Cicilan 1 (DP) untuk mendaftar.");
+        return alert("🚨 Silakan upload minimal Bukti Cicilan 1 (DP)!");
     }
 
-    btn.innerText = "⏳ Sedang Mengirim Data...";
-    btn.disabled = true;
+    const originalText = btn ? btn.innerHTML : "🚀 KIRIM PENDAFTARAN";
+    if (btn) {
+        btn.innerText = "⏳ Sedang Mengirim Data...";
+        btn.disabled = true;
+        btn.classList.add('opacity-70', 'cursor-not-allowed');
+    }
 
     try {
         let urls = { cicilan_1: null, cicilan_2: null, cicilan_3: null, cicilan_4: null };
         const cleanName = nama.replace(/\s+/g, '_').toLowerCase();
         const timestamp = Date.now();
 
-        // Helper function untuk Upload Storage
         const uploadFile = async (file, cicilanNum) => {
             if (!file) return null;
             const ext = file.name.split('.').pop();
             const fileName = `${cleanName}_cicilan${cicilanNum}_${timestamp}.${ext}`;
-            const path = `dryland_payments/${fileName}`;
+            const path = `public/${fileName}`;
 
-            // Asumsi kamu punya bucket bernama 'pembayaran' di Supabase
-            // Jika beda, ganti 'pembayaran' dengan nama bucket milikmu
-            const { error: upErr } = await sb.storage.from('pembayaran').upload(path, file);
+            const { error: upErr } = await sb.storage.from('bukti_pembayaran_event').upload(path, file);
             if (upErr) throw upErr;
 
-            return sb.storage.from('pembayaran').getPublicUrl(path).data.publicUrl;
+            const { data } = sb.storage.from('bukti_pembayaran_event').getPublicUrl(path);
+            return data.publicUrl;
         };
 
-        // Upload semua file yang ada
-        urls.cicilan_1 = await uploadFile(file1, 1);
-        urls.cicilan_2 = await uploadFile(file2, 2);
-        urls.cicilan_3 = await uploadFile(file3, 3);
-        urls.cicilan_4 = await uploadFile(file4, 4);
+        if(file1) urls.cicilan_1 = await uploadFile(file1, 1);
+        if(file2) urls.cicilan_2 = await uploadFile(file2, 2);
+        if(file3) urls.cicilan_3 = await uploadFile(file3, 3);
+        if(file4) urls.cicilan_4 = await uploadFile(file4, 4);
 
-        // Insert ke Database tabel 'pendaftaran_dryland'
         const { error: dbErr } = await sb.from('pendaftaran_dryland').insert([{
             nama_peserta: nama,
+            status_member: status_member,
             ukuran_jersey: ukuran,
             bukti_cicilan_1: urls.cicilan_1,
             bukti_cicilan_2: urls.cicilan_2,
             bukti_cicilan_3: urls.cicilan_3,
             bukti_cicilan_4: urls.cicilan_4,
-            waktu_daftar: new Date().toISOString()
+            status_pembayaran: 'Menunggu Konfirmasi'
         }]);
 
         if (dbErr) throw dbErr;
 
-        // Tampilan Sukses ala Jago Renang
-        document.body.innerHTML = `
-            <div style="min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #f0f9ff; font-family: sans-serif; padding: 20px; text-align: center;">
-                <h1 style="font-size: 50px; margin: 0; margin-bottom: 10px;">🎉</h1>
-                <h2 style="color: #0369a1; margin: 0; font-size: 24px; font-weight: 900;">PENDAFTARAN BERHASIL!</h2>
-                <p style="color: #475569; margin-top: 10px; max-w: 300px; font-size: 14px;">Terima kasih telah mendaftar Dryland & Chills. Sampai jumpa di Narita Hotel, <b>${nama}</b>!</p>
-                <button onclick="window.location.reload()" style="margin-top: 20px; background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">Daftarkan Peserta Lain</button>
-            </div>
-        `;
+        alert(`🎉 PENDAFTARAN BERHASIL!\nTerima kasih ${nama}. Silakan tunggu konfirmasi Admin.`);
+        
+        // Reset Kolom
+        namaInput.value = '';
+        ukuranInput.value = '';
+        memberInput.value = '';
+        window.toggleWA(); // Tutup kembali WA Container
+        
+        // Reset Kotak Upload
+        for (let i = 1; i <= 4; i++) {
+            const resetFileInput = document.querySelector(`#page-dryland #file-cicil-${i}`);
+            if(resetFileInput) resetFileInput.value = '';
+            window.previewFile(i);
+        }
+        
+        // Opsional: Langsung balik ke dashboard
+        if (typeof window.pindahHalaman === 'function') {
+            window.pindahHalaman('dashboard-parent');
+        }
 
     } catch (e) {
         console.error(e);
-        alert("Gagal mengirim data pendaftaran: " + e.message);
-        btn.innerText = "🚀 KIRIM PENDAFTARAN";
-        btn.disabled = false;
+        alert("❌ Gagal mengirim data: " + (e.message || e));
+    } finally {
+        if (btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            btn.classList.remove('opacity-70', 'cursor-not-allowed');
+        }
     }
 };

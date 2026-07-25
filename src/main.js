@@ -14,7 +14,9 @@ import './js/akunting.js'
 // Import logika untuk Admin Freelance
 import './js/admin2.js';
 // Import logika JS-nya
-import './js/dryland.js';
+//import './js/dryland.js';
+//import './js/event.js';
+
 
 // Import komponen HTML-nya dan suntikkan ke index.html
 import drylandHtml from './components/dryland.html?raw';

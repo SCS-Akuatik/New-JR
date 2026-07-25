@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Dryland Event</title>
+    <!-- Tailwind CSS (Vanilla via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen p-6 font-sans">
+
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div>
+                <h1 class="text-2xl font-black text-slate-800">🏆 Dashboard Admin Dryland</h1>
+                <p class="text-sm text-slate-500 mt-1">Kelola pendaftaran dan konfirmasi pembayaran event.</p>
+            </div>
+            <button onclick="fetchData()" class="bg-sky-100 hover:bg-sky-200 text-sky-700 font-bold py-2 px-4 rounded-lg transition text-sm flex items-center gap-2">
+                <span>🔄</span> Refresh Data
+            </button>
+        </div>
+
+        <!-- Table Container -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider">
+                            <th class="p-4 font-bold border-b border-slate-200">ID / Waktu</th>
+                            <th class="p-4 font-bold border-b border-slate-200">Peserta & Status</th>
+                            <th class="p-4 font-bold border-b border-slate-200">Jersey</th>
+                            <th class="p-4 font-bold border-b border-slate-200">Bukti Transfer</th>
+                            <th class="p-4 font-bold border-b border-slate-200">Status Pembayaran</th>
+                            <th class="p-4 font-bold border-b border-slate-200 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="text-sm text-slate-700 divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="6" class="p-8 text-center text-slate-400 font-medium">⏳ Memuat data dari database...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT UTAMA DASHBOARD -->
+    <script type="module">
+        import { sb } from './config.js';
+
+        async function fetchData() {
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium">⏳ Memuat data...</td></tr>';
+
+            try {
+                const { data, error } = await sb
+                    .from('pendaftaran_dryland')
+                    .select('*')
+                    .order('waktu_daftar', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-400 font-medium">Belum ada peserta yang mendaftar.</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+
+                data.forEach((row) => {
+                    const dateObj = new Date(row.waktu_daftar);
+                    const formattedDate = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                    const formattedTime = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+                    let statusColor = 'bg-amber-100 text-amber-700';
+                    if (row.status_pembayaran === 'Lunas') {
+                        statusColor = 'bg-emerald-100 text-emerald-700 font-bold';
+                    }
+
+                    const renderBukti = (url, label) => {
+                        if (!url) return `<span class="text-slate-300 text-xs line-through mr-1">${label}</span>`;
+                        return `<a href="${url}" target="_blank" class="text-sky-600 hover:text-sky-800 font-bold text-xs underline mr-1">${label}</a>`;
+                    };
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50 transition';
+                    tr.innerHTML = `
+                        <td class="p-4">
+                            <span class="block font-bold text-slate-800">#${row.id}</span>
+                            <span class="text-xs text-slate-500">${formattedDate} • ${formattedTime}</span>
+                        </td>
+                        <td class="p-4">
+                            <span class="block font-bold text-slate-800">${row.nama_peserta}</span>
+                            <span class="inline-block mt-1 text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full font-semibold">${row.status_member || 'Tidak diketahui'}</span>
+                        </td>
+                        <td class="p-4 font-semibold text-slate-700">${row.ukuran_jersey}</td>
+                        <td class="p-4">
+                            <div class="flex gap-1 flex-wrap">
+                                ${renderBukti(row.bukti_cicilan_1, 'C1')}
+                                ${renderBukti(row.bukti_cicilan_2, 'C2')}
+                                ${renderBukti(row.bukti_cicilan_3, 'C3')}
+                                ${renderBukti(row.bukti_cicilan_4, 'C4')}
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <span class="px-3 py-1 rounded-full text-xs ${statusColor}">
+                                ${row.status_pembayaran || 'Menunggu Konfirmasi'}
+                            </span>
+                        </td>
+                        <td class="p-4 text-center">
+                            <div class="flex justify-center items-center gap-2">
+                                <a href="https://wa.me/?text=Halo%20Bunda%20dari%20${encodeURIComponent(row.nama_peserta)},%20kami%20dari%20Admin%20Jago%20Renang..." 
+                                   target="_blank" 
+                                   class="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg shadow-sm transition" title="Chat WhatsApp">
+                                    💬
+                                </a>
+                                ${row.status_pembayaran !== 'Lunas' ? `
+                                    <button data-id="${row.id}" class="btn-lunas bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-lg shadow-sm transition font-bold text-xs">
+                                        ✅ Lunas
+                                    </button>
+                                ` : `
+                                    <span class="text-xs font-bold text-emerald-500 p-2">Selesai</span>
+                                `}
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+
+                // Attach event listener untuk tombol lunas
+                document.querySelectorAll('.btn-lunas').forEach(button => {
+                    button.addEventListener('click', () => updateLunas(button.getAttribute('data-id')));
+                });
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                tableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-500 font-medium">❌ Gagal memuat data: ${error.message}</td></tr>`;
+            }
+        }
+
+        async function updateLunas(id) {
+            if (!confirm("Apakah Anda yakin ingin mengubah status peserta ini menjadi LUNAS?")) return;
+
+            try {
+                const { error } = await sb
+                    .from('pendaftaran_dryland')
+                    .update({ status_pembayaran: 'Lunas' })
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                alert("✅ Status berhasil diubah menjadi Lunas!");
+                fetchData();
+            } catch (error) {
+                console.error("Error updating status:", error);
+                alert("❌ Gagal mengupdate status: " + error.message);
+            }
+        }
+
+        // Panggil saat load
+        fetchData();
+    </script>
+</body>
+</html>
