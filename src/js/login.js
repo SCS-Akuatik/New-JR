@@ -22,8 +22,9 @@ export async function prosesLogin() {
         if (error || !data) {
             alert("❌ Login Gagal! Username atau Password salah.");
         } else {
-            // Simpan Username di memori sementara (jangan langsung set role dulu)
+            // SIMPAN DATA SEMENTARA BUAT DIBACA SAMA TOMBOL MODAL
             window.tempUsernameLogin = data.username;
+            window.tempRoleUtama = data.role[0]; // <-- INI KUNCI UTAMANYA BIAR TOMBOL ATAS GAK NYASAR!
 
             // CEK APAKAH ROLENYA GANDA (Lebih dari 1)
             if (data.role && data.role.length > 1) {
