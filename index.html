@@ -186,6 +186,31 @@
                 </div>
             </div>
 
+            <!-- ========================================== -->
+            <!-- MODAL PILIH ROLE (Akses Ganda)             -->
+            <!-- ========================================== -->
+            <div id="modal-pilih-role" class="hidden absolute inset-0 z-[100] bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4 rounded-[2rem]">
+                <div class="bg-white rounded-2xl p-6 w-full text-center shadow-2xl animate-fade-in-up">
+                    <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-inner">
+                        🎭
+                    </div>
+                    <h3 class="font-black text-slate-800 text-xl mb-1">Pilih Mode Akses</h3>
+                    <p class="text-xs text-slate-500 mb-6 px-2">Akun Anda memiliki akses ganda. Mau masuk sebagai apa hari ini?</p>
+                    
+                    <div class="flex flex-col gap-3">
+                        <button onclick="eksekusiMasukDashboard('coach')" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 rounded-xl shadow-md transition-transform active:scale-95 flex items-center justify-center gap-2">
+                            🏊‍♂️ Masuk sbg Coach
+                        </button>
+                        <button onclick="eksekusiMasukDashboard('admin2')" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-3.5 rounded-xl shadow-md transition-transform active:scale-95 flex items-center justify-center gap-2">
+                            💰 Masuk sbg Manajerial
+                        </button>
+                    </div>
+                    <button onclick="document.getElementById('modal-pilih-role').classList.add('hidden')" class="mt-4 text-[10px] text-slate-400 font-bold hover:text-slate-600 uppercase tracking-widest">
+                        Batal
+                    </button>
+                </div>
+            </div>
+
         </div>
     </div>
 <div id="dryland-container"></div>
