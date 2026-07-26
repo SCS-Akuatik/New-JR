@@ -7,11 +7,14 @@ window.existingDrylandId = null;
 // 1. FUNGSI CEK DATA PESERTA OTOMATIS
 // ==========================================
 window.cekStatusDryland = async function() {
-    const namaInput = document.querySelector('#page-dryland #dry-nama');
+    // PERBAIKAN: Sekarang JS ngebaca ID select-nama-member dari HTML kamu
+    const namaInput = document.querySelector('#page-dryland #select-nama-member') || document.querySelector('#page-dryland #dry-nama');
+    
     if (!namaInput) return;
     
     const nama = namaInput.value.trim();
-    if (!nama) {
+    // Kalau belum milih nama, reset UI
+    if (!nama || nama === '' || nama === 'Non-Member') {
         window.resetFormDrylandUI();
         return;
     }
@@ -54,7 +57,7 @@ window.cekStatusDryland = async function() {
                 ukuranInput.value = data.ukuran_jersey;
             }
 
-            // Update UI Kotak Upload (Kunci yang sudah terisi)
+            // Update UI Kotak Upload (Kunci yang sudah terisi di database)
             if (data.bukti_cicilan_1) lockUploadBox(1);
             if (data.bukti_cicilan_2) lockUploadBox(2);
             if (data.bukti_cicilan_3) lockUploadBox(3);
@@ -101,10 +104,17 @@ window.resetFormDrylandUI = function() {
     
     for (let i = 1; i <= 4; i++) {
         const input = document.querySelector(`#page-dryland #file-cicil-${i}`);
-        if(input) {
+        const label = document.querySelector(`#page-dryland #label-file-${i}`);
+        const box = input ? input.parentElement : null;
+        
+        if(input && label && box) {
             input.disabled = false;
-            input.value = '';
-            window.previewFile(i); 
+            input.value = ''; // Kosongkan file
+            
+            // Balikin UI ke warna abu-abu default
+            label.innerText = "Belum ada file";
+            label.className = "text-[9px] text-slate-400 mt-1 text-center truncate w-full px-1";
+            box.className = "upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-4 cursor-pointer overflow-hidden transition hover:bg-sky-50";
         }
     }
 };
@@ -149,25 +159,26 @@ window.previewFile = function(num) {
 window.submitDryland = async function() {
     const btn = document.querySelector('#page-dryland #btn-submit-dryland');
     
-    const namaInput = document.querySelector('#page-dryland #dry-nama');
+    // PERBAIKAN: Baca nama pakai ID yang bener
+    const namaInput = document.querySelector('#page-dryland #select-nama-member') || document.querySelector('#page-dryland #dry-nama');
     const ukuranInput = document.querySelector('#page-dryland #dry-ukuran');
     const memberInput = document.querySelector('#page-dryland #dry-member');
     
-    if (!namaInput || !ukuranInput || !memberInput) {
-        return alert("🚨 Form tidak terbaca sistem. Coba refresh halaman!");
+    if (!namaInput || !ukuranInput) {
+        return alert("🚨 Form tidak terbaca sistem. Pastikan ID elemen HTML sudah benar!");
     }
 
     const nama = namaInput.value.trim();
     const ukuran = ukuranInput.value;
-    const status_member = memberInput.value;
+    const status_member = memberInput ? memberInput.value : 'Member JR Academy';
     
     const file1 = document.querySelector('#page-dryland #file-cicil-1').files[0];
     const file2 = document.querySelector('#page-dryland #file-cicil-2').files[0];
     const file3 = document.querySelector('#page-dryland #file-cicil-3').files[0];
     const file4 = document.querySelector('#page-dryland #file-cicil-4').files[0];
 
-    if (!nama || !ukuran || !status_member) {
-        return alert("🚨 Mohon lengkapi Nama, Status Member, dan Ukuran Jersey!");
+    if (!nama || !ukuran) {
+        return alert("🚨 Mohon lengkapi Nama dan Ukuran Jersey!");
     }
     
     // Validasi Pendaftaran Baru
@@ -233,10 +244,10 @@ window.submitDryland = async function() {
             alert(`🎉 PENDAFTARAN BERHASIL!\nTerima kasih ${nama}. Silakan tunggu konfirmasi Admin.`);
         }
         
-        // Reset Kolom
+        // Reset Form Setelah Sukses
         namaInput.value = '';
         ukuranInput.value = '';
-        memberInput.value = '';
+        if(memberInput) memberInput.value = 'Member JR Academy';
         window.toggleWA(); 
         window.resetFormDrylandUI();
         
@@ -256,16 +267,3 @@ window.submitDryland = async function() {
         }
     }
 };
-
-// ==========================================
-// 5. TRIGGER OTOMATIS SAAT NAMA DIPILIH
-// ==========================================
-document.addEventListener('DOMContentLoaded', () => {
-    // Karena HTML ini dirender JS, kita pasang "mata-mata" di body
-    document.body.addEventListener('change', (e) => {
-        // Jika yang berubah/dipilih adalah input nama
-        if (e.target && e.target.id === 'dry-nama') {
-            window.cekStatusDryland();
-        }
-    });
-});
