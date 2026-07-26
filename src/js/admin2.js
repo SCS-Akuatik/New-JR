@@ -110,7 +110,6 @@ window.loadLeadsInbox = async function() {
             let noWa = lead.no_wa ? lead.no_wa.toString() : "";
             if (noWa.startsWith("0")) noWa = "62" + noWa.substring(1);
 
-            // 🔥 TANGKAP ADMIN ID / NAMA SALES DARI DATABASE 🔥
             const salesAsli = lead.admin_id || lead.nama_sales || 'Pusat / Organik';
 
             html += `
@@ -127,7 +126,6 @@ window.loadLeadsInbox = async function() {
                     <a href="https://wa.me/${noWa}?text=${pesanWA}" target="_blank" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-lg text-xs text-center transition">
                         💬 Sapa via WA
                     </a>
-                    <!-- 🔥 OMPER salesAsli KE DALAM PARAMETER TOMBOL 🔥 -->
                     <button onclick="approvePendaftar(${lead.id}, '${lead.nama}', '${lead.tanggal_lahir}', '${lead.no_wa}', '${lead.username}', '${lead.password}', '${salesAsli}')" class="flex-[1.5] bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs text-center transition shadow-sm">
                         ✅ ACC & Tagih
                     </button>
@@ -357,20 +355,29 @@ window.loadProfilAdmin = async function() {
     const elRole = document.getElementById('admin-role-label');
     const elFoto = document.getElementById('admin-avatar-img');
 
+    // Default: Jadikan awalan username huruf besar sebagai nama
     let callName = currentUser.charAt(0).toUpperCase() + currentUser.slice(1);
-    if(currentUser.toLowerCase() === 'trialfebi') callName = 'Febi';
     
+    // Terapkan default ke layar langsung agar cepat tampil
     if (elNama) elNama.innerText = callName;
+    
+    // Default Role Otomatis "Coach Manajerial" untuk semua yang buka halaman ini
+    if (elRole) elRole.innerText = 'Coach Manajerial';
+    
+    // Set default foto
     if (elFoto) elFoto.src = `https://ui-avatars.com/api/?name=${callName}&background=0D8ABC&color=fff`;
 
     try {
         const { data, error } = await sb.from('users').select('*').eq('username', currentUser).maybeSingle();
         
         if (data) {
+            // Jika call_name tidak kosong, pakai dari database. Jika kosong, pertahankan username
             if (elNama && data.call_name) {
                 elNama.innerText = data.call_name;
                 if(elFoto && !data.avatar_url) elFoto.src = `https://ui-avatars.com/api/?name=${data.call_name}&background=0D8ABC&color=fff`;
             }
+            
+            // Jika role_label ada dari DB, pakai itu. Jika kosong (null), biarkan tetap 'Coach Manajerial'
             if (elRole && data.role_label) elRole.innerText = data.role_label;
             
             if (elFoto && data.avatar_url) {
@@ -534,23 +541,19 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================
-// SCRIPT UNTUK COPY LINK MARKETING (FIX ID LOGIN)
+// SCRIPT UNTUK COPY LINK MARKETING
 // ==========================================
 window.copyLinkMarketing = function() {
-    // 🔥 KUNCI: Tarik Username / ID Login Asli dari memori browser 🔥
     const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username') || 'admin';
     const cleanName = encodeURIComponent(currentUser);
     
-    // Sekarang linknya akan jadi: ?admin_id=admin2
     const linkReferral = `https://jagorenang.my.id/daftar.html?admin_id=${cleanName}`;
     
-    // Munculkan link aslinya di kotak input
     const inputElement = document.getElementById('input-link-referral');
     if (inputElement) {
         inputElement.value = linkReferral;
     }
     
-    // Proses salin ke clipboard HP/PC
     navigator.clipboard.writeText(linkReferral).then(() => {
         const btn = document.getElementById('btn-copy-link');
         if (btn) {
@@ -569,3 +572,5 @@ window.copyLinkMarketing = function() {
         alert("Gagal otomatis. Silakan blok manual teks di kotak lalu copy.");
     });
 };
+// Daftarkan agar bisa diakses oleh tombol HTML
+window.initDashboardAdmin2 = initDashboardAdmin2;
