@@ -1,126 +1,7 @@
 import { sb } from './config.js';
 
-// Variabel Global untuk mengingat ID peserta jika sudah pernah daftar
-window.existingDrylandId = null;
-
 // ==========================================
-// 1. FUNGSI CEK DATA PESERTA OTOMATIS
-// ==========================================
-window.cekStatusDryland = async function() {
-    // PERBAIKAN: Sekarang JS ngebaca ID select-nama-member dari HTML kamu
-    const namaInput = document.querySelector('#page-dryland #select-nama-member') || document.querySelector('#page-dryland #dry-nama');
-    
-    if (!namaInput) return;
-    
-    const nama = namaInput.value.trim();
-    // Kalau belum milih nama, reset UI
-    if (!nama || nama === '' || nama === 'Non-Member') {
-        window.resetFormDrylandUI();
-        return;
-    }
-
-    try {
-        // Cek ke Supabase apakah nama ini sudah ada
-        const { data, error } = await sb.from('pendaftaran_dryland')
-            .select('*')
-            .eq('nama_peserta', nama)
-            .maybeSingle();
-
-        if (data) {
-            // SIMPAN ID-NYA! Biar nanti pas disubmit jadinya UPDATE, bukan INSERT
-            window.existingDrylandId = data.id;
-
-            const btn = document.querySelector('#page-dryland #btn-submit-dryland');
-
-            // JIKA SUDAH LUNAS
-            if (data.status_pembayaran === 'Lunas') {
-                alert(`Hai ${nama}, pendaftaran dan pembayaran kamu sudah LUNAS! 🎉\nTidak perlu upload bukti lagi.`);
-                if(btn) {
-                    btn.disabled = true;
-                    btn.innerText = "✅ SUDAH LUNAS";
-                    btn.classList.add('bg-emerald-500', 'cursor-not-allowed');
-                    btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-                }
-            } else {
-                // JIKA BELUM LUNAS (MASIH CICIL)
-                if(btn) {
-                    btn.disabled = false;
-                    btn.innerText = "🚀 KIRIM CICILAN SELANJUTNYA";
-                    btn.classList.remove('bg-emerald-500', 'cursor-not-allowed');
-                    btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-                }
-            }
-
-            // Kunci otomatis form ukuran baju biar gak ke-reset
-            const ukuranInput = document.querySelector('#page-dryland #dry-ukuran');
-            if (ukuranInput && data.ukuran_jersey) {
-                ukuranInput.value = data.ukuran_jersey;
-            }
-
-            // Update UI Kotak Upload (Kunci yang sudah terisi di database)
-            if (data.bukti_cicilan_1) lockUploadBox(1);
-            if (data.bukti_cicilan_2) lockUploadBox(2);
-            if (data.bukti_cicilan_3) lockUploadBox(3);
-            if (data.bukti_cicilan_4) lockUploadBox(4);
-
-        } else {
-            // Kalau nama belum ada di database, kembalikan UI seperti form baru
-            window.resetFormDrylandUI();
-        }
-    } catch (e) {
-        console.error("Gagal cek status peserta:", e);
-    }
-};
-
-// ==========================================
-// 2. FUNGSI PEMBANTU UI (KUNCI BOX & RESET)
-// ==========================================
-function lockUploadBox(num) {
-    const input = document.querySelector(`#page-dryland #file-cicil-${num}`);
-    const label = document.querySelector(`#page-dryland #label-file-${num}`);
-    if (!input || !label) return;
-    
-    const box = input.parentElement;
-    
-    // Matikan input biar gak ditimpa
-    input.disabled = true;
-    
-    // Ubah tampilan jadi hijau tanda sukses
-    label.innerText = "✅ Tersimpan di Sistem";
-    label.className = "text-[10px] font-bold text-emerald-700 text-center truncate w-full px-1 mt-1";
-    box.className = "upload-box relative flex flex-col items-center justify-center bg-emerald-100 border-2 border-solid border-emerald-500 rounded-2xl p-4 overflow-hidden opacity-80 cursor-not-allowed";
-}
-
-window.resetFormDrylandUI = function() {
-    window.existingDrylandId = null; // Hapus ingatan ID
-    const btn = document.querySelector('#page-dryland #btn-submit-dryland');
-    
-    if(btn) {
-        btn.disabled = false;
-        btn.innerText = "🚀 KIRIM PENDAFTARAN";
-        btn.classList.remove('bg-emerald-500', 'cursor-not-allowed');
-        btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-    }
-    
-    for (let i = 1; i <= 4; i++) {
-        const input = document.querySelector(`#page-dryland #file-cicil-${i}`);
-        const label = document.querySelector(`#page-dryland #label-file-${i}`);
-        const box = input ? input.parentElement : null;
-        
-        if(input && label && box) {
-            input.disabled = false;
-            input.value = ''; // Kosongkan file
-            
-            // Balikin UI ke warna abu-abu default
-            label.innerText = "Belum ada file";
-            label.className = "text-[9px] text-slate-400 mt-1 text-center truncate w-full px-1";
-            box.className = "upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-4 cursor-pointer overflow-hidden transition hover:bg-sky-50";
-        }
-    }
-};
-
-// ==========================================
-// 3. FUNGSI LAINNYA
+// 1. FUNGSI MEMUNCULKAN WA (PELURU KENDALI)
 // ==========================================
 window.toggleWA = function() {
     const memberSelect = document.querySelector('#page-dryland #dry-member');
@@ -135,6 +16,9 @@ window.toggleWA = function() {
     }
 };
 
+// ==========================================
+// 2. FUNGSI PREVIEW FILE
+// ==========================================
 window.previewFile = function(num) {
     const input = document.querySelector(`#page-dryland #file-cicil-${num}`);
     const label = document.querySelector(`#page-dryland #label-file-${num}`);
@@ -154,41 +38,35 @@ window.previewFile = function(num) {
 };
 
 // ==========================================
-// 4. FUNGSI UTAMA SUBMIT DATA
+// 3. FUNGSI UTAMA SUBMIT DATA
 // ==========================================
 window.submitDryland = async function() {
     const btn = document.querySelector('#page-dryland #btn-submit-dryland');
     
-    // PERBAIKAN: Baca nama pakai ID yang bener
-    const namaInput = document.querySelector('#page-dryland #select-nama-member') || document.querySelector('#page-dryland #dry-nama');
+    const namaInput = document.querySelector('#page-dryland #dry-nama');
     const ukuranInput = document.querySelector('#page-dryland #dry-ukuran');
     const memberInput = document.querySelector('#page-dryland #dry-member');
     
-    if (!namaInput || !ukuranInput) {
-        return alert("🚨 Form tidak terbaca sistem. Pastikan ID elemen HTML sudah benar!");
+    if (!namaInput || !ukuranInput || !memberInput) {
+        return alert("🚨 Form tidak terbaca sistem. Coba refresh halaman!");
     }
 
     const nama = namaInput.value.trim();
     const ukuran = ukuranInput.value;
-    const status_member = memberInput ? memberInput.value : 'Member JR Academy';
+    const status_member = memberInput.value;
     
     const file1 = document.querySelector('#page-dryland #file-cicil-1').files[0];
     const file2 = document.querySelector('#page-dryland #file-cicil-2').files[0];
     const file3 = document.querySelector('#page-dryland #file-cicil-3').files[0];
     const file4 = document.querySelector('#page-dryland #file-cicil-4').files[0];
 
-    if (!nama || !ukuran) {
-        return alert("🚨 Mohon lengkapi Nama dan Ukuran Jersey!");
+    // Validasi Wajib Isi
+    if (!nama || !ukuran || !status_member) {
+        return alert("🚨 Mohon lengkapi Nama, Status Member, dan Ukuran Jersey!");
     }
     
-    // Validasi Pendaftaran Baru
-    if (!window.existingDrylandId && !file1 && !file2 && !file3 && !file4) {
+    if (!file1 && !file2 && !file3 && !file4) {
         return alert("🚨 Silakan upload minimal Bukti Cicilan 1 (DP)!");
-    }
-
-    // Validasi Update Cicilan
-    if (window.existingDrylandId && !file1 && !file2 && !file3 && !file4) {
-        return alert("🚨 Kamu belum memilih file bukti transfer yang baru!");
     }
 
     const originalText = btn ? btn.innerHTML : "🚀 KIRIM PENDAFTARAN";
@@ -199,7 +77,7 @@ window.submitDryland = async function() {
     }
 
     try {
-        let payload = {};
+        let urls = { cicilan_1: null, cicilan_2: null, cicilan_3: null, cicilan_4: null };
         const cleanName = nama.replace(/\s+/g, '_').toLowerCase();
         const timestamp = Date.now();
 
@@ -216,42 +94,40 @@ window.submitDryland = async function() {
             return data.publicUrl;
         };
 
-        if(file1) payload.bukti_cicilan_1 = await uploadFile(file1, 1);
-        if(file2) payload.bukti_cicilan_2 = await uploadFile(file2, 2);
-        if(file3) payload.bukti_cicilan_3 = await uploadFile(file3, 3);
-        if(file4) payload.bukti_cicilan_4 = await uploadFile(file4, 4);
+        if(file1) urls.cicilan_1 = await uploadFile(file1, 1);
+        if(file2) urls.cicilan_2 = await uploadFile(file2, 2);
+        if(file3) urls.cicilan_3 = await uploadFile(file3, 3);
+        if(file4) urls.cicilan_4 = await uploadFile(file4, 4);
 
-        if (window.existingDrylandId) {
-            // UPDATE: Jika sudah pernah terdaftar, update cicilan & reset status pembayaran
-            payload.status_pembayaran = 'Menunggu Konfirmasi';
-            
-            const { error: dbErr } = await sb.from('pendaftaran_dryland')
-                .update(payload)
-                .eq('id', window.existingDrylandId);
+        const { error: dbErr } = await sb.from('pendaftaran_dryland').insert([{
+            nama_peserta: nama,
+            status_member: status_member,
+            ukuran_jersey: ukuran,
+            bukti_cicilan_1: urls.cicilan_1,
+            bukti_cicilan_2: urls.cicilan_2,
+            bukti_cicilan_3: urls.cicilan_3,
+            bukti_cicilan_4: urls.cicilan_4,
+            status_pembayaran: 'Menunggu Konfirmasi'
+        }]);
 
-            if (dbErr) throw dbErr;
-            alert(`🎉 UPDATE BERHASIL!\nTerima kasih ${nama}, bukti cicilan baru telah masuk. Tunggu konfirmasi Admin ya.`);
-            
-        } else {
-            // INSERT: Jika pendaftaran baru
-            payload.nama_peserta = nama;
-            payload.status_member = status_member;
-            payload.ukuran_jersey = ukuran;
-            payload.status_pembayaran = 'Menunggu Konfirmasi';
+        if (dbErr) throw dbErr;
 
-            const { error: dbErr } = await sb.from('pendaftaran_dryland').insert([payload]);
-            if (dbErr) throw dbErr;
-            alert(`🎉 PENDAFTARAN BERHASIL!\nTerima kasih ${nama}. Silakan tunggu konfirmasi Admin.`);
-        }
+        alert(`🎉 PENDAFTARAN BERHASIL!\nTerima kasih ${nama}. Silakan tunggu konfirmasi Admin.`);
         
-        // Reset Form Setelah Sukses
+        // Reset Kolom
         namaInput.value = '';
         ukuranInput.value = '';
-        if(memberInput) memberInput.value = 'Member JR Academy';
-        window.toggleWA(); 
-        window.resetFormDrylandUI();
+        memberInput.value = '';
+        window.toggleWA(); // Tutup kembali WA Container
         
-        // Balik ke dashboard
+        // Reset Kotak Upload
+        for (let i = 1; i <= 4; i++) {
+            const resetFileInput = document.querySelector(`#page-dryland #file-cicil-${i}`);
+            if(resetFileInput) resetFileInput.value = '';
+            window.previewFile(i);
+        }
+        
+        // Opsional: Langsung balik ke dashboard
         if (typeof window.pindahHalaman === 'function') {
             window.pindahHalaman('dashboard-parent');
         }
