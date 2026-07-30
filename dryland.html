@@ -5,29 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pendaftaran Dryland - Jago Renang</title>
     
-    <!-- ============================================== -->
-    <!-- META TAGS UNTUK SHARE WHATSAPP & SOSMED        -->
-    <!-- ============================================== -->
     <meta name="description" content="Jago Academy Special Event: Dryland & Fun Games! FFP Program (Fundamentals, Funs & Plays) + Time Trial Swim Race di Narita Hotel, 13 Sept 2026. Amankan kuota jagoanmu sekarang!">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://jagorenang.my.id/dryland.html">
     <meta property="og:title" content="Dryland & Fun Games - Jago Academy Special Event">
     <meta property="og:description" content="FFP Program: Fundamentals, Funs & Plays + Time Trial Swim Race di Narita Hotel, 13 Sept 2026. Amankan kuota jagoanmu sekarang!">
     <meta property="og:image" content="https://jagorenang.my.id/images/dryland.jpg">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://jagorenang.my.id/dryland.html">
-    <meta name="twitter:title" content="Dryland & Fun Games - Jago Academy Special Event">
-    <meta name="twitter:description" content="FFP Program: Fundamentals, Funs & Plays + Time Trial Swim Race di Narita Hotel, 13 Sept 2026. Amankan kuota jagoanmu sekarang!">
-    <meta name="twitter:image" content="https://jagorenang.my.id/images/dryland.jpg">
 
-    <!-- 1. Panggil Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 2. Panggil Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased">
 
-    <div id="page-dryland" class="w-full min-h-screen pb-12" style="background-image: radial-gradient(#bae6fd 1px, transparent 1px); background-size: 20px 20px;">
+    <div id="page-dryland" class="w-full min-h-screen pb-24" style="background-image: radial-gradient(#bae6fd 1px, transparent 1px); background-size: 20px 20px;">
         
         <!-- HERO SECTION -->
         <div class="bg-gradient-to-br from-sky-600 via-sky-500 to-indigo-600 w-full pt-14 pb-16 px-5 text-center text-white relative shadow-lg rounded-b-[2.5rem] overflow-hidden">
@@ -66,7 +54,6 @@
                 <h3 class="text-xs font-black text-sky-800 uppercase tracking-wider border-b-2 border-sky-100 pb-3 mb-4 flex items-center gap-2">👨‍🏫 By Coach Nisa & JR Specialist</h3>
                 
                 <div class="space-y-5">
-                    <!-- PROGRAM & AKTIVITAS -->
                     <div>
                         <h4 class="font-bold text-slate-800 text-sm mb-3 flex items-center gap-2">🏃‍♂️ Program & Aktivitas yang Didapatkan:</h4>
                         <ul class="space-y-3.5">
@@ -74,27 +61,27 @@
                                 <span class="text-emerald-500 text-base mt-0.5">✅</span>
                                 <div>
                                     <b class="block text-slate-800 text-sm tracking-tight mb-0.5">Stretching Culture :</b> 
-                                    <p class="text-xs text-slate-500 leading-relaxed">Edukasi dan pembiasaan peregangan mendalam sebelum olahraga untuk meminimalisir risiko cedera.</p>
+                                    <p class="text-xs text-slate-500 leading-relaxed">Edukasi dan pembiasaan peregangan mendalam sebelum olahraga.</p>
                                 </div>
                             </li>
                             <li class="flex items-start gap-3">
                                 <span class="text-emerald-500 text-base mt-0.5">✅</span>
                                 <div>
                                     <b class="block text-slate-800 text-sm tracking-tight mb-0.5">10 Dryland Materi :</b> 
-                                    <p class="text-xs text-slate-500 leading-relaxed">Bimbingan langsung dari Coach untuk melatih 10 teknik gerakan renang di darat (menyempurnakan memori otot).</p>
+                                    <p class="text-xs text-slate-500 leading-relaxed">Bimbingan langsung dari Coach untuk melatih 10 teknik gerakan renang di darat.</p>
                                 </div>
                             </li>
                             <li class="flex items-start gap-3">
                                 <span class="text-emerald-500 text-base mt-0.5">✅</span>
                                 <div>
                                     <b class="block text-slate-800 text-sm tracking-tight mb-0.5">Time Trial & Fun Games :</b> 
-                                    <p class="text-xs text-slate-500 leading-relaxed">Ajang adu ketangkasan dan kecepatan internal anak yang dibalut dengan games seru bertabur hadiah.</p>
+                                    <p class="text-xs text-slate-500 leading-relaxed">Ajang adu ketangkasan bertabur hadiah.</p>
                                 </div>
                             </li>
                         </ul>
                     </div>
 
-                    <!-- BOX TANGGAL, JAM, DAN BIAYA (DIPERBARUI) -->
+                    <!-- BOX TANGGAL & BIAYA -->
                     <div class="bg-gradient-to-br from-sky-50 to-blue-50 p-4 rounded-2xl border border-sky-100">
                         <div class="flex justify-between items-center mb-3">
                             <span class="text-xs font-bold text-slate-500">Hari & Tanggal</span>
@@ -110,11 +97,17 @@
                         </div>
                     </div>
 
-                    <!-- FASILITAS (DIPERBARUI DENGAN DIKSI PREMIUM) -->
+                    <!-- FASILITAS -->
                     <div>
                         <h4 class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">🎁 Fasilitas:</h4>
                         <div class="grid grid-cols-2 gap-2 text-[11px] font-bold text-slate-600">
-                            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">👕 Official Event Jersey</div>
+                            
+                            <!-- TOMBOL JERSEY KLIKABEL -->
+                            <div onclick="document.getElementById('modal-jersey').classList.remove('hidden')" class="bg-sky-50 p-2.5 rounded-xl border border-sky-200 cursor-pointer hover:bg-sky-100 transition flex justify-between items-center group shadow-sm">
+                                <span>👕 Official Jersey</span>
+                                <span class="text-[9px] bg-sky-200 text-sky-800 px-1.5 py-0.5 rounded-md group-hover:bg-sky-300 transition shadow-sm">Lihat</span>
+                            </div>
+                            
                             <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">🍽️ Premium Buffet Lunch</div>
                             <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">📜 e-Sertifikat</div>
                             <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">🏆 Hadiah Games</div>
@@ -132,53 +125,46 @@
                     <!-- 1. TRIGGER UTAMA -->
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1.5 ml-1">JR Academy Member</label>
-                        <select id="kategori-pendaftar" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 transition">
+                        <select id="kategori-pendaftar" onchange="window.gantiKategori()" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 transition">
                             <option value="">-- Pilih Status --</option>
                             <option value="umum" class="font-bold text-indigo-600">👤 Bukan Member / Umum</option>
                             <option value="member" class="font-bold text-emerald-600">🏊‍♂️ Sudah Member (Pilih Nama)</option>
                         </select>
                     </div>
 
-                    <!-- 2. WADAH JIKA PILIH "BUKAN MEMBER / UMUM" -->
+                    <!-- 2. WADAH UMUM -->
                     <div id="wadah-umum" class="hidden space-y-4 pt-2 border-t border-slate-100">
                         <div>
                             <label class="block text-xs font-bold text-slate-500 mb-1.5 ml-1">Nama Lengkap Peserta</label>
-                            <input type="text" id="input-nama-umum" placeholder="Masukkan nama peserta..." class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-sky-500 transition">
+                            <input type="text" id="input-nama-umum" onblur="window.cekStatusDryland()" placeholder="Masukkan nama peserta..." class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-sky-500 transition">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 mb-1.5 ml-1">Nomor WhatsApp</label>
                             <input type="number" id="input-wa-umum" placeholder="Contoh: 08123456789" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-sky-500 transition">
                         </div>
-                        
-                        <!-- Info WA Konfirmasi -->
                         <div class="bg-emerald-50 border-2 border-emerald-200 p-4 rounded-2xl space-y-3">
                             <div class="flex items-center gap-3">
                                 <span class="text-2xl bg-white p-2 rounded-xl shadow-sm">💬</span>
                                 <div>
                                     <h4 class="font-black text-emerald-800 text-xs uppercase tracking-wider">Konfirmasi Admin</h4>
-                                    <p class="text-[11px] text-emerald-600 leading-relaxed">Karena mendaftar sebagai umum, silakan konfirmasi pembayaran ke Admin via WhatsApp.</p>
+                                    <p class="text-[11px] text-emerald-600 leading-relaxed">Silakan konfirmasi pembayaran ke Admin via WhatsApp.</p>
                                 </div>
                             </div>
-                            <a href="https://wa.me/6289678159835?text=Halo%20Admin,%20saya%20ingin%20konfirmasi%20pendaftaran%20Dryland%20untuk%20peserta%20Non-Member." target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-md transition transform active:scale-95">
-                                📱 Chat Admin WhatsApp
-                            </a>
                         </div>
                     </div>
 
-                    <!-- 3. WADAH JIKA PILIH "SUDAH MEMBER" -->
+                    <!-- 3. WADAH MEMBER -->
                     <div id="wadah-member" class="hidden space-y-4 pt-2 border-t border-slate-100">
                         <div>
                             <label class="block text-xs font-bold text-slate-500 mb-1.5 ml-1">Pilih Nama Murid</label>
-                            <select id="select-nama-member" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-sky-500 transition">
+                            <select id="select-nama-member" onchange="window.cekStatusDryland()" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-sky-500 transition">
                                 <option value="">-- Memuat Data Member... --</option>
                             </select>
                             <p class="text-[9px] font-bold text-slate-400 mt-1 ml-1">*Data ditarik otomatis dari sistem Jago Renang.</p>
                         </div>
                     </div>
 
-                    <!-- ============================================== -->
-                    <!-- SELALU TAMPIL (COMMON FIELDS)                  -->
-                    <!-- ============================================== -->
+                    <!-- COMMON FIELDS -->
                     <div id="common-fields" class="hidden space-y-4 pt-2 border-t border-slate-100">
                         <div>
                             <label class="block text-xs font-bold text-slate-500 mb-1.5 ml-1">Pilih Ukuran Jersey</label>
@@ -193,7 +179,7 @@
                             </select>
                         </div>
 
-                        <!-- BOX PEMBAYARAN -->
+                        <!-- UPLOAD BUKTI -->
                         <div class="pt-2">
                             <div class="flex justify-between items-center mb-3">
                                 <label class="block text-xs font-black text-emerald-600">💸 UPLOAD BUKTI (BISA DICICIL)</label>
@@ -202,28 +188,28 @@
 
                             <div class="grid grid-cols-2 gap-3">
                                 <label class="upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-4 cursor-pointer overflow-hidden transition hover:bg-sky-50">
-                                    <input type="file" id="file-cicil-1" accept="image/*" class="hidden">
+                                    <input type="file" id="file-cicil-1" accept="image/*" class="hidden" onchange="window.previewFile(1)">
                                     <span class="text-2xl mb-1.5 drop-shadow-sm">🧾</span>
                                     <span class="text-[10px] font-bold text-slate-700 text-center">Cicilan 1 (DP)</span>
                                     <span id="label-file-1" class="text-[9px] text-slate-400 mt-1 truncate w-full text-center px-1">Belum ada file</span>
                                 </label>
 
                                 <label class="upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-4 cursor-pointer overflow-hidden transition hover:bg-sky-50">
-                                    <input type="file" id="file-cicil-2" accept="image/*" class="hidden">
+                                    <input type="file" id="file-cicil-2" accept="image/*" class="hidden" onchange="window.previewFile(2)">
                                     <span class="text-2xl mb-1.5 drop-shadow-sm">🧾</span>
                                     <span class="text-[10px] font-bold text-slate-700 text-center">Cicilan 2</span>
                                     <span id="label-file-2" class="text-[9px] text-slate-400 mt-1 truncate w-full text-center px-1">Belum ada file</span>
                                 </label>
 
                                 <label class="upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-4 cursor-pointer overflow-hidden transition hover:bg-sky-50">
-                                    <input type="file" id="file-cicil-3" accept="image/*" class="hidden">
+                                    <input type="file" id="file-cicil-3" accept="image/*" class="hidden" onchange="window.previewFile(3)">
                                     <span class="text-2xl mb-1.5 drop-shadow-sm">🧾</span>
                                     <span class="text-[10px] font-bold text-slate-700 text-center">Cicilan 3</span>
                                     <span id="label-file-3" class="text-[9px] text-slate-400 mt-1 truncate w-full text-center px-1">Belum ada file</span>
                                 </label>
 
                                 <label class="upload-box relative flex flex-col items-center justify-center bg-emerald-50/50 border-2 border-dashed border-emerald-300 rounded-2xl p-4 cursor-pointer overflow-hidden transition hover:bg-emerald-50 hover:border-emerald-400">
-                                    <input type="file" id="file-cicil-4" accept="image/*" class="hidden">
+                                    <input type="file" id="file-cicil-4" accept="image/*" class="hidden" onchange="window.previewFile(4)">
                                     <span class="text-2xl mb-1.5 drop-shadow-sm">🏆</span>
                                     <span class="text-[10px] font-black text-emerald-600 text-center">Lunas</span>
                                     <span id="label-file-4" class="text-[9px] text-emerald-500/70 mt-1 truncate w-full text-center px-1">Belum ada file</span>
@@ -231,7 +217,7 @@
                             </div>
                         </div>
 
-                        <button id="btn-submit-dryland" class="w-full bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-600 hover:to-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-200 mt-5 transition transform active:scale-95 border border-indigo-400 shadow-inner">
+                        <button id="btn-submit-dryland" onclick="window.submitDryland()" class="w-full bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-600 hover:to-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-200 mt-5 transition transform active:scale-95 border border-indigo-400 shadow-inner">
                             🚀 KIRIM PENDAFTARAN
                         </button>
                     </div>
@@ -242,177 +228,19 @@
         </div>
     </div>
 
-    <!-- ============================================== -->
-    <!-- LOGIKA JAVASCRIPT (MURNI & EVENT LISTENER)     -->
-    <!-- ============================================== -->
-    <script>
-        document.addEventListener('DOMContentLoaded', async function() {
-            
-            // 1. SETUP SUPABASE
-            const SUPABASE_URL = 'https://xwqdkvxythrewgjxhiru.supabase.co'; 
-            const SUPABASE_KEY = 'sb_publishable_xfjCBEL-Hf77z-ssKaeZbg_-Or1pIML';
-            
-            let sb = null;
-            if (window.supabase) {
-                sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            } else {
-                alert("🚨 Sistem Database gagal dimuat. Harap periksa koneksi internet Anda.");
-                return;
-            }
+    <!-- FLOATING INFO PESERTA -->
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
+        <div class="bg-slate-900/90 backdrop-blur-md text-white px-5 py-2.5 rounded-full shadow-2xl border border-slate-600 flex items-center gap-2 animate-bounce cursor-default">
+            <span class="text-lg">🔥</span>
+            <span id="floating-counter" class="text-xs font-black tracking-wide">Menghitung...</span>
+        </div>
+    </div>
 
-            // 2. ELEMEN FORM
-            const triggerKategori = document.getElementById('kategori-pendaftar');
-            const wadahUmum = document.getElementById('wadah-umum');
-            const wadahMember = document.getElementById('wadah-member');
-            const commonFields = document.getElementById('common-fields');
-            const selectMember = document.getElementById('select-nama-member');
+    <!-- MODAL PREVIEW JERSEY -->
+    <div id="modal-jersey" class="hidden fixed inset-0 z-[100] bg-slate-900/95 backdrop-blur-sm flex flex-col items-center justify-center p-5 transition-opacity" onclick="this.classList.add('hidden')">
+        <img src="/images/jersey.jpg" class="max-w-full max-h-[75vh] rounded-2xl shadow-2xl object-contain bg-white" alt="Jersey Event Dryland" onerror="this.src='/images/logo.png'; this.classList.add('p-10');">
+        <p class="text-white text-[10px] uppercase tracking-widest mt-5 font-bold bg-white/20 px-5 py-2 rounded-full border border-white/30 cursor-pointer">Tutup (Klik dimana saja)</p>
+    </div>
 
-            // 3. FUNGSI TARIK DATA MEMBER DARI SUPABASE
-            async function loadDataMember() {
-                try {
-                    const { data, error } = await sb.from('murid').select('id_murid, nama_murid').order('nama_murid', { ascending: true });
-                    if (error) throw error;
-
-                    selectMember.innerHTML = '<option value="">-- Silakan Pilih Nama Anak --</option>';
-                    data.forEach(murid => {
-                        selectMember.innerHTML += `<option value="${murid.nama_murid}">${murid.nama_murid}</option>`;
-                    });
-                } catch (e) {
-                    console.error("Gagal menarik data murid:", e);
-                    selectMember.innerHTML = '<option value="">Gagal memuat data. Periksa koneksi.</option>';
-                }
-            }
-            
-            loadDataMember();
-
-            // 4. LOGIKA TRIGGER TOGGLE
-            triggerKategori.addEventListener('change', function() {
-                const pilihan = this.value;
-
-                if (pilihan === 'umum') {
-                    wadahUmum.classList.remove('hidden');
-                    wadahMember.classList.add('hidden');
-                    commonFields.classList.remove('hidden');
-                } else if (pilihan === 'member') {
-                    wadahUmum.classList.add('hidden');
-                    wadahMember.classList.remove('hidden');
-                    commonFields.classList.remove('hidden');
-                } else {
-                    wadahUmum.classList.add('hidden');
-                    wadahMember.classList.add('hidden');
-                    commonFields.classList.add('hidden');
-                }
-            });
-
-            // 5. LISTENER PREVIEW UPLOAD GAMBAR
-            for (let i = 1; i <= 4; i++) {
-                const fileInput = document.getElementById(`file-cicil-${i}`);
-                if (fileInput) {
-                    fileInput.addEventListener('change', function() {
-                        const label = document.getElementById(`label-file-${i}`);
-                        const box = this.parentElement;
-
-                        if (this.files && this.files[0]) {
-                            label.innerText = "✅ " + this.files[0].name;
-                            label.className = "text-[10px] font-bold text-emerald-600 text-center truncate w-full px-1 mt-1";
-                            box.className = "upload-box relative flex flex-col items-center justify-center bg-emerald-50 border-2 border-dashed border-emerald-400 rounded-2xl p-4 cursor-pointer overflow-hidden transition";
-                        } else {
-                            label.innerText = "Belum ada file";
-                            label.className = "text-[9px] text-slate-400 mt-1 text-center truncate w-full px-1";
-                            box.className = "upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-4 cursor-pointer overflow-hidden transition hover:bg-sky-50";
-                        }
-                    });
-                }
-            }
-
-            // 6. LOGIKA SUBMIT DATA
-            const btnSubmit = document.getElementById('btn-submit-dryland');
-            if (btnSubmit) {
-                btnSubmit.addEventListener('click', async function() {
-                    
-                    const kategori = triggerKategori.value;
-                    let finalNama = "";
-                    let finalWA = "";
-                    let finalStatus = "";
-
-                    if (kategori === 'umum') {
-                        finalNama = document.getElementById('input-nama-umum').value.trim();
-                        finalWA = document.getElementById('input-wa-umum').value.trim();
-                        finalStatus = "Non-Member / Umum";
-
-                        if (!finalNama || !finalWA) {
-                            return alert("🚨 Karena mendaftar sebagai Umum, mohon isi Nama dan Nomor WA!");
-                        }
-                    } else if (kategori === 'member') {
-                        finalNama = selectMember.value;
-                        finalWA = "Tarik dr DB";
-                        finalStatus = "Member JR Academy";
-
-                        if (!finalNama) {
-                            return alert("🚨 Mohon pilih nama murid dari dropdown!");
-                        }
-                    } else {
-                        return alert("🚨 Mohon pilih kategori pendaftar (Umum atau Member) terlebih dahulu!");
-                    }
-
-                    const ukuran = document.getElementById('dry-ukuran').value;
-                    if (!ukuran) return alert("🚨 Mohon pilih ukuran jersey!");
-
-                    const file1 = document.getElementById('file-cicil-1').files[0];
-                    if (!file1) return alert("🚨 Silakan upload minimal Bukti Cicilan 1 (DP)!");
-
-                    const originalText = this.innerHTML;
-                    this.innerText = "⏳ Sedang Mengirim Data...";
-                    this.disabled = true;
-                    this.classList.add('opacity-70', 'cursor-not-allowed');
-
-                    try {
-                        let urls = { c1: null, c2: null, c3: null, c4: null };
-                        const cleanName = finalNama.replace(/\s+/g, '_').toLowerCase();
-                        const timestamp = Date.now();
-
-                        const uploadToStorage = async (file, num) => {
-                            if (!file) return null;
-                            const ext = file.name.split('.').pop();
-                            const path = `public/${cleanName}_cicilan${num}_${timestamp}.${ext}`;
-                            const { error: upErr } = await sb.storage.from('bukti_pembayaran_event').upload(path, file);
-                            if (upErr) throw upErr;
-                            return sb.storage.from('bukti_pembayaran_event').getPublicUrl(path).data.publicUrl;
-                        };
-
-                        urls.c1 = await uploadToStorage(file1, 1);
-                        urls.c2 = await uploadToStorage(document.getElementById('file-cicil-2').files[0], 2);
-                        urls.c3 = await uploadToStorage(document.getElementById('file-cicil-3').files[0], 3);
-                        urls.c4 = await uploadToStorage(document.getElementById('file-cicil-4').files[0], 4);
-
-                        const { error: dbErr } = await sb.from('pendaftaran_dryland').insert([{
-                            nama_peserta: finalNama,
-                            status_member: finalStatus,
-                            ukuran_jersey: ukuran,
-                            no_wa: finalWA,
-                            bukti_cicilan_1: urls.c1,
-                            bukti_cicilan_2: urls.c2,
-                            bukti_cicilan_3: urls.c3,
-                            bukti_cicilan_4: urls.c4,
-                            status_pembayaran: 'Menunggu Konfirmasi'
-                        }]);
-
-                        if (dbErr) throw dbErr;
-
-                        alert(`🎉 PENDAFTARAN BERHASIL!\nTerima kasih ${finalNama}. Silakan tunggu konfirmasi Admin.`);
-                        window.location.reload();
-
-                    } catch (e) {
-                        console.error(e);
-                        alert("❌ Gagal mengirim data: " + (e.message || e));
-                    } finally {
-                        this.innerHTML = originalText;
-                        this.disabled = false;
-                        this.classList.remove('opacity-70', 'cursor-not-allowed');
-                    }
-                });
-            }
-        });
-    </script>
 </body>
 </html>
