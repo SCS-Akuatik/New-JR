@@ -250,34 +250,37 @@ export function masukRuangDewa(idRuangan) {
     syncHubActionButton(idRuangan);
 }
 
-// 2. Fungsi Mata Dewa (Tarik Semua Parent Username & Gabung Anak) - VERSI POV ORTU
+// 2. Fungsi Mata Dewa (Tarik Semua Parent Username - Versi Clean & Urut Abjad)
 export async function loadMataDewaDropdown() {
     const select = document.getElementById('dewa-pilih-ortu');
     if (!select) return;
     
     select.innerHTML = '<option value="">-- Memuat Data Akun Ortu... --</option>';
     
+    // Kita langsung tarik data HANYA kolom parent_username, abaikan null/kosong
     const { data, error } = await sb.from('murid')
-        .select('parent_username, nama_murid')
+        .select('parent_username')
         .not('parent_username', 'is', null)
         .neq('parent_username', '');
         
     if (error) return select.innerHTML = '<option value="">Gagal muat data database.</option>';
     
-    const mapOrtu = {};
-    data.forEach(m => {
-        if (!mapOrtu[m.parent_username]) {
-            mapOrtu[m.parent_username] = [];
-        }
-        mapOrtu[m.parent_username].push(m.nama_murid);
+    // Karena satu ortu bisa punya >1 anak, data di tabel murid pasti ada yang duplikat
+    // Kita pakai Set (Trik JS) untuk membuang username ortu yang kembar (Duplicate removal)
+    const uniqueOrtuList = [...new Set(data.map(m => m.parent_username))];
+    
+    // Urutkan dari A sampai Z secara alfabetis
+    uniqueOrtuList.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+    
+    // Render ke HTML (Tanpa embel-embel Ortu dari anak siapa)
+    let html = '<option value="">-- Pilih Akun Ortu --</option>';
+    uniqueOrtuList.forEach(userOrtu => {
+        html += `<option value="${userOrtu}">${userOrtu}</option>`;
     });
     
-    let html = '<option value="">-- Pilih Akun Ortu --</option>';
-    for (const [userOrtu, listAnak] of Object.entries(mapOrtu)) {
-        html += `<option value="${userOrtu}">${userOrtu} (Ortu dari: ${listAnak.join(', ')})</option>`;
-    }
     select.innerHTML = html;
 }
+
 
 // 3. Fungsi Simulasi Login (Menyamar Jadi POV Ortu)
 export function simulasiLoginOrtu() {

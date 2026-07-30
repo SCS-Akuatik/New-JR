@@ -61,37 +61,52 @@ export async function buatAkunCoach() {
 }
 
 /* =========================================================
-   2. CREATE AKUN WALI MURID
+   2. CREATE / TAUTKAN AKUN WALI MURID
 ========================================================= */
 export async function buatAkunWali() {
     const idMurid = document.getElementById('form-wali-murid').value;
     const user = document.getElementById('form-wali-user').value.trim();
     const pass = document.getElementById('form-wali-pass').value.trim();
 
-    if (!idMurid || !user || !pass) return alert("Pilih Murid, isi Username, dan Password!");
+    if (!idMurid || !user) return alert("Pilih Murid dan isi Username Wali!");
 
     try {
+        // 1. Coba buat akun di tabel users
         const { error: errUser } = await sb.from('users').insert([{ 
             username: user, 
-            password: pass, 
+            password: pass || '123456', // Default pass jika dikosongkan (saat nambah anak ke-2)
             role: ['parent'] 
         }]);
         
         if (errUser) {
-            if (errUser.code === '23505') return alert("Username sudah dipakai orang lain!");
-            throw errUser;
+            // Jika error 23505 (Username Unique Violation), artinya akun ortu udah ada
+            if (errUser.code === '23505') {
+                const lanjut = confirm(`Username "${user}" sudah terdaftar di sistem.\n\nApakah kamu ingin MENAUTKAN anak ini ke akun tersebut?`);
+                if (!lanjut) return; 
+                // Jika klik OK, abaikan error dan lanjut ke step 2
+            } else {
+                throw errUser;
+            }
         }
 
+        // 2. Tautkan username wali ke data murid
         const { error: errMurid } = await sb.from('murid').update({ parent_username: user }).eq('id_murid', idMurid);
         if (errMurid) throw errMurid;
 
-        alert("✅ Akun Wali Murid berhasil dibuat dan otomatis terhubung dengan data Anak!");
+        alert("✅ Sukses! Data anak berhasil ditautkan ke akun Wali Murid.");
+        
+        // Bersihkan form
         document.getElementById('form-wali-user').value = '';
         document.getElementById('form-wali-pass').value = '';
+        
+        // Refresh tabel siswa di latar belakang biar langsung update
+        if(typeof window.loadSiswaAdmin === "function") window.loadSiswaAdmin();
+        
     } catch (err) {
-        alert("Gagal membuat akun wali: " + err.message);
+        alert("Gagal memproses akun wali: " + err.message);
     }
 }
+
 
 /* =========================================================
    3. CREATE AKUN ADMIN (VIA PROMPT)
