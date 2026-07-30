@@ -12,6 +12,9 @@
     <meta property="og:description" content="FFP Program: Fundamentals, Funs & Plays + Time Trial Swim Race di Narita Hotel, 13 Sept 2026. Amankan kuota jagoanmu sekarang!">
     <meta property="og:image" content="https://jagorenang.my.id/images/dryland.jpg">
 
+    <!-- INI YANG BIKIN CAKEP! JANGAN DIHAPUS LAGI BRAY 🙏 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased">
 
@@ -97,11 +100,10 @@
                         </div>
                     </div>
 
-                    <!-- FASILITAS -->
+                    <!-- FASILITAS DENGAN TOMBOL JERSEY -->
                     <div>
                         <h4 class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">🎁 Fasilitas:</h4>
                         <div class="grid grid-cols-2 gap-2 text-[11px] font-bold text-slate-600">
-                            
                             <!-- TOMBOL JERSEY KLIKABEL -->
                             <div onclick="document.getElementById('modal-jersey').classList.remove('hidden')" class="bg-sky-50 p-2.5 rounded-xl border border-sky-200 cursor-pointer hover:bg-sky-100 transition flex justify-between items-center group shadow-sm">
                                 <span>👕 Official Jersey</span>
@@ -125,7 +127,7 @@
                     <!-- 1. TRIGGER UTAMA -->
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1.5 ml-1">JR Academy Member</label>
-                        <select id="kategori-pendaftar" onchange="window.gantiKategori()" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 transition">
+                        <select id="kategori-pendaftar" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 transition">
                             <option value="">-- Pilih Status --</option>
                             <option value="umum" class="font-bold text-indigo-600">👤 Bukan Member / Umum</option>
                             <option value="member" class="font-bold text-emerald-600">🏊‍♂️ Sudah Member (Pilih Nama)</option>
@@ -136,7 +138,7 @@
                     <div id="wadah-umum" class="hidden space-y-4 pt-2 border-t border-slate-100">
                         <div>
                             <label class="block text-xs font-bold text-slate-500 mb-1.5 ml-1">Nama Lengkap Peserta</label>
-                            <input type="text" id="input-nama-umum" onblur="window.cekStatusDryland()" placeholder="Masukkan nama peserta..." class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-sky-500 transition">
+                            <input type="text" id="input-nama-umum" placeholder="Masukkan nama peserta..." class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-sky-500 transition">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 mb-1.5 ml-1">Nomor WhatsApp</label>
@@ -147,9 +149,12 @@
                                 <span class="text-2xl bg-white p-2 rounded-xl shadow-sm">💬</span>
                                 <div>
                                     <h4 class="font-black text-emerald-800 text-xs uppercase tracking-wider">Konfirmasi Admin</h4>
-                                    <p class="text-[11px] text-emerald-600 leading-relaxed">Silakan konfirmasi pembayaran ke Admin via WhatsApp.</p>
+                                    <p class="text-[11px] text-emerald-600 leading-relaxed">Karena mendaftar sebagai umum, silakan konfirmasi pembayaran ke Admin via WhatsApp.</p>
                                 </div>
                             </div>
+                            <a href="https://wa.me/6289678159835?text=Halo%20Admin,%20saya%20ingin%20konfirmasi%20pendaftaran%20Dryland%20untuk%20peserta%20Non-Member." target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-md transition transform active:scale-95">
+                                📱 Chat Admin WhatsApp
+                            </a>
                         </div>
                     </div>
 
@@ -157,7 +162,7 @@
                     <div id="wadah-member" class="hidden space-y-4 pt-2 border-t border-slate-100">
                         <div>
                             <label class="block text-xs font-bold text-slate-500 mb-1.5 ml-1">Pilih Nama Murid</label>
-                            <select id="select-nama-member" onchange="window.cekStatusDryland()" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-sky-500 transition">
+                            <select id="select-nama-member" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-sky-500 transition">
                                 <option value="">-- Memuat Data Member... --</option>
                             </select>
                             <p class="text-[9px] font-bold text-slate-400 mt-1 ml-1">*Data ditarik otomatis dari sistem Jago Renang.</p>
@@ -188,28 +193,28 @@
 
                             <div class="grid grid-cols-2 gap-3">
                                 <label class="upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-4 cursor-pointer overflow-hidden transition hover:bg-sky-50">
-                                    <input type="file" id="file-cicil-1" accept="image/*" class="hidden" onchange="window.previewFile(1)">
+                                    <input type="file" id="file-cicil-1" accept="image/*" class="hidden">
                                     <span class="text-2xl mb-1.5 drop-shadow-sm">🧾</span>
                                     <span class="text-[10px] font-bold text-slate-700 text-center">Cicilan 1 (DP)</span>
                                     <span id="label-file-1" class="text-[9px] text-slate-400 mt-1 truncate w-full text-center px-1">Belum ada file</span>
                                 </label>
 
                                 <label class="upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-4 cursor-pointer overflow-hidden transition hover:bg-sky-50">
-                                    <input type="file" id="file-cicil-2" accept="image/*" class="hidden" onchange="window.previewFile(2)">
+                                    <input type="file" id="file-cicil-2" accept="image/*" class="hidden">
                                     <span class="text-2xl mb-1.5 drop-shadow-sm">🧾</span>
                                     <span class="text-[10px] font-bold text-slate-700 text-center">Cicilan 2</span>
                                     <span id="label-file-2" class="text-[9px] text-slate-400 mt-1 truncate w-full text-center px-1">Belum ada file</span>
                                 </label>
 
                                 <label class="upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-4 cursor-pointer overflow-hidden transition hover:bg-sky-50">
-                                    <input type="file" id="file-cicil-3" accept="image/*" class="hidden" onchange="window.previewFile(3)">
+                                    <input type="file" id="file-cicil-3" accept="image/*" class="hidden">
                                     <span class="text-2xl mb-1.5 drop-shadow-sm">🧾</span>
                                     <span class="text-[10px] font-bold text-slate-700 text-center">Cicilan 3</span>
                                     <span id="label-file-3" class="text-[9px] text-slate-400 mt-1 truncate w-full text-center px-1">Belum ada file</span>
                                 </label>
 
                                 <label class="upload-box relative flex flex-col items-center justify-center bg-emerald-50/50 border-2 border-dashed border-emerald-300 rounded-2xl p-4 cursor-pointer overflow-hidden transition hover:bg-emerald-50 hover:border-emerald-400">
-                                    <input type="file" id="file-cicil-4" accept="image/*" class="hidden" onchange="window.previewFile(4)">
+                                    <input type="file" id="file-cicil-4" accept="image/*" class="hidden">
                                     <span class="text-2xl mb-1.5 drop-shadow-sm">🏆</span>
                                     <span class="text-[10px] font-black text-emerald-600 text-center">Lunas</span>
                                     <span id="label-file-4" class="text-[9px] text-emerald-500/70 mt-1 truncate w-full text-center px-1">Belum ada file</span>
@@ -217,7 +222,7 @@
                             </div>
                         </div>
 
-                        <button id="btn-submit-dryland" onclick="window.submitDryland()" class="w-full bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-600 hover:to-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-200 mt-5 transition transform active:scale-95 border border-indigo-400 shadow-inner">
+                        <button id="btn-submit-dryland" class="w-full bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-600 hover:to-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-200 mt-5 transition transform active:scale-95 border border-indigo-400 shadow-inner">
                             🚀 KIRIM PENDAFTARAN
                         </button>
                     </div>
@@ -228,19 +233,298 @@
         </div>
     </div>
 
-    <!-- FLOATING INFO PESERTA -->
+    <!-- FLOATING INFO PESERTA (BARU) -->
     <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
-        <div class="bg-slate-900/90 backdrop-blur-md text-white px-5 py-2.5 rounded-full shadow-2xl border border-slate-600 flex items-center gap-2 animate-bounce cursor-default">
+        <div class="bg-slate-900/90 backdrop-blur-md text-white px-5 py-2.5 rounded-full shadow-2xl border border-slate-600 flex items-center gap-2 animate-bounce cursor-default whitespace-nowrap">
             <span class="text-lg">🔥</span>
             <span id="floating-counter" class="text-xs font-black tracking-wide">Menghitung...</span>
         </div>
     </div>
 
-    <!-- MODAL PREVIEW JERSEY -->
+    <!-- MODAL PREVIEW JERSEY (BARU) -->
     <div id="modal-jersey" class="hidden fixed inset-0 z-[100] bg-slate-900/95 backdrop-blur-sm flex flex-col items-center justify-center p-5 transition-opacity" onclick="this.classList.add('hidden')">
         <img src="/images/jersey.jpg" class="max-w-full max-h-[75vh] rounded-2xl shadow-2xl object-contain bg-white" alt="Jersey Event Dryland" onerror="this.src='/images/logo.png'; this.classList.add('p-10');">
         <p class="text-white text-[10px] uppercase tracking-widest mt-5 font-bold bg-white/20 px-5 py-2 rounded-full border border-white/30 cursor-pointer">Tutup (Klik dimana saja)</p>
     </div>
 
+    <!-- ============================================== -->
+    <!-- LOGIKA JAVASCRIPT (SEKARANG SUDAH ANTI DUPLIKAT) -->
+    <!-- ============================================== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            
+            // 1. SETUP SUPABASE
+            const SUPABASE_URL = 'https://xwqdkvxythrewgjxhiru.supabase.co'; 
+            const SUPABASE_KEY = 'sb_publishable_xfjCBEL-Hf77z-ssKaeZbg_-Or1pIML';
+            
+            let sb = null;
+            if (window.supabase) {
+                sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            } else {
+                alert("🚨 Sistem Database gagal dimuat. Harap periksa koneksi internet Anda.");
+                return;
+            }
+
+            let existingDrylandId = null;
+
+            // ELEMEN FORM
+            const triggerKategori = document.getElementById('kategori-pendaftar');
+            const wadahUmum = document.getElementById('wadah-umum');
+            const wadahMember = document.getElementById('wadah-member');
+            const commonFields = document.getElementById('common-fields');
+            const selectMember = document.getElementById('select-nama-member');
+            const inputNamaUmum = document.getElementById('input-nama-umum');
+            const btnSubmit = document.getElementById('btn-submit-dryland');
+
+            // --- FITUR BARU: LOAD TOTAL PESERTA ---
+            async function loadTotalPeserta() {
+                try {
+                    const { count, error } = await sb.from('pendaftaran_dryland').select('*', { count: 'exact', head: true });
+                    if (!error && count !== null) {
+                        document.getElementById('floating-counter').innerHTML = `${count} <span class="font-medium text-slate-300">Jagoan Terdaftar</span>`;
+                    } else {
+                        document.getElementById('floating-counter').innerHTML = `Yuk Daftar!`;
+                    }
+                } catch(e) { console.error(e); }
+            }
+            loadTotalPeserta();
+
+            // --- FUNGSI TARIK DATA MEMBER ---
+            async function loadDataMember() {
+                try {
+                    const { data, error } = await sb.from('murid').select('id_murid, nama_murid').order('nama_murid', { ascending: true });
+                    if (error) throw error;
+                    selectMember.innerHTML = '<option value="">-- Silakan Pilih Nama Anak --</option>';
+                    data.forEach(murid => {
+                        selectMember.innerHTML += `<option value="${murid.nama_murid}">${murid.nama_murid}</option>`;
+                    });
+                } catch (e) {
+                    selectMember.innerHTML = '<option value="">Gagal memuat data. Periksa koneksi.</option>';
+                }
+            }
+            loadDataMember();
+
+            // --- LOGIKA TRIGGER TOGGLE KATEGORI ---
+            triggerKategori.addEventListener('change', function() {
+                resetUI(); // Bersihkan UI tiap ganti kategori
+                const pilihan = this.value;
+                if (pilihan === 'umum') {
+                    wadahUmum.classList.remove('hidden');
+                    wadahMember.classList.add('hidden');
+                    commonFields.classList.remove('hidden');
+                } else if (pilihan === 'member') {
+                    wadahUmum.classList.add('hidden');
+                    wadahMember.classList.remove('hidden');
+                    commonFields.classList.remove('hidden');
+                } else {
+                    wadahUmum.classList.add('hidden');
+                    wadahMember.classList.add('hidden');
+                    commonFields.classList.add('hidden');
+                }
+            });
+
+            // --- FUNGSI RESET UI & KUNCI BOX ---
+            function lockUploadBox(num) {
+                const input = document.getElementById(`file-cicil-${num}`);
+                const label = document.getElementById(`label-file-${num}`);
+                if (!input || !label) return;
+                const box = input.parentElement;
+                input.disabled = true;
+                label.innerText = "✅ Tersimpan";
+                label.className = "text-[10px] font-bold text-emerald-700 text-center truncate w-full px-1 mt-1";
+                box.className = "upload-box relative flex flex-col items-center justify-center bg-emerald-100 border-2 border-solid border-emerald-500 rounded-2xl p-4 overflow-hidden opacity-80 cursor-not-allowed";
+            }
+
+            function resetUI() {
+                existingDrylandId = null;
+                if(btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = "🚀 KIRIM PENDAFTARAN";
+                    btnSubmit.classList.remove('bg-emerald-500', 'cursor-not-allowed');
+                    btnSubmit.classList.add('bg-gradient-to-r', 'from-sky-500', 'to-indigo-500');
+                }
+                for (let i = 1; i <= 4; i++) {
+                    const input = document.getElementById(`file-cicil-${i}`);
+                    const label = document.getElementById(`label-file-${i}`);
+                    if (input && label) {
+                        input.disabled = false;
+                        input.value = '';
+                        label.innerText = "Belum ada file";
+                        label.className = "text-[9px] text-slate-400 mt-1 text-center truncate w-full px-1";
+                        input.parentElement.className = "upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-4 cursor-pointer overflow-hidden transition hover:bg-sky-50";
+                    }
+                }
+            }
+
+            // --- FITUR BARU: SCANNER ANTI DUPLIKAT (.limit(1)) ---
+            async function cekStatusPeserta(nama) {
+                if (!nama) { resetUI(); return; }
+                try {
+                    // Ambil 1 data terbaru berdasarkan nama
+                    const { data, error } = await sb.from('pendaftaran_dryland')
+                        .select('*').eq('nama_peserta', nama).order('id', { ascending: false }).limit(1);
+
+                    if (data && data.length > 0) {
+                        const p = data[0];
+                        existingDrylandId = p.id; // Simpan ID untuk Update
+
+                        if (p.status_pembayaran === 'Lunas') {
+                            alert(`Hai ${nama}, pendaftaran dan pembayaran kamu sudah LUNAS! 🎉\nTidak perlu upload bukti lagi.`);
+                            btnSubmit.disabled = true;
+                            btnSubmit.innerText = "✅ SUDAH LUNAS";
+                            btnSubmit.classList.add('bg-emerald-500', 'cursor-not-allowed');
+                            btnSubmit.classList.remove('bg-gradient-to-r', 'from-sky-500', 'to-indigo-500');
+                        } else {
+                            btnSubmit.disabled = false;
+                            btnSubmit.innerText = "🚀 KIRIM CICILAN SELANJUTNYA";
+                            btnSubmit.classList.remove('bg-emerald-500', 'cursor-not-allowed');
+                            btnSubmit.classList.add('bg-gradient-to-r', 'from-sky-500', 'to-indigo-500');
+                        }
+
+                        if (p.ukuran_jersey) document.getElementById('dry-ukuran').value = p.ukuran_jersey;
+                        if (p.bukti_cicilan_1) lockUploadBox(1);
+                        if (p.bukti_cicilan_2) lockUploadBox(2);
+                        if (p.bukti_cicilan_3) lockUploadBox(3);
+                        if (p.bukti_cicilan_4) lockUploadBox(4);
+                    } else {
+                        resetUI(); // Jika belum ada di DB, anggap pendaftar baru
+                    }
+                } catch(e) { console.error("Error cek status:", e); }
+            }
+
+            // Pemicu Scanner
+            selectMember.addEventListener('change', function() { cekStatusPeserta(this.value.trim()); });
+            inputNamaUmum.addEventListener('blur', function() { cekStatusPeserta(this.value.trim()); });
+
+            // --- LISTENER PREVIEW UPLOAD GAMBAR ---
+            for (let i = 1; i <= 4; i++) {
+                const fileInput = document.getElementById(`file-cicil-${i}`);
+                if (fileInput) {
+                    fileInput.addEventListener('change', function() {
+                        const label = document.getElementById(`label-file-${i}`);
+                        const box = this.parentElement;
+
+                        if (this.files && this.files[0]) {
+                            label.innerText = "✅ " + this.files[0].name;
+                            label.className = "text-[10px] font-bold text-emerald-600 text-center truncate w-full px-1 mt-1";
+                            box.className = "upload-box relative flex flex-col items-center justify-center bg-emerald-50 border-2 border-dashed border-emerald-400 rounded-2xl p-4 cursor-pointer overflow-hidden transition";
+                        } else {
+                            label.innerText = "Belum ada file";
+                            label.className = "text-[9px] text-slate-400 mt-1 text-center truncate w-full px-1";
+                            box.className = "upload-box relative flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-4 cursor-pointer overflow-hidden transition hover:bg-sky-50";
+                        }
+                    });
+                }
+            }
+
+            // --- LOGIKA SUBMIT DATA (UPDATE ATAU INSERT) ---
+            if (btnSubmit) {
+                btnSubmit.addEventListener('click', async function() {
+                    
+                    const kategori = triggerKategori.value;
+                    let finalNama = "";
+                    let finalWA = "";
+                    let finalStatus = "";
+
+                    if (kategori === 'umum') {
+                        finalNama = inputNamaUmum.value.trim();
+                        finalWA = document.getElementById('input-wa-umum').value.trim();
+                        finalStatus = "Non-Member / Umum";
+                        if (!finalNama || !finalWA) return alert("🚨 Karena mendaftar sebagai Umum, mohon isi Nama dan Nomor WA!");
+                    } else if (kategori === 'member') {
+                        finalNama = selectMember.value;
+                        finalWA = "Tarik dr DB";
+                        finalStatus = "Member JR Academy";
+                        if (!finalNama) return alert("🚨 Mohon pilih nama murid dari dropdown!");
+                    } else {
+                        return alert("🚨 Mohon pilih kategori pendaftar (Umum atau Member) terlebih dahulu!");
+                    }
+
+                    const ukuran = document.getElementById('dry-ukuran').value;
+                    if (!ukuran) return alert("🚨 Mohon pilih ukuran jersey!");
+
+                    const file1 = document.getElementById('file-cicil-1').files[0];
+                    const file2 = document.getElementById('file-cicil-2').files[0];
+                    const file3 = document.getElementById('file-cicil-3').files[0];
+                    const file4 = document.getElementById('file-cicil-4').files[0];
+
+                    // Validasi file (Beda untuk daftar baru vs update)
+                    if (!existingDrylandId && !file1 && !file2 && !file3 && !file4) {
+                        return alert("🚨 Silakan upload minimal Bukti Cicilan 1 (DP)!");
+                    }
+                    if (existingDrylandId && !file1 && !file2 && !file3 && !file4) {
+                        return alert("🚨 Kamu belum memilih file bukti transfer yang baru!");
+                    }
+
+                    const originalText = this.innerHTML;
+                    this.innerText = "⏳ Sedang Mengirim Data...";
+                    this.disabled = true;
+                    this.classList.add('opacity-70', 'cursor-not-allowed');
+
+                    try {
+                        let urls = { c1: null, c2: null, c3: null, c4: null };
+                        const cleanName = finalNama.replace(/\s+/g, '_').toLowerCase();
+                        const timestamp = Date.now();
+
+                        const uploadToStorage = async (file, num) => {
+                            if (!file) return null;
+                            const ext = file.name.split('.').pop();
+                            const path = `public/${cleanName}_cicilan${num}_${timestamp}.${ext}`;
+                            const { error: upErr } = await sb.storage.from('bukti_pembayaran_event').upload(path, file);
+                            if (upErr) throw upErr;
+                            return sb.storage.from('bukti_pembayaran_event').getPublicUrl(path).data.publicUrl;
+                        };
+
+                        urls.c1 = await uploadToStorage(file1, 1);
+                        urls.c2 = await uploadToStorage(file2, 2);
+                        urls.c3 = await uploadToStorage(file3, 3);
+                        urls.c4 = await uploadToStorage(file4, 4);
+
+                        if (existingDrylandId) {
+                            // UPDATE DATA JIKA SUDAH ADA
+                            let payloadUpdate = { status_pembayaran: 'Menunggu Konfirmasi' };
+                            if (urls.c1) payloadUpdate.bukti_cicilan_1 = urls.c1;
+                            if (urls.c2) payloadUpdate.bukti_cicilan_2 = urls.c2;
+                            if (urls.c3) payloadUpdate.bukti_cicilan_3 = urls.c3;
+                            if (urls.c4) payloadUpdate.bukti_cicilan_4 = urls.c4;
+
+                            const { error: dbErr } = await sb.from('pendaftaran_dryland')
+                                .update(payloadUpdate)
+                                .eq('id', existingDrylandId);
+
+                            if (dbErr) throw dbErr;
+                            alert(`🎉 UPDATE BERHASIL!\nTerima kasih ${finalNama}, bukti cicilan baru telah masuk. Tunggu konfirmasi Admin.`);
+                        } else {
+                            // INSERT DATA BARU
+                            const { error: dbErr } = await sb.from('pendaftaran_dryland').insert([{
+                                nama_peserta: finalNama,
+                                status_member: finalStatus,
+                                ukuran_jersey: ukuran,
+                                no_wa: finalWA,
+                                bukti_cicilan_1: urls.c1,
+                                bukti_cicilan_2: urls.c2,
+                                bukti_cicilan_3: urls.c3,
+                                bukti_cicilan_4: urls.c4,
+                                status_pembayaran: 'Menunggu Konfirmasi'
+                            }]);
+
+                            if (dbErr) throw dbErr;
+                            alert(`🎉 PENDAFTARAN BERHASIL!\nTerima kasih ${finalNama}. Silakan tunggu konfirmasi Admin.`);
+                        }
+
+                        window.location.reload();
+
+                    } catch (e) {
+                        console.error(e);
+                        alert("❌ Gagal mengirim data: " + (e.message || e));
+                    } finally {
+                        this.innerHTML = originalText;
+                        this.disabled = false;
+                        this.classList.remove('opacity-70', 'cursor-not-allowed');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
