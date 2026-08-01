@@ -1,6 +1,20 @@
 import { sb } from './config.js';
 
 /* =========================================================
+   FUNGSI HELPER TANGGAL CUT-OFF 26 - 25
+========================================================= */
+function getDefaultStartDate() {
+    let d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-26`;
+}
+
+function getDefaultEndDate() {
+    let d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-25`;
+}
+
+/* =========================================================
    HEADER DYNAMIC: JAM, NAMA (USERS), DAN UPLOAD FOTO
 ========================================================= */
 window.bukaModalFeeCoach = function() {
@@ -91,7 +105,7 @@ window.uploadAvatarCoach = async function(event) {
         const filePath = `${currentUser}/${fileName}`; 
 
         const { error: uploadError } = await sb.storage
-            .from('coach-avatars') // Bucket name, user will setup
+            .from('coach-avatars') 
             .upload(filePath, file, { upsert: true, cacheControl: '3600' });
 
         if (uploadError) throw uploadError;
@@ -102,7 +116,6 @@ window.uploadAvatarCoach = async function(event) {
 
         const publicUrl = publicUrlData.publicUrl;
 
-        // Update ke table users
         const { error: updateError } = await sb.from('users')
             .update({ avatar_url: publicUrl })
             .eq('username', currentUser);
@@ -120,8 +133,6 @@ window.uploadAvatarCoach = async function(event) {
         elFoto.style.opacity = '1';
     }
 };
-
-
 
 /* =========================================================
    BAGIAN ADMIN JADWAL PENUGASAN COACH
@@ -295,7 +306,6 @@ export async function loadCoachJadwal() {
     }
     document.getElementById('coach-jadwal-penugasan').innerHTML = htmlTugas;
 
-    // Load Jadwal Beginner
     const { data: jadwal, error: errJadwal } = await sb.from('jadwal_kelas').select('*').order('id', { ascending: true });
     if (errJadwal) {
         document.getElementById('coach-jadwal-beginner').innerHTML = '<p style="color:red;">Gagal memuat jadwal beginner.</p>';
@@ -317,7 +327,6 @@ export async function loadCoachJadwal() {
         document.getElementById('coach-pilih-jadwal').innerHTML = optJadwal;
     }
 
-    // Load Murid Beginner
     const { data: murid } = await sb.from('murid').select('id_murid, nama_murid, nama_panggilan, sisa_sesi').gt('sisa_sesi', 0);
     let optMurid = '<option value="">-- Pilih Murid Aktif --</option>';
     if(murid) {
@@ -329,9 +338,6 @@ export async function loadCoachJadwal() {
     document.getElementById('coach-pilih-murid').innerHTML = optMurid;
 }
 
-/* =========================================================
-   FITUR INSERT MURID BEGINNER & AUTO KIRIM FEE KE ADMIN
-========================================================= */
 export async function coachInsertMurid(event) {
     const btn = event ? event.target : document.querySelector('button[onclick*="coachInsertMurid"]');
     const selectJadwal = document.getElementById('coach-pilih-jadwal');
@@ -396,9 +402,6 @@ export async function coachInsertMurid(event) {
     }
 }
 
-/* =========================================================
-   FITUR EKSEKUTOR SELESAI & BATAL PENUGASAN COACH
-========================================================= */
 export async function selesaiTugasJadwal(idJadwal, namaMuridStr, source) {
     if (!confirm(`🚀 Tandai kelas ini SELESAI?\nSisa sesi murid akan dipotong 1 dan laporan akan masuk ke Inbox Admin untuk pencairan Fee.`)) return;
 
@@ -457,9 +460,6 @@ export async function batalTugasJadwal(idJadwal, source) {
     }
 }
 
-/* =========================================================
-   FITUR ANTREAN FEE COACH (ADMIN DASHBOARD)
-========================================================= */
 export async function loadAntreanFeeAdmin() {
     const list = document.getElementById('admin-antrean-fee-list');
     if(!list) return;
@@ -527,10 +527,6 @@ export async function accFeeCoach(idAntrean, namaCoach, namaMurid, tipeClass, tg
     }
 }
 
-
-/* =========================================================
-   FITUR AUTOCOMPLETE PENCARIAN MURID (ASSESSMENT)
-========================================================= */
 let debounceTimerMurid;
 
 export function debounceSearchMurid() {
@@ -604,9 +600,6 @@ export function clearSearchMurid() {
     loadAssessmentDetail();
 }
 
-/* =========================================================
-   MODUL COACH: ASSESSMENT & PROGRESS
-========================================================= */
 export async function loadCoachAssessment() {
     loadRiwayatAssessment();
     loadBelumAssessment(); 
@@ -845,10 +838,7 @@ export async function loadRiwayatAssessment() {
         
         html += `
         <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative;">
-            
             <button onclick="editAssessmentLog(${item.id_assessment}, ${item.id_murid})" style="position: absolute; top: 12px; right: 12px; width: max-content !important; min-width: 50px; background:#f59e0b; color:white; border:none; border-radius:4px; padding:6px 10px; font-size:11px; cursor:pointer; font-weight:bold; display: inline-block;">✏️ Edit</button>
-
-            <!-- TOMBOL PDF YANG UDAH DIRAPIKAN -->
             <button onclick="downloadRaporPDF(${item.id_assessment}, '${safeNama}')" style="position: absolute; top: 12px; right: 75px; width: max-content !important; min-width: 50px; background:#4f46e5; color:white; border:none; border-radius:4px; padding:6px 10px; font-size:11px; cursor:pointer; font-weight:bold; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">📥 PDF</button>
 
             <div style="padding-right: 140px; margin-bottom: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 8px;">
@@ -873,9 +863,6 @@ export async function loadRiwayatAssessment() {
     listEl.innerHTML = html || '<p style="text-align:center; font-size:12px; color:#64748b;">Belum ada riwayat assessment.</p>';
 }
 
-/* =========================================================
-   🔥 OBAT FINAL: JEDA WAKTU (DELAY PAINTING) 🔥
-========================================================= */
 export async function downloadRaporPDF(idAssessment, namaSiswa) {
     try {
         const { data, error } = await sb.from('assessment_log').select('*').eq('id_assessment', idAssessment).single();
@@ -887,7 +874,6 @@ export async function downloadRaporPDF(idAssessment, namaSiswa) {
 
         const pdfContainer = document.createElement('div');
         pdfContainer.id = "temp-pdf-rapor";
-        // Kita taruh di belakang layar (z-index -9999) biar HP tetap merender warnanya secara fisik, tapi gak nutupin layar aslimu
         pdfContainer.style.position = 'fixed';
         pdfContainer.style.top = '0';
         pdfContainer.style.left = '0';
@@ -897,7 +883,6 @@ export async function downloadRaporPDF(idAssessment, namaSiswa) {
         pdfContainer.style.padding = '40px';
         pdfContainer.style.boxSizing = 'border-box';
 
-        // Isi HTML (Sama persis)
         pdfContainer.innerHTML = `
             <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #000000;">
                 <div style="text-align: center; border-bottom: 3px solid #0284c7; padding-bottom: 15px; margin-bottom: 30px;">
@@ -976,7 +961,6 @@ export async function downloadRaporPDF(idAssessment, namaSiswa) {
 
         document.body.appendChild(pdfContainer);
 
-        // 🔥 KUNCI OBATNYA DI SINI: Kasih jeda 1 detik biar HP Android-mu sempet ngegambar semua tabel & warna sebelum dijepret!
         alert("⏳ Menggambar PDF... Tunggu 1 Detik ya!");
         await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -1004,9 +988,6 @@ export async function downloadRaporPDF(idAssessment, namaSiswa) {
     }
 }
 
-/* =========================================================
-   MODUL FEE, AKUNTING, & PROFIL - FIXED IDENTITAS
-========================================================= */
 export async function tambahAkunting() {
     const tgl = document.getElementById('akun-tanggal').value;
     const ket = document.getElementById('akun-ket').value;
@@ -1035,13 +1016,28 @@ export async function tambahAkunting() {
     }
 }
 
+/* =========================================================
+   FUNGSI LOAD FEE COACH (DENGAN FILTER TANGGAL CUT-OFF)
+========================================================= */
 export async function loadCoachFee() {
     const totalEl = document.getElementById('coach-total-fee');
     const listEl = document.getElementById('coach-fee-list');
+    const startEl = document.getElementById('coach-filter-start');
+    const endEl = document.getElementById('coach-filter-end');
+
     if (!totalEl || !listEl) return;
 
     const userSesi = localStorage.getItem("loggedInUser") || localStorage.getItem("username");
     if (!userSesi) return listEl.innerHTML = "Coach belum login.";
+
+    // Set Default Filter jika inputnya kosong (Tgl 26 bln lalu - Tgl 25 bln ini)
+    if (startEl && !startEl.value) startEl.value = getDefaultStartDate();
+    if (endEl && !endEl.value) endEl.value = getDefaultEndDate();
+
+    const startDateStr = startEl ? startEl.value : getDefaultStartDate();
+    const endDateStr = endEl ? endEl.value : getDefaultEndDate();
+
+    listEl.innerHTML = '<p class="text-center text-xs text-slate-400 italic">Mencari data rekapan...</p>';
 
     try {
         const { data: masterCoach } = await sb.from('coach')
@@ -1051,9 +1047,12 @@ export async function loadCoachFee() {
 
         const namaAsli = masterCoach ? masterCoach.nama_coach : userSesi;
 
+        // Tarik data pakai Range Start & End Date (.gte & .lte)
         const { data, error } = await sb.from("fee_coach")
             .select("*")
-            .eq("nama_coach", namaAsli) 
+            .eq("nama_coach", namaAsli)
+            .gte("tanggal", startDateStr)
+            .lte("tanggal", endDateStr)
             .order("tanggal", { ascending: false });
 
         if (error) return listEl.innerHTML = "Gagal memuat data.";
@@ -1082,7 +1081,7 @@ export async function loadCoachFee() {
         });
 
         totalEl.innerHTML = `Total Fee: Rp ${totalFee.toLocaleString('id-ID')}`;
-        listEl.innerHTML = html || "<p style='color:#64748b;'>Belum ada data rekapan mengajar.</p>";
+        listEl.innerHTML = html || "<p style='color:#64748b; text-align:center; font-size:12px;'>Belum ada data mengajar di periode ini.</p>";
 
     } catch (err) {
         console.error(err);
@@ -1156,9 +1155,6 @@ export async function simpanProfilCoach() {
     }
 }
 
-// =========================================================
-// REGISTER TO WINDOW (BIAR ONCLICK HTML TETAP JALAN)
-// =========================================================
 window.loadDropdownMuridCoach = loadDropdownMuridCoach;
 window.tambahMuridKeListCoach = tambahMuridKeListCoach;
 window.resetListCoach = resetListCoach;
@@ -1172,13 +1168,11 @@ window.batalTugasJadwal = batalTugasJadwal;
 window.loadAntreanFeeAdmin = loadAntreanFeeAdmin;
 window.accFeeCoach = accFeeCoach;
 
-// Autocomplete Register
 window.debounceSearchMurid = debounceSearchMurid;
 window.cariMuridAssessment = cariMuridAssessment;
 window.pilihMuridAutocomplete = pilihMuridAutocomplete;
 window.clearSearchMurid = clearSearchMurid;
 
-// Assessment Register
 window.loadCoachAssessment = loadCoachAssessment;
 window.loadBelumAssessment = loadBelumAssessment;
 window.pilihAnakBelumDinilai = pilihAnakBelumDinilai;
@@ -1186,21 +1180,18 @@ window.loadAssessmentDetail = loadAssessmentDetail;
 window.editAssessmentLog = editAssessmentLog;
 window.simpanAssessment = simpanAssessment;
 window.loadRiwayatAssessment = loadRiwayatAssessment;
-window.downloadRaporPDF = downloadRaporPDF; // <-- Fungsi sakti DFF TAHAP 1
+window.downloadRaporPDF = downloadRaporPDF; 
 
-// Fee & Profil
 window.tambahAkunting = tambahAkunting;
 window.loadCoachFee = loadCoachFee;
 window.loadProfilCoach = loadProfilCoach;
 window.simpanProfilCoach = simpanProfilCoach;
 
-// REGISTER HEADER DINAMIS COACH
 window.bukaModalFeeCoach = bukaModalFeeCoach;
 window.jalankanJamCoach = jalankanJamCoach;
 window.loadProfilHeaderCoach = loadProfilHeaderCoach;
 window.uploadAvatarCoach = uploadAvatarCoach;
 
-// TRIGGER AWAL SAAT DASHBOARD DIBUKA
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         if(document.getElementById('coach-jam-realtime')) jalankanJamCoach();
