@@ -38,11 +38,19 @@ export async function loadFeeAdmin() {
     const bulan = bulanEl ? parseInt(bulanEl.value) : (new Date().getMonth() + 1);
     const tahun = tahunEl ? parseInt(tahunEl.value) : new Date().getFullYear();
 
-    // 2. Kunci range dari tanggal 1 sampai 31 di bulan yang dipilih
-    const startDate = `${tahun}-${String(bulan).padStart(2, '0')}-01`;
-    const endDate = `${tahun}-${String(bulan).padStart(2, '0')}-31`;
+    // 2. Kunci range sesuai cut-off tutup buku:
+    // Mulai dari tgl 26 bulan sebelumnya s/d tgl 25 bulan yg dipilih
+    let prevBulan = bulan - 1;
+    let thnMulai = tahun;
+    if(prevBulan === 0) {
+        prevBulan = 12;
+        thnMulai = tahun - 1;
+    }
+    
+    const startDate = `${thnMulai}-${String(prevBulan).padStart(2, '0')}-26`;
+    const endDate = `${tahun}-${String(bulan).padStart(2, '0')}-25`;
 
-    // 3. Tarik data tanpa .limit(30), murni berdasarkan rentang bulan
+    // 3. Tarik data tanpa .limit(30), murni berdasarkan rentang tanggal 26 s/d 25
     const { data, error } = await sb.from('fee_coach')
         .select('*')
         .gte('tanggal', startDate)
@@ -64,7 +72,7 @@ export async function loadFeeAdmin() {
             <button class="btn-danger" onclick="hapusData('fee_coach', ${f.id}, function(){ loadFeeAdmin(); loadRekapFee(); })" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:5px;">❌</button>
         </div>`;
     });
-    list.innerHTML = html || '<p style="color:#64748b; font-size:12px;">Belum ada record fee di bulan ini.</p>';
+    list.innerHTML = html || '<p style="color:#64748b; font-size:12px;">Belum ada record fee di periode ini.</p>';
 }
 
 export async function tambahFee() {
@@ -110,17 +118,32 @@ export async function loadRekapFee() {
 
     const bulan = bulanEl ? parseInt(bulanEl.value) : (new Date().getMonth() + 1);
     const tahun = tahunEl ? parseInt(tahunEl.value) : new Date().getFullYear();
+    const namaBulanMap = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+    // 2. Kunci range sesuai cut-off tutup buku: Tgl 26 bulan lalu s/d Tgl 25 bulan pilihan
+    let prevBulan = bulan - 1;
+    let thnMulai = tahun;
+    if(prevBulan === 0) {
+        prevBulan = 12;
+        thnMulai = tahun - 1;
+    }
+    
+    const startDate = new Date(`${thnMulai}-${String(prevBulan).padStart(2, '0')}-26T00:00:00`);
+    const endDate = new Date(`${tahun}-${String(bulan).padStart(2, '0')}-25T23:59:59`);
 
     const rekap = {};
+    let totalSemuaFee = 0; // Buat nyimpan grand total operasional
 
     data.forEach(item => {
         if (!item.tanggal) return;
 
-        const tgl = new Date(item.tanggal);
-        if ((tgl.getMonth() + 1) === bulan && tgl.getFullYear() === tahun) {
+        const tglData = new Date(item.tanggal);
+        // Cek apakah tanggal record masuk ke dalam range cut-off tgl 26 - 25
+        if (tglData >= startDate && tglData <= endDate) {
             const nama = item.nama_coach;
             const fee = parseInt(item.total_fee) || 0;
             rekap[nama] = (rekap[nama] || 0) + fee;
+            totalSemuaFee += fee; // Tambah ke grand total
         }
     });
 
@@ -130,12 +153,11 @@ export async function loadRekapFee() {
         opsiTahun += `<option value="${t}" ${t === tahun ? "selected" : ""}>${t}</option>`;
     }
 
-    // UPDATE: Tambahkan fungsi loadFeeAdmin() di event onchange agar list bawah ikut berubah
     let html = `
     <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:15px; margin-bottom:15px;">
         <div style="margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #cbd5e1;">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <strong style="color:#334155;">📅 Rekap Total Fee</strong>
+                <strong style="color:#334155;">📅 Periode Tutup Buku (26 - 25)</strong>
                 <select id="filter-bulan" style="padding:6px; border-radius:4px; border:1px solid #cbd5e1; font-size:12px;" onchange="loadRekapFee(); loadFeeAdmin();">
                     <option value="1" ${bulan==1?"selected":""}>Januari</option>
                     <option value="2" ${bulan==2?"selected":""}>Februari</option>
@@ -163,73 +185,157 @@ export async function loadRekapFee() {
     } else {
         for (const nama in rekap) {
             html += `
-            <div onclick="bukaDetailFee('${nama}', ${bulan}, ${tahun})" style="display:flex; justify-content:space-between; margin-bottom:6px; cursor:pointer; padding:6px; border-bottom:1px solid #e2e8f0; border-radius:4px;">
-                <span style="color:#0369a1; font-weight:bold; font-size:13px;">👨‍🏫 ${nama}</span>
-                <strong style="color:#10b981; font-size:13px;">Rp ${rekap[nama].toLocaleString('id-ID')}</strong>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding:8px; border-bottom:1px solid #e2e8f0; border-radius:6px; background:#f8fafc;">
+                <span style="color:#0369a1; font-weight:bold; font-size:13px; flex:1;">👨‍🏫 ${nama}</span>
+                <strong style="color:#10b981; font-size:13px; flex:1; text-align:right;">Rp ${rekap[nama].toLocaleString('id-ID')}</strong>
+                <!-- TOMBOL CETAK PDF (Garis Hijau) -->
+                <button onclick="cetakSlipGajiPDF('${nama}', ${bulan}, ${tahun}, ${rekap[nama]})" style="margin-left:10px; background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; cursor:pointer; font-weight:bold; box-shadow:0 1px 2px rgba(0,0,0,0.1);">📥 PDF</button>
             </div>`;
         }
+        
+        // TOTAL KESELURUHAN (Garis Merah Bawah)
+        html += `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; padding-top:10px; border-top:2px dashed #ef4444;">
+            <span style="color:#b91c1c; font-weight:black; font-size:14px;">🚨 TOTAL BIAYA OPERASIONAL (FEE):</span>
+            <strong style="color:#b91c1c; font-size:16px; font-weight:black;">Rp ${totalSemuaFee.toLocaleString('id-ID')}</strong>
+        </div>`;
     }
     html += `</div></div>`;
 
     container.innerHTML = html;
 }
 
-export async function bukaDetailFee(namaCoach, bulan, tahun) {
-    const modal = document.getElementById('modal-detail-fee');
-    if (!modal) return alert("Peringatan: Elemen Modal Detail HTML belum dipasang!");
+// 4. FUNGSI BARU: CETAK SLIP GAJI PDF PER COACH
+export async function cetakSlipGajiPDF(namaCoach, bulan, tahun, totalGaji) {
+    if (typeof window.jspdf === 'undefined') {
+        alert("Library PDF belum dimuat. Sistem sedang mencoba mengunduh, silakan klik tombol cetak lagi setelah 3 detik.");
+        const script = document.createElement('script');
+        script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+        document.head.appendChild(script);
+        return;
+    }
 
-    const namaBulanMap = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-    const textBulan = namaBulanMap[bulan - 1];
+    const btn = event.target;
+    const oldText = btn.innerHTML;
+    btn.innerHTML = "⏳ Proses...";
+    btn.disabled = true;
 
-    modal.style.display = 'flex';
-    document.getElementById('detail-fee-nama').innerText = namaCoach;
-    document.getElementById('detail-fee-periode').innerText = `Periode: ${textBulan} ${tahun}`;
-    document.getElementById('detail-fee-list').innerHTML = 'Memuat rincian data...';
-    document.getElementById('detail-fee-total').innerText = 'Rp 0';
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        const namaBulanMap = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        const textBulan = namaBulanMap[bulan - 1];
 
-    const { data, error } = await sb.from('fee_coach')
-                                    .select('*')
-                                    .eq('nama_coach', namaCoach)
-                                    .order('tanggal', { ascending: false });
+        // Range tanggal 26 - 25
+        let prevBulan = bulan - 1;
+        let thnMulai = tahun;
+        if(prevBulan === 0) { prevBulan = 12; thnMulai = tahun - 1; }
+        
+        const startDate = `${thnMulai}-${String(prevBulan).padStart(2, '0')}-26`;
+        const endDate = `${tahun}-${String(bulan).padStart(2, '0')}-25`;
 
-    if (error) return document.getElementById('detail-fee-list').innerHTML = '<p style="color:red;">Gagal memuat data.</p>';
+        const { data, error } = await sb.from('fee_coach')
+            .select('*')
+            .eq('nama_coach', namaCoach)
+            .gte('tanggal', startDate)
+            .lte('tanggal', endDate)
+            .order('tanggal', { ascending: true });
 
-    const targetBulanString = String(bulan).padStart(2, '0');
-    const prefixTanggal = `${tahun}-${targetBulanString}`;
-    const filteredData = data.filter(d => d.tanggal && d.tanggal.startsWith(prefixTanggal));
+        if (error) throw error;
 
-    let html = '';
-    let total = 0;
-    
-    filteredData.forEach(d => {
-        total += parseFloat(d.total_fee);
-        html += `
-        <div style="border-bottom:1px dashed #cbd5e1; padding-bottom:10px; margin-bottom:10px;">
-            <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:4px;">
-                <span style="color:#0369a1;">${d.jenis_sesi}</span>
-                <span style="color:#10b981;">Rp ${parseInt(d.total_fee).toLocaleString('id-ID')}</span>
-            </div>
-            <div style="font-size:12px; color:#64748b; line-height:1.4;">
-                📅 ${d.tanggal} | 👤 Murid: <b style="color:#334155;">${d.nama_murid || '-'}</b><br>
-                Jumlah: ${d.total_sesi} Sesi
-            </div>
-        </div>`;
-    });
+        // --- DESAIN PDF SLIP GAJI ---
+        doc.setFillColor(2, 132, 199); // Sky Blue Header
+        doc.rect(0, 0, 210, 40, 'F');
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont("helvetica", "bold");
+        doc.text("SLIP GAJI COACH", 105, 20, { align: "center" });
+        
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text("JAGO RENANG ACADEMY", 105, 28, { align: "center" });
 
-    document.getElementById('detail-fee-list').innerHTML = html || '<p style="text-align:center; color:#94a3b8; margin-top:20px;">Tidak ada histori mengajar di bulan ini.</p>';
-    document.getElementById('detail-fee-total').innerText = `Rp ${total.toLocaleString('id-ID')}`;
-}
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text(`NAMA COACH : ${namaCoach.toUpperCase()}`, 15, 55);
+        doc.text(`PERIODE    : 26 ${namaBulanMap[prevBulan-1]} - 25 ${textBulan} ${tahun}`, 15, 62);
+        
+        // Garis Pembatas
+        doc.setLineWidth(0.5);
+        doc.line(15, 68, 195, 68);
+        
+        // Header Tabel Rincian
+        doc.setFontSize(10);
+        doc.text("TANGGAL", 15, 75);
+        doc.text("TIPE KELAS", 45, 75);
+        doc.text("NAMA MURID", 80, 75);
+        doc.text("SESI", 140, 75);
+        doc.text("NOMINAL", 160, 75);
+        doc.line(15, 78, 195, 78);
 
-export function tutupDetailFee() {
-    const modal = document.getElementById('modal-detail-fee');
-    if (modal) {
-        modal.style.display = 'none';
+        let startY = 85;
+        let grandTotalSesi = 0;
+        
+        doc.setFont("helvetica", "normal");
+        
+        data.forEach((d) => {
+            if (startY > 270) {
+                doc.addPage();
+                startY = 20;
+            }
+            const tglBagus = d.tanggal.split('-').reverse().join('/');
+            doc.text(tglBagus, 15, startY);
+            doc.text(d.jenis_sesi, 45, startY);
+            // Potong teks murid kalau kepanjangan
+            let nmMurid = d.nama_murid || '-';
+            if(nmMurid.length > 25) nmMurid = nmMurid.substring(0, 25) + '...';
+            doc.text(nmMurid, 80, startY);
+            
+            doc.text(d.total_sesi.toString(), 145, startY);
+            doc.text(`Rp ${parseInt(d.total_fee).toLocaleString('id-ID')}`, 160, startY);
+            
+            grandTotalSesi += parseInt(d.total_sesi);
+            startY += 8;
+        });
+
+        // Garis Penutup Tabel
+        doc.line(15, startY + 2, 195, startY + 2);
+        
+        // SUMMARY TOTAL
+        startY += 12;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.text(`TOTAL SESI  : ${grandTotalSesi} Pertemuan`, 15, startY);
+        
+        doc.setTextColor(220, 38, 38); // Red
+        doc.setFontSize(16);
+        doc.text(`TOTAL GAJI BERSIH : Rp ${totalGaji.toLocaleString('id-ID')}`, 15, startY + 10);
+        
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text("*Slip gaji ini di-generate otomatis oleh Sistem Jago Renang.", 15, startY + 25);
+        doc.text("Jika ada ketidaksesuaian data, harap lapor ke Admin.", 15, startY + 30);
+
+        // Cetak
+        doc.save(`Slip_Gaji_${namaCoach}_${textBulan}${tahun}.pdf`);
+
+    } catch (err) {
+        console.error("Gagal cetak PDF:", err);
+        alert("Terjadi kesalahan saat mencetak PDF: " + err.message);
+    } finally {
+        btn.innerHTML = oldText;
+        btn.disabled = false;
     }
 }
+
+// HAPUS FUNGSI LAMA (bukaDetailFee & tutupDetailFee) KARENA SUDAH DIGANTI CETAK PDF
 
 window.initDropdownCoach = initDropdownCoach;
 window.loadFeeAdmin = loadFeeAdmin;
 window.tambahFee = tambahFee;
 window.loadRekapFee = loadRekapFee;
-window.bukaDetailFee = bukaDetailFee;
-window.tutupDetailFee = tutupDetailFee;
+window.cetakSlipGajiPDF = cetakSlipGajiPDF;
