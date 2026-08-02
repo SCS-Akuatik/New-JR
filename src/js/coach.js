@@ -1,20 +1,6 @@
 import { sb } from './config.js';
 
 /* =========================================================
-   FUNGSI HELPER TANGGAL CUT-OFF 26 - 25
-========================================================= */
-function getDefaultStartDate() {
-    let d = new Date();
-    d.setMonth(d.getMonth() - 1);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-26`;
-}
-
-function getDefaultEndDate() {
-    let d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-25`;
-}
-
-/* =========================================================
    HEADER DYNAMIC: JAM, NAMA (USERS), DAN UPLOAD FOTO
 ========================================================= */
 window.bukaModalFeeCoach = function() {
@@ -39,9 +25,7 @@ window.jalankanJamCoach = function() {
             const namaBln = blnList[now.getMonth()];
             
             if(elTgl) elTgl.innerText = `${namaHari}, ${tgl} ${namaBln}`;
-        } catch(e) {
-            console.error("Jam Error:", e);
-        }
+        } catch(e) {}
     };
 
     updateWaktu(); 
@@ -63,35 +47,23 @@ window.loadProfilHeaderCoach = async function() {
 
     try {
         const { data, error } = await sb.from('users').select('*').eq('username', currentUser).maybeSingle();
-        
         if (data) {
-            if (elNama && data.call_name) {
-                elNama.innerText = data.call_name;
-                if(elFoto && !data.avatar_url) elFoto.src = `https://ui-avatars.com/api/?name=${data.call_name}&background=0284c7&color=fff`;
-            }
-            
+            if (elNama && data.call_name) elNama.innerText = data.call_name;
             if (elFoto && data.avatar_url) {
                 elFoto.src = data.avatar_url;
                 elFoto.onerror = () => { elFoto.src = `https://ui-avatars.com/api/?name=${data.call_name || callName}&background=0284c7&color=fff`; };
             }
         }
-    } catch(e) {
-        console.error("Database profil error:", e);
-    }
+    } catch(e) {}
 };
 
 window.uploadAvatarCoach = async function(event) {
     const file = event.target.files[0];
     if(!file) return;
 
-    if(file.size > 2 * 1024 * 1024) {
-        return alert("🚨 Ukuran file terlalu besar! Maksimal 2MB ya Bos.");
-    }
-
+    if(file.size > 2 * 1024 * 1024) return alert("🚨 Ukuran file terlalu besar! Maksimal 2MB ya Bos.");
     const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if(!validTypes.includes(file.type)) {
-        return alert("🚨 Format file harus JPG, PNG, atau WEBP.");
-    }
+    if(!validTypes.includes(file.type)) return alert("🚨 Format file harus JPG, PNG, atau WEBP.");
 
     const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
     const elFoto = document.getElementById('header-coach-avatar');
@@ -104,29 +76,18 @@ window.uploadAvatarCoach = async function(event) {
         const fileName = `avatar_${Date.now()}.${ext}`;
         const filePath = `${currentUser}/${fileName}`; 
 
-        const { error: uploadError } = await sb.storage
-            .from('coach-avatars') 
-            .upload(filePath, file, { upsert: true, cacheControl: '3600' });
-
+        const { error: uploadError } = await sb.storage.from('coach-avatars').upload(filePath, file, { upsert: true, cacheControl: '3600' });
         if (uploadError) throw uploadError;
 
-        const { data: publicUrlData } = sb.storage
-            .from('coach-avatars')
-            .getPublicUrl(filePath);
-
+        const { data: publicUrlData } = sb.storage.from('coach-avatars').getPublicUrl(filePath);
         const publicUrl = publicUrlData.publicUrl;
 
-        const { error: updateError } = await sb.from('users')
-            .update({ avatar_url: publicUrl })
-            .eq('username', currentUser);
-
+        const { error: updateError } = await sb.from('users').update({ avatar_url: publicUrl }).eq('username', currentUser);
         if (updateError) throw updateError;
 
         elFoto.src = publicUrl;
         alert("✅ Foto profil berhasil diperbarui!");
-
     } catch(e) {
-        console.error("Gagal upload avatar:", e);
         alert("Gagal mengunggah foto: " + e.message);
         elFoto.src = oldSrc; 
     } finally {
@@ -141,20 +102,9 @@ export async function loadDropdownMuridCoach() {
     const dropdown = document.getElementById('coach-murid');
     if (!dropdown) return;
     
-    dropdown.innerHTML = '<option value="">Memuat Murid...</option>';
-
-    const { data, error } = await sb.from('murid')
-        .select('id_murid, nama_murid, nama_panggilan, sisa_sesi')
-        .gt('sisa_sesi', 0)
-        .order('nama_murid', { ascending: true });
-    
-    if (error) {
-        dropdown.innerHTML = '<option value="">Gagal muat data</option>';
-        return console.error(error);
-    }
-
+    const { data } = await sb.from('murid').select('id_murid, nama_murid, nama_panggilan, sisa_sesi').gt('sisa_sesi', 0).order('nama_murid', { ascending: true });
     dropdown.innerHTML = '<option value="">-- Pilih Murid Aktif --</option>';
-    data.forEach(m => {
+    data?.forEach(m => {
         const namaTampil = m.nama_panggilan ? m.nama_panggilan : m.nama_murid;
         dropdown.innerHTML += `<option value="${m.id_murid}" data-nama="${namaTampil}">${namaTampil} (Sisa: ${m.sisa_sesi})</option>`;
     });
@@ -199,29 +149,22 @@ export async function simpanJadwalCoach() {
         nama_murid: listNama 
     };
 
-    if (!dataObj.nama_coach || !dataObj.lokasi || !listNama) {
-        return alert("Pilih Coach, Isi Lokasi, & Masukkan minimal 1 Murid ke list!");
-    }
+    if (!dataObj.nama_coach || !dataObj.lokasi || !listNama) return alert("Lengkapi Form!");
 
     document.getElementById('btn-coach').innerHTML = "⏳ Memproses...";
 
     if (id) { 
         await sb.from('jadwal_coach').update(dataObj).eq('id', id);
-        alert("Data jadwal berhasil diupdate!");
+        alert("Data jadwal diupdate!");
     } else { 
         await sb.from('jadwal_coach').insert([dataObj]);
-        alert("Jadwal penugasan berhasil dibuat! (Sesi baru terpotong jika tombol Selesai diklik)");
+        alert("Jadwal penugasan berhasil dibuat!");
     }
 
     document.getElementById('coach-edit-id').value = '';
     document.getElementById('btn-coach').innerHTML = "⚡ Simpan Penugasan";
-    document.getElementById('coach-lokasi').value = '';
-    document.getElementById('coach-jam').value = '';
     resetListCoach(); 
-    document.getElementById('coach-murid').value = '';
-    
-    loadCoachAdmin();
-    loadDropdownMuridCoach(); 
+    if (typeof loadCoachAdmin === 'function') loadCoachAdmin();
 }
 
 export function editJadwalCoach(id, nama, hari, lokasi, jam, tipe, murid) {
@@ -231,10 +174,8 @@ export function editJadwalCoach(id, nama, hari, lokasi, jam, tipe, murid) {
     document.getElementById('coach-lokasi').value = lokasi;
     document.getElementById('coach-jam').value = jam;
     document.getElementById('coach-tipe').value = tipe;
-    
     document.getElementById('coach-list-nama').value = murid;
     document.getElementById('coach-list-id').value = ""; 
-    
     document.getElementById('btn-coach').innerText = "💾 Update Jadwal";
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -247,29 +188,23 @@ export async function loadCoachAdmin() {
         loadDropdownMuridCoach();
     }
     
-    try {
-        const { data, error } = await sb.from('jadwal_coach').select('*').order('id', { ascending: true });
-        if (error) throw error;
-        let html = '';
-        data.forEach(c => {
-            html += `<div class="list-item-admin" style="display:flex; flex-direction:column; gap:10px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-bottom:12px;">
-                <div>
-                    <strong style="color:#0284c7; font-size:14px;">${c.nama_coach}</strong> <span style="font-size:12px; color:#64748b;">(${c.hari})</span><br>
-                    📍 ${c.lokasi} | ⏰ ${c.jam}<br>
-                    👤 ${c.nama_murid} <span style="font-size:11px; color:#f59e0b; font-weight:bold;">(${c.tipe_class})</span>
-                </div>
-                
-                <div style="display:flex; gap:6px; width:100%;">
-                    <button style="flex:1; background:#f59e0b; color:white; border:none; padding:8px 0; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;" onclick="editJadwalCoach(${c.id}, '${c.nama_coach}', '${c.hari}', '${c.lokasi}', '${c.jam}', '${c.tipe_class}', '${c.nama_murid}')">✏️ Edit</button>
-                    
-                    <button style="flex:1.5; background:#10b981; color:white; border:none; padding:8px 0; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;" onclick="selesaiTugasJadwal(${c.id}, '${c.nama_murid}', 'admin')">✅ Selesai</button>
-                    
-                    <button style="flex:1; background:#ef4444; color:white; border:none; padding:8px 0; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;" onclick="batalTugasJadwal(${c.id}, 'admin')">❌ Hapus</button>
-                </div>
-            </div>`;
-        });
-        list.innerHTML = html;
-    } catch (err) { list.innerHTML = 'Gagal memuat data.'; }
+    const { data } = await sb.from('jadwal_coach').select('*').order('id', { ascending: true });
+    let html = '';
+    data?.forEach(c => {
+        html += `<div class="list-item-admin" style="display:flex; flex-direction:column; gap:10px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-bottom:12px;">
+            <div>
+                <strong style="color:#0284c7; font-size:14px;">${c.nama_coach}</strong> <span style="font-size:12px; color:#64748b;">(${c.hari})</span><br>
+                📍 ${c.lokasi} | ⏰ ${c.jam}<br>
+                👤 ${c.nama_murid} <span style="font-size:11px; color:#f59e0b; font-weight:bold;">(${c.tipe_class})</span>
+            </div>
+            <div style="display:flex; gap:6px; width:100%;">
+                <button style="flex:1; background:#f59e0b; color:white; border:none; padding:8px 0; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;" onclick="editJadwalCoach(${c.id}, '${c.nama_coach}', '${c.hari}', '${c.lokasi}', '${c.jam}', '${c.tipe_class}', '${c.nama_murid}')">✏️ Edit</button>
+                <button style="flex:1.5; background:#10b981; color:white; border:none; padding:8px 0; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;" onclick="selesaiTugasJadwal(${c.id}, '${c.nama_murid}', 'admin')">✅ Selesai</button>
+                <button style="flex:1; background:#ef4444; color:white; border:none; padding:8px 0; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;" onclick="batalTugasJadwal(${c.id}, 'admin')">❌ Hapus</button>
+            </div>
+        </div>`;
+    });
+    list.innerHTML = html;
 }
 
 /* =========================================================
@@ -278,17 +213,10 @@ export async function loadCoachAdmin() {
 export async function loadCoachJadwal() {
     const userSesi = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
     
-    const { data: masterCoach } = await sb.from('coach')
-        .select('nama_coach')
-        .eq('username', userSesi)
-        .maybeSingle();
-        
+    const { data: masterCoach } = await sb.from('coach').select('nama_coach').eq('username', userSesi).maybeSingle();
     const namaAsliCoach = masterCoach ? masterCoach.nama_coach : userSesi;
 
-    const { data: jadwalTugas } = await sb.from('jadwal_coach')
-        .select('*')
-        .ilike('nama_coach', `%${namaAsliCoach}%`)
-        .order('id', { ascending: false });
+    const { data: jadwalTugas } = await sb.from('jadwal_coach').select('*').ilike('nama_coach', `%${namaAsliCoach}%`).order('id', { ascending: false });
 
     let htmlTugas = 'Belum ada penugasan.';
     if(jadwalTugas?.length > 0) {
@@ -296,45 +224,35 @@ export async function loadCoachJadwal() {
         <div style="margin-bottom:12px; border:1px solid #e2e8f0; border-radius:8px; padding:12px; background:#ffffff; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
             <b style="color:#0369a1; font-size:14px;">${j.hari}, ${j.jam}</b> - ${j.lokasi}<br>
             <small style="display:block; margin-bottom:12px; color:#475569;">Kelas: ${j.tipe_class} | Murid: <b>${j.nama_murid}</b></small>
-            
             <div style="display:flex; gap:8px;">
                 <button onclick="selesaiTugasJadwal(${j.id}, '${j.nama_murid}', 'coach')" style="flex:1; background:#10b981; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px; white-space:nowrap;">✅ Selesai</button>
-                
                 <button onclick="batalTugasJadwal(${j.id}, 'coach')" style="flex:1; background:#ef4444; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px; white-space:nowrap;">❌ Batal</button>
             </div>
         </div>`).join('');
     }
     document.getElementById('coach-jadwal-penugasan').innerHTML = htmlTugas;
 
-    const { data: jadwal, error: errJadwal } = await sb.from('jadwal_kelas').select('*').order('id', { ascending: true });
-    if (errJadwal) {
-        document.getElementById('coach-jadwal-beginner').innerHTML = '<p style="color:red;">Gagal memuat jadwal beginner.</p>';
-    } else {
-        let htmlBeginner = '';
-        let optJadwal = '<option value="">-- Pilih Slot Jadwal --</option>';
-        if (jadwal && jadwal.length > 0) {
-            jadwal.forEach(j => {
-                htmlBeginner += `<div style="margin-bottom:8px; border-bottom:1px solid #bae6fd; padding-bottom:8px;">
-                    <b style="color:#0284c7;">${j.hari}, ${j.jam}</b> - 📍 ${j.lokasi}<br>
-                    <small>👥 Peserta: ${j.peserta || 'Kosong'}</small>
-                </div>`;
-                optJadwal += `<option value="${j.id}" data-peserta="${j.peserta || ''}">${j.hari} | ${j.jam} | ${j.lokasi}</option>`;
-            });
-        } else {
-            htmlBeginner = '<p>Belum ada jadwal kelas beginner aktif.</p>';
-        }
-        document.getElementById('coach-jadwal-beginner').innerHTML = htmlBeginner;
-        document.getElementById('coach-pilih-jadwal').innerHTML = optJadwal;
+    const { data: jadwal } = await sb.from('jadwal_kelas').select('*').order('id', { ascending: true });
+    let htmlBeginner = '';
+    let optJadwal = '<option value="">-- Pilih Slot Jadwal --</option>';
+    if (jadwal && jadwal.length > 0) {
+        jadwal.forEach(j => {
+            htmlBeginner += `<div style="margin-bottom:8px; border-bottom:1px solid #bae6fd; padding-bottom:8px;">
+                <b style="color:#0284c7;">${j.hari}, ${j.jam}</b> - 📍 ${j.lokasi}<br>
+                <small>👥 Peserta: ${j.peserta || 'Kosong'}</small>
+            </div>`;
+            optJadwal += `<option value="${j.id}" data-peserta="${j.peserta || ''}">${j.hari} | ${j.jam} | ${j.lokasi}</option>`;
+        });
     }
+    document.getElementById('coach-jadwal-beginner').innerHTML = htmlBeginner;
+    document.getElementById('coach-pilih-jadwal').innerHTML = optJadwal;
 
     const { data: murid } = await sb.from('murid').select('id_murid, nama_murid, nama_panggilan, sisa_sesi').gt('sisa_sesi', 0);
     let optMurid = '<option value="">-- Pilih Murid Aktif --</option>';
-    if(murid) {
-        murid.forEach(m => {
-            const namaTampil = m.nama_panggilan ? m.nama_panggilan : m.nama_murid;
-            optMurid += `<option value="${m.id_murid}" data-nama="${namaTampil}">[Sisa ${m.sisa_sesi}] ${namaTampil}</option>`;
-        });
-    }
+    murid?.forEach(m => {
+        const namaTampil = m.nama_panggilan ? m.nama_panggilan : m.nama_murid;
+        optMurid += `<option value="${m.id_murid}" data-nama="${namaTampil}">[Sisa ${m.sisa_sesi}] ${namaTampil}</option>`;
+    });
     document.getElementById('coach-pilih-murid').innerHTML = optMurid;
 }
 
@@ -347,7 +265,6 @@ export async function coachInsertMurid(event) {
     const idMurid = selectMurid.value;
 
     if (!idJadwal || !idMurid) return alert("Pilih jadwal dan murid terlebih dahulu, Coach!");
-
     if(btn) { btn.innerText = "⏳ Memproses..."; btn.disabled = true; }
 
     const namaMurid = selectMurid.options[selectMurid.selectedIndex].getAttribute('data-nama');
@@ -371,16 +288,9 @@ export async function coachInsertMurid(event) {
     }
 
     try {
-        const { error: errJadwal } = await sb.from('jadwal_kelas').update({ peserta: pesertaSaatIni }).eq('id', idJadwal);
-        if (errJadwal) throw errJadwal;
-
-        const { data: dataMurid, error: errGetMurid } = await sb.from('murid').select('sisa_sesi').eq('id_murid', idMurid).single();
-        if (errGetMurid) throw errGetMurid;
-
-        if (dataMurid.sisa_sesi > 0) {
-            const { error: errUpdateMurid } = await sb.from('murid').update({ sisa_sesi: dataMurid.sisa_sesi - 1 }).eq('id_murid', idMurid);
-            if (errUpdateMurid) throw errUpdateMurid;
-        }
+        await sb.from('jadwal_kelas').update({ peserta: pesertaSaatIni }).eq('id', idJadwal);
+        const { data: dataMurid } = await sb.from('murid').select('sisa_sesi').eq('id_murid', idMurid).single();
+        if (dataMurid.sisa_sesi > 0) await sb.from('murid').update({ sisa_sesi: dataMurid.sisa_sesi - 1 }).eq('id_murid', idMurid);
 
         const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
         await sb.from('antrean_fee').insert([{
@@ -391,19 +301,17 @@ export async function coachInsertMurid(event) {
             tanggal_selesai: today
         }]);
 
-        alert("✅ Sukses! Nama masuk jadwal, sesi terpotong, dan Laporan Fee masuk ke Inbox Admin.");
-        
+        alert("✅ Sukses! Laporan Fee masuk ke Inbox Admin.");
         if (typeof loadCoachJadwal === "function") loadCoachJadwal(); 
     } catch (error) {
-        console.error("Gagal insert murid:", error);
-        alert("Terjadi kesalahan sistem saat memproses data: " + error.message);
+        alert("Terjadi kesalahan sistem saat memproses data.");
     } finally {
         if(btn) { btn.innerText = "⚡ Masukkan Murid & Kurangi Sesi"; btn.disabled = false; }
     }
 }
 
 export async function selesaiTugasJadwal(idJadwal, namaMuridStr, source) {
-    if (!confirm(`🚀 Tandai kelas ini SELESAI?\nSisa sesi murid akan dipotong 1 dan laporan akan masuk ke Inbox Admin untuk pencairan Fee.`)) return;
+    if (!confirm(`🚀 Tandai kelas ini SELESAI?`)) return;
 
     try {
         const arrNama = namaMuridStr.split(',').map(n => n.trim());
@@ -414,9 +322,7 @@ export async function selesaiTugasJadwal(idJadwal, namaMuridStr, source) {
             
             if (muridMatch && muridMatch.length > 0) {
                 const target = muridMatch[0];
-                if (target.sisa_sesi > 0) {
-                    await sb.from('murid').update({ sisa_sesi: target.sisa_sesi - 1 }).eq('id_murid', target.id_murid);
-                }
+                if (target.sisa_sesi > 0) await sb.from('murid').update({ sisa_sesi: target.sisa_sesi - 1 }).eq('id_murid', target.id_murid);
             }
         }
 
@@ -434,97 +340,23 @@ export async function selesaiTugasJadwal(idJadwal, namaMuridStr, source) {
         }
 
         await sb.from('jadwal_coach').delete().eq('id', idJadwal);
-        
-        alert("✅ Kelas Selesai! Sesi terpotong & Laporan dikirim ke Admin untuk pencairan Fee.");
+        alert("✅ Kelas Selesai! Laporan dikirim ke Admin untuk pencairan Fee.");
 
         if (source === 'coach' && typeof loadCoachJadwal === 'function') loadCoachJadwal();
         if (source === 'admin' && typeof loadCoachAdmin === 'function') loadCoachAdmin();
 
     } catch (error) {
-        console.error(error);
         alert("Terjadi kesalahan saat memproses submit selesai.");
     }
 }
 
 export async function batalTugasJadwal(idJadwal, source) {
-    if (!confirm("❌ Yakin ingin MEMBATALKAN jadwal ini?\nJadwal akan dihapus dan sesi murid TIDAK akan dipotong.")) return;
-    
+    if (!confirm("❌ Yakin ingin MEMBATALKAN jadwal ini?")) return;
     try {
         await sb.from('jadwal_coach').delete().eq('id', idJadwal);
-        
         if (source === 'coach' && typeof loadCoachJadwal === 'function') loadCoachJadwal();
         if (source === 'admin' && typeof loadCoachAdmin === 'function') loadCoachAdmin();
-    } catch (error) {
-        console.error(error);
-        alert("Gagal membatalkan jadwal.");
-    }
-}
-
-export async function loadAntreanFeeAdmin() {
-    const list = document.getElementById('admin-antrean-fee-list');
-    if(!list) return;
-    list.innerHTML = '<p style="text-align:center; font-size:12px;">Memuat laporan masuk...</p>';
-
-    const { data, error } = await sb.from('antrean_fee').select('*').order('id', { ascending: true });
-    if (error) return list.innerHTML = '<p style="color:red; text-align:center;">Gagal memuat data.</p>';
-
-    let html = '';
-    data.forEach(item => {
-        html += `
-        <div style="background:#ffffff; border:1px solid #10b981; border-radius:8px; padding:12px; margin-bottom:12px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
-            <div style="margin-bottom:12px; border-bottom:1px dashed #e2e8f0; padding-bottom:8px;">
-                <strong style="color:#047857; font-size:14px;">Coach ${item.nama_coach}</strong><br>
-                <small style="color:#475569; font-weight:bold;">${item.tipe_class} | Murid: ${item.nama_murid}</small><br>
-                <small style="color:#64748b;">📅 Selesai: ${item.tanggal_selesai}</small>
-            </div>
-            
-            <div style="display:flex; flex-direction:column; gap:8px;">
-                <div style="display:flex; align-items:center; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:0 10px;">
-                    <span style="font-weight:bold; color:#64748b; margin-right:8px;">Rp</span>
-                    <input type="number" id="input-fee-${item.id}" placeholder="Ketik nominal fee..." style="flex:1; border:none; background:transparent; padding:10px 0; font-size:14px; outline:none;">
-                </div>
-                <button onclick="accFeeCoach(${item.id}, '${item.nama_coach}', '${item.nama_murid}', '${item.tipe_class}', '${item.tanggal_selesai}', event)" style="width:100%; background:#10b981; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px;">✅ Cairkan Fee</button>
-            </div>
-        </div>`;
-    });
-    list.innerHTML = html || '<p style="text-align:center; color:#64748b; font-size:13px; font-style:italic;">✨ Belum ada laporan kelas selesai. Inbox bersih!</p>';
-}
-
-export async function accFeeCoach(idAntrean, namaCoach, namaMurid, tipeClass, tglSelesai, event) {
-    const nominal = document.getElementById(`input-fee-${idAntrean}`).value;
-    
-    if (!nominal || nominal <= 0) return alert("Masukkan nominal fee yang valid!");
-
-    const btn = event ? event.target : null;
-    if(btn) { btn.innerText = "⏳..."; btn.disabled = true; }
-
-    try {
-        if (parseInt(nominal) === 1) {
-            await sb.from('antrean_fee').delete().eq('id', idAntrean);
-            alert("🗑️ Laporan dihapus! (Sistem mendeteksi input 1 Rupiah)");
-        } 
-        else {
-            await sb.from('fee_coach').insert([{
-                nama_coach: namaCoach,
-                jenis_sesi: tipeClass,
-                nama_murid: namaMurid,
-                total_sesi: 1, 
-                total_fee: parseInt(nominal),
-                tanggal: tglSelesai
-            }]);
-
-            await sb.from('antrean_fee').delete().eq('id', idAntrean);
-            alert("✅ Cair! Fee berhasil diinput ke data Coach.");
-        }
-
-        loadAntreanFeeAdmin(); 
-        if (typeof window.loadRekapFee === 'function') window.loadRekapFee();
-
-    } catch (err) {
-        console.error(err);
-        alert("Gagal memproses laporan: " + err.message);
-        if(btn) { btn.innerText = "✅ Cairkan Fee"; btn.disabled = false; }
-    }
+    } catch (error) {}
 }
 
 let debounceTimerMurid;
@@ -535,17 +367,14 @@ export function debounceSearchMurid() {
     const clearBtn = document.getElementById('clear-search-murid');
     const dropdown = document.getElementById('dropdown-assess-murid');
 
-    if (keyword.length > 0) {
-        clearBtn.classList.remove('hidden');
-    } else {
+    if (keyword.length > 0) clearBtn.classList.remove('hidden');
+    else {
         clearBtn.classList.add('hidden');
         dropdown.classList.add('hidden');
         return;
     }
 
-    debounceTimerMurid = setTimeout(() => {
-        cariMuridAssessment(keyword);
-    }, 300);
+    debounceTimerMurid = setTimeout(() => { cariMuridAssessment(keyword); }, 300);
 }
 
 export async function cariMuridAssessment(keyword) {
@@ -559,12 +388,7 @@ export async function cariMuridAssessment(keyword) {
             .or(`nama_murid.ilike.%${keyword}%,nama_panggilan.ilike.%${keyword}%`)
             .limit(10); 
 
-        if (error) throw error;
-
-        if (data.length === 0) {
-            dropdown.innerHTML = '<div class="p-3 text-xs text-red-500 font-bold text-center">❌ Tidak ada murid yang cocok</div>';
-            return;
-        }
+        if (data.length === 0) return dropdown.innerHTML = '<div class="p-3 text-xs text-red-500 font-bold text-center">❌ Tidak ada murid yang cocok</div>';
 
         let html = '';
         data.forEach(m => {
@@ -577,17 +401,13 @@ export async function cariMuridAssessment(keyword) {
         });
         dropdown.innerHTML = html;
 
-    } catch (error) {
-        console.error("Gagal mencari murid:", error);
-        dropdown.innerHTML = '<div class="p-3 text-xs text-red-500 text-center">⚠️ Terjadi gangguan jaringan</div>';
-    }
+    } catch (error) { dropdown.innerHTML = '<div class="p-3 text-xs text-red-500 text-center">⚠️ Terjadi gangguan jaringan</div>'; }
 }
 
 export function pilihMuridAutocomplete(id, panggilan, namaLengkap) {
     document.getElementById('search-assess-murid').value = `${panggilan} (${namaLengkap})`;
     document.getElementById('assess-murid').value = id; 
     document.getElementById('dropdown-assess-murid').classList.add('hidden'); 
-    
     loadAssessmentDetail(); 
 }
 
@@ -596,7 +416,6 @@ export function clearSearchMurid() {
     document.getElementById('assess-murid').value = '';
     document.getElementById('dropdown-assess-murid').classList.add('hidden');
     document.getElementById('clear-search-murid').classList.add('hidden');
-    
     loadAssessmentDetail();
 }
 
@@ -610,45 +429,31 @@ export async function loadBelumAssessment() {
     if (!container) return;
 
     try {
-        const { data: muridAktif, error: errMurid } = await sb.from('murid').select('id_murid, nama_murid').gt('sisa_sesi', 0);
-        if (errMurid) throw errMurid;
-
-        const { data: logAssessment, error: errLog } = await sb.from('assessment_log').select('id_murid');
-        if (errLog) throw errLog;
+        const { data: muridAktif } = await sb.from('murid').select('id_murid, nama_murid').gt('sisa_sesi', 0);
+        const { data: logAssessment } = await sb.from('assessment_log').select('id_murid');
 
         const idSudahDinilai = [...new Set(logAssessment.map(item => item.id_murid))];
         const muridBelumDinilai = muridAktif.filter(m => !idSudahDinilai.includes(m.id_murid));
 
-        if (muridBelumDinilai.length === 0) {
-            container.innerHTML = '<span style="font-size:11px; background:#10b981; color:white; padding:4px 10px; border-radius:12px; font-weight:bold;">✨ Mantap! Semua murid aktif sudah memiliki rapor.</span>';
-            return;
-        }
+        if (muridBelumDinilai.length === 0) return container.innerHTML = '<span style="font-size:11px; background:#10b981; color:white; padding:4px 10px; border-radius:12px; font-weight:bold;">✨ Mantap! Semua murid aktif sudah memiliki rapor.</span>';
 
         let html = '';
         muridBelumDinilai.forEach(m => {
-            html += `<button onclick="pilihAnakBelumDinilai(${m.id_murid})" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:bold; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.05); transition:0.2s;">
-                + ${m.nama_murid}
-            </button>`;
+            html += `<button onclick="pilihAnakBelumDinilai(${m.id_murid})" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:bold; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.05); transition:0.2s;">+ ${m.nama_murid}</button>`;
         });
-
         container.innerHTML = html;
 
-    } catch (error) {
-        console.error("Gagal memuat To-Do Assessment:", error);
-        container.innerHTML = '<span style="color:red; font-size:11px;">Gagal memuat data.</span>';
-    }
+    } catch (error) { container.innerHTML = '<span style="color:red; font-size:11px;">Gagal memuat data.</span>'; }
 }
 
 export async function pilihAnakBelumDinilai(idMurid) {
     document.getElementById('assess-murid').value = idMurid; 
-    
     const { data } = await sb.from('murid').select('nama_murid, nama_panggilan').eq('id_murid', idMurid).maybeSingle();
     if(data) {
         const panggilan = data.nama_panggilan || data.nama_murid.split(' ')[0];
         document.getElementById('search-assess-murid').value = `${panggilan} (${data.nama_murid})`;
         document.getElementById('clear-search-murid').classList.remove('hidden');
     }
-    
     loadAssessmentDetail(); 
     window.scrollTo({ top: 0, behavior: "smooth" }); 
 }
@@ -660,12 +465,7 @@ export async function loadAssessmentDetail() {
     let hiddenId = document.getElementById('ass-edit-id');
     if(hiddenId) hiddenId.value = ""; 
 
-    const { data } = await sb.from('assessment_log')
-        .select('*')
-        .eq('id_murid', idMurid)
-        .order('tanggal_assessment', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+    const { data } = await sb.from('assessment_log').select('*').eq('id_murid', idMurid).order('tanggal_assessment', { ascending: false }).limit(1).maybeSingle();
 
     if(data) {
         document.getElementById('ass-float').value = data.floating_streamline || '';
@@ -731,23 +531,15 @@ export async function simpanAssessment() {
     const idMurid = document.getElementById('assess-murid').value;
     if(!idMurid) return alert("Cari dan pilih murid terlebih dahulu!");
 
-    const valFloat = parseInt(document.getElementById('ass-float').value) || 0;
-    const valBreath = parseInt(document.getElementById('ass-breath').value) || 0;
-    const valKick = parseInt(document.getElementById('ass-kick').value) || 0;
-    const valFree = parseInt(document.getElementById('ass-free').value) || 0;
-    const valBreast = parseInt(document.getElementById('ass-breast').value) || 0;
-    const valBack = parseInt(document.getElementById('ass-back').value) || 0;
-    const valFly = parseInt(document.getElementById('ass-fly').value) || 0;
-
     const payload = {
         id_murid: idMurid,
-        floating_streamline: valFloat,
-        breathing_control: valBreath,
-        freestyle_kicking: valKick,
-        freestyle_stroke: valFree,
-        breaststroke: valBreast,
-        backstroke: valBack,
-        butterfly_stroke: valFly,
+        floating_streamline: parseInt(document.getElementById('ass-float').value) || 0,
+        breathing_control: parseInt(document.getElementById('ass-breath').value) || 0,
+        freestyle_kicking: parseInt(document.getElementById('ass-kick').value) || 0,
+        freestyle_stroke: parseInt(document.getElementById('ass-free').value) || 0,
+        breaststroke: parseInt(document.getElementById('ass-breast').value) || 0,
+        backstroke: parseInt(document.getElementById('ass-back').value) || 0,
+        butterfly_stroke: parseInt(document.getElementById('ass-fly').value) || 0,
         catatan_coach: document.getElementById('ass-catatan').value
     };
 
@@ -756,48 +548,28 @@ export async function simpanAssessment() {
 
     let hiddenId = document.getElementById('ass-edit-id');
     const idAssessment = hiddenId ? hiddenId.value : "";
-    let errorData;
 
     try {
-        if (idAssessment) {
-            const { error } = await sb.from('assessment_log').update(payload).eq('id_assessment', idAssessment);
-            errorData = error;
-        } else {
-            const { error } = await sb.from('assessment_log').insert([payload]);
-            errorData = error;
-        }
-        
-        if (errorData) throw errorData;
+        if (idAssessment) await sb.from('assessment_log').update(payload).eq('id_assessment', idAssessment);
+        else await sb.from('assessment_log').insert([payload]);
 
-        let statusLulus = false;
-        let pesanKelulusan = "";
+        let statusLulus = (payload.freestyle_stroke >= 95 && payload.breaststroke >= 100);
+        let pesanKelulusan = statusLulus ? "\n\n🎉 SELAMAT! Nilai memenuhi syarat." : "\n\n🔒 Nilai belum memenuhi standar kelulusan.";
 
-        if (valFree >= 95 && valBreast >= 100) {
-            statusLulus = true;
-            pesanKelulusan = "\n\n🎉 SELAMAT! Nilai memenuhi syarat. Sertifikat Kelulusan Level 1 otomatis TERBUKA!";
-        } else {
-            statusLulus = false;
-            pesanKelulusan = "\n\n🔒 Nilai belum memenuhi standar kelulusan (Bebas 95%, Dada 100%).";
-        }
-
-        const { error: errLulus } = await sb.from('murid').update({ lulus_level_1: statusLulus }).eq('id_murid', idMurid);
-        if (errLulus) throw errLulus;
+        await sb.from('murid').update({ lulus_level_1: statusLulus }).eq('id_murid', idMurid);
 
         const checkboxPotong = document.getElementById('ass-potong-sesi');
-        let pesanSesi = "";
+        let pesanSesi = "Sesi tidak dipotong.";
         
         if (checkboxPotong && checkboxPotong.checked) {
             const { data: dataSiswa } = await sb.from('murid').select('sisa_sesi').eq('id_murid', idMurid).single();
             if (dataSiswa && dataSiswa.sisa_sesi > 0) {
                 await sb.from('murid').update({ sisa_sesi: dataSiswa.sisa_sesi - 1 }).eq('id_murid', idMurid);
                 pesanSesi = "Sisa Sesi berhasil dipotong 1.";
-                checkboxPotong.checked = false; 
             } else {
                 pesanSesi = "Peringatan: Sisa sesi murid sudah habis!";
-                checkboxPotong.checked = false;
             }
-        } else {
-            pesanSesi = "Sesi tidak dipotong.";
+            checkboxPotong.checked = false;
         }
         
         alert(`Mantap Coach! Rapor tersimpan.\n${pesanSesi}${pesanKelulusan}`);
@@ -819,19 +591,13 @@ export async function simpanAssessment() {
 export async function loadRiwayatAssessment() {
     const listEl = document.getElementById('coach-assessment-list');
     if (!listEl) return;
-    
     listEl.innerHTML = '<p style="text-align:center; font-size:12px;">Memuat riwayat...</p>';
 
-    const { data: logData, error: logError } = await sb.from('assessment_log')
-        .select('*')
-        .order('tanggal_assessment', { ascending: false });
-
-    if (logError) return listEl.innerHTML = '<p style="color:red; font-size:12px;">Gagal memuat riwayat.</p>';
-
+    const { data: logData } = await sb.from('assessment_log').select('*').order('tanggal_assessment', { ascending: false });
     const { data: muridData } = await sb.from('murid').select('id_murid, nama_murid');
 
     let html = '';
-    logData.forEach(item => {
+    logData?.forEach(item => {
         const murid = muridData ? muridData.find(m => m.id_murid === item.id_murid) : null;
         const nama = murid ? murid.nama_murid : `Siswa (ID: ${item.id_murid})`; 
         const safeNama = nama.replace(/'/g, "\\'");
@@ -977,47 +743,17 @@ export async function downloadRaporPDF(idAssessment, namaSiswa) {
         };
         
         await html2pdf().set(opt).from(pdfContainer).save();
-        
         document.body.removeChild(pdfContainer);
         
     } catch(e) {
-        console.error(e);
         alert("Gagal mencetak Rapor: " + e.message);
         const temp = document.getElementById('temp-pdf-rapor');
         if(temp) document.body.removeChild(temp);
     }
 }
 
-export async function tambahAkunting() {
-    const tgl = document.getElementById('akun-tanggal').value;
-    const ket = document.getElementById('akun-ket').value;
-    const jenis = document.getElementById('akun-jenis').value;
-    const jumlah = document.getElementById('akun-jumlah').value;
-
-    if (!tgl || !ket || !jumlah) return alert("Isi tanggal, keterangan, dan jumlah!");
-
-    const { error } = await sb.from('akunting').insert([{ 
-        tanggal: tgl,
-        keterangan: ket, 
-        jenis: jenis, 
-        jumlah: parseFloat(jumlah)
-    }]);
-
-    if (error) {
-        console.error("Error Detail:", error);
-        alert("Gagal simpan: " + error.message);
-    } else {
-        document.getElementById('akun-tanggal').value = '';
-        document.getElementById('akun-ket').value = '';
-        document.getElementById('akun-jumlah').value = '';
-        
-        if (typeof window.loadAkuntingAdmin === "function") window.loadAkuntingAdmin(); 
-        if (typeof window.loadRekapAkunting === "function") window.loadRekapAkunting(); 
-    }
-}
-
 /* =========================================================
-   FUNGSI LOAD FEE COACH (DENGAN FILTER TANGGAL CUT-OFF)
+   FUNGSI LOAD FEE COACH (DENGAN FILTER TANGGAL KOSONG)
 ========================================================= */
 export async function loadCoachFee() {
     const totalEl = document.getElementById('coach-total-fee');
@@ -1030,12 +766,8 @@ export async function loadCoachFee() {
     const userSesi = localStorage.getItem("loggedInUser") || localStorage.getItem("username");
     if (!userSesi) return listEl.innerHTML = "Coach belum login.";
 
-    // Set Default Filter jika inputnya kosong (Tgl 26 bln lalu - Tgl 25 bln ini)
-    if (startEl && !startEl.value) startEl.value = getDefaultStartDate();
-    if (endEl && !endEl.value) endEl.value = getDefaultEndDate();
-
-    const startDateStr = startEl ? startEl.value : getDefaultStartDate();
-    const endDateStr = endEl ? endEl.value : getDefaultEndDate();
+    const startDateStr = startEl ? startEl.value : "";
+    const endDateStr = endEl ? endEl.value : "";
 
     listEl.innerHTML = '<p class="text-center text-xs text-slate-400 italic">Mencari data rekapan...</p>';
 
@@ -1047,14 +779,18 @@ export async function loadCoachFee() {
 
         const namaAsli = masterCoach ? masterCoach.nama_coach : userSesi;
 
-        // Tarik data pakai Range Start & End Date (.gte & .lte)
-        const { data, error } = await sb.from("fee_coach")
-            .select("*")
-            .eq("nama_coach", namaAsli)
-            .gte("tanggal", startDateStr)
-            .lte("tanggal", endDateStr)
-            .order("tanggal", { ascending: false });
+        let query = sb.from("fee_coach").select("*").eq("nama_coach", namaAsli).order("tanggal", { ascending: false });
 
+        // Filter berdasarkan tanggal jika Coach nge-set kalendernya
+        if (startDateStr && endDateStr) {
+            query = query.gte("tanggal", startDateStr).lte("tanggal", endDateStr);
+        } else if (startDateStr) {
+            query = query.gte("tanggal", startDateStr);
+        } else if (endDateStr) {
+            query = query.lte("tanggal", endDateStr);
+        }
+
+        const { data, error } = await query;
         if (error) return listEl.innerHTML = "Gagal memuat data.";
 
         let totalFee = 0;
@@ -1112,11 +848,7 @@ export async function loadProfilCoach() {
         }
 
         window.activeCoachDbId = data.id;
-
-    } catch (err) {
-        console.error(err);
-        alert("Gagal memuat profil. Pastikan Admin sudah membuatkan Master Data Coach untuk akun ini.");
-    }
+    } catch (err) {}
 }
 
 export async function simpanProfilCoach() {
@@ -1141,15 +873,11 @@ export async function simpanProfilCoach() {
 
         const urlFoto = sb.storage.from('coach-files').getPublicUrl(path).data.publicUrl;
 
-        const { error: dbErr } = await sb.from('coach').update({ foto_profil: urlFoto }).eq('id', coachId);
-        
-        if (dbErr) throw dbErr;
-
+        await sb.from('coach').update({ foto_profil: urlFoto }).eq('id', coachId);
         alert("Foto Profil berhasil diperbarui!");
         loadProfilCoach(); 
 
     } catch (err) {
-        console.error(err);
         alert("Terjadi kesalahan sistem saat mengunggah foto.");
         loadProfilCoach();
     }
@@ -1165,14 +893,10 @@ window.loadCoachJadwal = loadCoachJadwal;
 window.coachInsertMurid = coachInsertMurid;
 window.selesaiTugasJadwal = selesaiTugasJadwal;
 window.batalTugasJadwal = batalTugasJadwal;
-window.loadAntreanFeeAdmin = loadAntreanFeeAdmin;
-window.accFeeCoach = accFeeCoach;
-
 window.debounceSearchMurid = debounceSearchMurid;
 window.cariMuridAssessment = cariMuridAssessment;
 window.pilihMuridAutocomplete = pilihMuridAutocomplete;
 window.clearSearchMurid = clearSearchMurid;
-
 window.loadCoachAssessment = loadCoachAssessment;
 window.loadBelumAssessment = loadBelumAssessment;
 window.pilihAnakBelumDinilai = pilihAnakBelumDinilai;
@@ -1181,12 +905,9 @@ window.editAssessmentLog = editAssessmentLog;
 window.simpanAssessment = simpanAssessment;
 window.loadRiwayatAssessment = loadRiwayatAssessment;
 window.downloadRaporPDF = downloadRaporPDF; 
-
-window.tambahAkunting = tambahAkunting;
 window.loadCoachFee = loadCoachFee;
 window.loadProfilCoach = loadProfilCoach;
 window.simpanProfilCoach = simpanProfilCoach;
-
 window.bukaModalFeeCoach = bukaModalFeeCoach;
 window.jalankanJamCoach = jalankanJamCoach;
 window.loadProfilHeaderCoach = loadProfilHeaderCoach;
