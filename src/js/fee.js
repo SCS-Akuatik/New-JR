@@ -22,7 +22,7 @@ export async function initDropdownCoach() {
 }
 
 /* =========================================================
-   🔥 FITUR ANTREAN FEE (YANG KEMARIN NYANGKUT DI COACH) 🔥
+   🔥 FITUR ANTREAN FEE (BUG FIXED: FORMAT TANGGAL & GEMBOK) 🔥
 ========================================================= */
 export async function loadAntreanFeeAdmin() {
     const list = document.getElementById('admin-antrean-fee-list');
@@ -65,23 +65,35 @@ export async function accFeeCoach(idAntrean, namaCoach, namaMurid, tipeClass, tg
             await sb.from('antrean_fee').delete().eq('id', idAntrean);
             alert("🗑️ Laporan dihapus! (Sistem mendeteksi input 1 Rupiah)");
         } else {
-            // INSERT KE FEE COACH (INI YANG KEMARIN GAGAL)
-            await sb.from('fee_coach').insert([{
+            // 🔥 FIX: Paksa konversi jadi YYYY-MM-DD biar database nggak nolak
+            const tglMasukDB = new Date().toISOString().split('T')[0];
+
+            // 1. COBA INSERT KE DB FEE_COACH
+            const { error: errInsert } = await sb.from('fee_coach').insert([{
                 nama_coach: namaCoach,
                 jenis_sesi: tipeClass,
                 nama_murid: namaMurid,
                 total_sesi: 1, 
                 total_fee: parseInt(nominal),
-                tanggal: tglSelesai
+                tanggal: tglMasukDB // Menggunakan format valid
             }]);
-            await sb.from('antrean_fee').delete().eq('id', idAntrean);
+            
+            // 🔥 GEMBOK KEAMANAN: Kalau ditolak/gagal, JANGAN hapus antrean!
+            if (errInsert) throw errInsert;
+
+            // 2. KALAU INSERT BERHASIL, BARU BOLEH HAPUS ANTREAN
+            const { error: errDelete } = await sb.from('antrean_fee').delete().eq('id', idAntrean);
+            if (errDelete) throw errDelete;
+
             alert("✅ Cair! Fee berhasil diinput ke data Coach.");
         }
+        
         loadAntreanFeeAdmin(); 
         loadFeeAdmin();
         if (typeof window.loadRekapFee === 'function') window.loadRekapFee();
 
     } catch (err) {
+        console.error("Gagal Proses Fee:", err);
         alert("Gagal memproses laporan: " + err.message);
         if(btn) { btn.innerText = "✅ Cairkan Fee"; btn.disabled = false; }
     }
