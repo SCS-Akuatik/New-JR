@@ -1,9 +1,6 @@
 import { sb } from './config.js';
 
 // ===================================================
-// MANTRA PEMBUNUH SERVICE WORKER LAMA (AUTO-CLEAR CACHE)
-// ===================================================
-// ===================================================
 // PEMBERSIH CACHE LAMA (SILUMAN - ANTI RELOAD LOOP)
 // ===================================================
 // Menghapus sisa cache/memori dari web lama tanpa membunuh Service Worker baru
@@ -113,8 +110,9 @@ export function pindahHalaman(idTarget, pushState = true) {
     
     if (idTarget === 'admin-modul-siswa' && typeof window.loadSiswaAdmin === "function") window.loadSiswaAdmin();
     
-    if (idTarget === 'admin-modul-fee' && typeof window.loadFeeAdmin === "function") {
-        window.loadFeeAdmin();
+    if (idTarget === 'admin-modul-fee') {
+        if(typeof window.loadAntreanFeeAdmin === "function") window.loadAntreanFeeAdmin(); // HARUS DIPANGGIL PERTAMA KALI!
+        if(typeof window.loadFeeAdmin === "function") window.loadFeeAdmin();
         if(typeof window.initDropdownCoach === "function") window.initDropdownCoach();
         if(typeof window.loadRekapFee === "function") window.loadRekapFee();
     }
