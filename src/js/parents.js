@@ -13,7 +13,6 @@ let idAnakAktif = null;
 export async function initParentDashboard() {
     const parentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
     
-    // PERBAIKAN: Gunakan classList, bukan style.display
     document.getElementById('parent-main-menu').classList.add('hidden');
     document.getElementById('status-sesi-container').classList.add('hidden');
     document.getElementById('parent-area-sertifikat').innerHTML = ''; 
@@ -113,7 +112,6 @@ window.gantiAnakAktif = async function() {
         console.error("Gagal menarik data sisa sesi anak:", e);
     }
 };
-
 
 window.lanjutRenew = function() {
     alert("🚀 Fitur Bayar Mandiri sedang disiapkan! Sementara silakan gunakan tombol Chat Admin untuk meminta tagihan.");
@@ -387,7 +385,6 @@ export async function cekSertifikatLevel1() {
     if (error || !data) return;
 
     if (data.lulus_level_1 === true) {
-        // JIKA SUDAH LULUS (TOMBOL HIJAU UNDUH)
         areaSertifikat.innerHTML = `
         <button onclick="generateSertifikatDummy('${data.nama_murid}')" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: left; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
             <span style="font-size: 14px;">🎓 Kelulusan: Level 1 Basic</span>
@@ -396,9 +393,6 @@ export async function cekSertifikatLevel1() {
         <p style="font-size:10px; color:#10b981; margin-top:5px; text-align:center;">Klik tombol di atas untuk mencetak sertifikat digital.</p>
         `;
     } else {
-        // JIKA BELUM LULUS (GAMIFICATION PROGRESS BAR)
-        // Simulasi progress: Anggap total 1 level = 8 sesi. 
-        // Sesi yang sudah diselesaikan = 8 - sisa sesi saat ini (dibatasi min 0, max 8)
         let totalSesiLevel = 8;
         let sisaSesi = data.sisa_sesi || 0;
         let sesiSelesai = totalSesiLevel - (sisaSesi > totalSesiLevel ? totalSesiLevel : sisaSesi);
@@ -421,7 +415,6 @@ export async function cekSertifikatLevel1() {
         `;
     }
 }
-
 
 export function generateSertifikatDummy(namaAnak) {
     alert("⏳ Sedang mencetak sertifikat emas... Mohon tunggu sebentar.");
@@ -467,6 +460,56 @@ export function generateSertifikatDummy(namaAnak) {
     };
 }
 
+// ---------------------------------------------------
+// 8. FITUR BUKA HISTORI LATIHAN (POP-UP)
+// ---------------------------------------------------
+export async function bukaHistoriLatihan() {
+    const modal = document.getElementById('modal-histori-latihan');
+    const list = document.getElementById('parent-histori-list');
+    const dropdownAnak = document.getElementById('parent-pilih-anak');
+
+    if (!modal || !list) return alert("Elemen modal histori belum dipasang!");
+    if (!dropdownAnak || !dropdownAnak.value) return alert("Pilih anak terlebih dahulu di atas.");
+
+    const idMurid = dropdownAnak.value;
+    modal.classList.remove('hidden');
+    list.innerHTML = '<p class="text-center text-xs text-slate-400 italic">Mencari jejak latihan...</p>';
+
+    try {
+        const { data, error } = await sb.from('histori_latihan')
+            .select('*')
+            .eq('id_murid', idMurid)
+            .order('id', { ascending: false })
+            .limit(10); 
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            list.innerHTML = '<p class="text-center text-xs text-slate-500 font-bold mt-4">Belum ada histori latihan yang tercatat.</p>';
+            return;
+        }
+
+        let html = '';
+        data.forEach(h => {
+            html += `
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-start gap-3">
+                <div class="bg-orange-100 p-2 rounded-lg text-orange-600 text-lg">🏊‍♂️</div>
+                <div class="flex-1">
+                    <strong class="text-slate-700 text-sm block border-b border-slate-100 pb-1 mb-1">${h.tanggal}</strong>
+                    <span class="text-xs text-slate-500 block">Dilatih oleh: <b class="text-sky-600">Coach ${h.nama_coach}</b></span>
+                    <span class="text-[10px] text-slate-400 block mt-1">📍 ${h.lokasi || '-'} | 📦 ${h.program || '-'}</span>
+                </div>
+            </div>`;
+        });
+
+        list.innerHTML = html;
+
+    } catch (err) {
+        console.error(err);
+        list.innerHTML = '<p class="text-center text-xs text-red-500">Gagal memuat histori.</p>';
+    }
+}
+
 // REGISTER TO WINDOW
 window.initParentDashboard = initParentDashboard;
 window.gantiAnakAktif = gantiAnakAktif;
@@ -480,3 +523,4 @@ window.tutupModalDaftarBeginner = tutupModalDaftarBeginner;
 window.submitPendaftaranOnline = submitPendaftaranOnline;
 window.cekSertifikatLevel1 = cekSertifikatLevel1;
 window.generateSertifikatDummy = generateSertifikatDummy;
+window.bukaHistoriLatihan = bukaHistoriLatihan;

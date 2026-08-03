@@ -1,6 +1,20 @@
 import { sb } from './config.js';
 
 /* =========================================================
+   FUNGSI HELPER TANGGAL CUT-OFF 26 - 25
+========================================================= */
+function getDefaultStartDate() {
+    let d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-26`;
+}
+
+function getDefaultEndDate() {
+    let d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-25`;
+}
+
+/* =========================================================
    HEADER DYNAMIC: JAM, NAMA (USERS), DAN UPLOAD FOTO
 ========================================================= */
 window.bukaModalFeeCoach = function() {
@@ -25,7 +39,9 @@ window.jalankanJamCoach = function() {
             const namaBln = blnList[now.getMonth()];
             
             if(elTgl) elTgl.innerText = `${namaHari}, ${tgl} ${namaBln}`;
-        } catch(e) {}
+        } catch(e) {
+            console.error("Jam Error:", e);
+        }
     };
 
     updateWaktu(); 
@@ -47,23 +63,35 @@ window.loadProfilHeaderCoach = async function() {
 
     try {
         const { data, error } = await sb.from('users').select('*').eq('username', currentUser).maybeSingle();
+        
         if (data) {
-            if (elNama && data.call_name) elNama.innerText = data.call_name;
+            if (elNama && data.call_name) {
+                elNama.innerText = data.call_name;
+                if(elFoto && !data.avatar_url) elFoto.src = `https://ui-avatars.com/api/?name=${data.call_name}&background=0284c7&color=fff`;
+            }
+            
             if (elFoto && data.avatar_url) {
                 elFoto.src = data.avatar_url;
                 elFoto.onerror = () => { elFoto.src = `https://ui-avatars.com/api/?name=${data.call_name || callName}&background=0284c7&color=fff`; };
             }
         }
-    } catch(e) {}
+    } catch(e) {
+        console.error("Database profil error:", e);
+    }
 };
 
 window.uploadAvatarCoach = async function(event) {
     const file = event.target.files[0];
     if(!file) return;
 
-    if(file.size > 2 * 1024 * 1024) return alert("🚨 Ukuran file terlalu besar! Maksimal 2MB ya Bos.");
+    if(file.size > 2 * 1024 * 1024) {
+        return alert("🚨 Ukuran file terlalu besar! Maksimal 2MB ya Bos.");
+    }
+
     const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if(!validTypes.includes(file.type)) return alert("🚨 Format file harus JPG, PNG, atau WEBP.");
+    if(!validTypes.includes(file.type)) {
+        return alert("🚨 Format file harus JPG, PNG, atau WEBP.");
+    }
 
     const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
     const elFoto = document.getElementById('header-coach-avatar');
@@ -76,18 +104,29 @@ window.uploadAvatarCoach = async function(event) {
         const fileName = `avatar_${Date.now()}.${ext}`;
         const filePath = `${currentUser}/${fileName}`; 
 
-        const { error: uploadError } = await sb.storage.from('coach-avatars').upload(filePath, file, { upsert: true, cacheControl: '3600' });
+        const { error: uploadError } = await sb.storage
+            .from('coach-avatars') 
+            .upload(filePath, file, { upsert: true, cacheControl: '3600' });
+
         if (uploadError) throw uploadError;
 
-        const { data: publicUrlData } = sb.storage.from('coach-avatars').getPublicUrl(filePath);
+        const { data: publicUrlData } = sb.storage
+            .from('coach-avatars')
+            .getPublicUrl(filePath);
+
         const publicUrl = publicUrlData.publicUrl;
 
-        const { error: updateError } = await sb.from('users').update({ avatar_url: publicUrl }).eq('username', currentUser);
+        const { error: updateError } = await sb.from('users')
+            .update({ avatar_url: publicUrl })
+            .eq('username', currentUser);
+
         if (updateError) throw updateError;
 
         elFoto.src = publicUrl;
         alert("✅ Foto profil berhasil diperbarui!");
+
     } catch(e) {
+        console.error("Gagal upload avatar:", e);
         alert("Gagal mengunggah foto: " + e.message);
         elFoto.src = oldSrc; 
     } finally {
@@ -102,9 +141,20 @@ export async function loadDropdownMuridCoach() {
     const dropdown = document.getElementById('coach-murid');
     if (!dropdown) return;
     
-    const { data } = await sb.from('murid').select('id_murid, nama_murid, nama_panggilan, sisa_sesi').gt('sisa_sesi', 0).order('nama_murid', { ascending: true });
+    dropdown.innerHTML = '<option value="">Memuat Murid...</option>';
+
+    const { data, error } = await sb.from('murid')
+        .select('id_murid, nama_murid, nama_panggilan, sisa_sesi')
+        .gt('sisa_sesi', 0)
+        .order('nama_murid', { ascending: true });
+    
+    if (error) {
+        dropdown.innerHTML = '<option value="">Gagal muat data</option>';
+        return console.error(error);
+    }
+
     dropdown.innerHTML = '<option value="">-- Pilih Murid Aktif --</option>';
-    data?.forEach(m => {
+    data.forEach(m => {
         const namaTampil = m.nama_panggilan ? m.nama_panggilan : m.nama_murid;
         dropdown.innerHTML += `<option value="${m.id_murid}" data-nama="${namaTampil}">${namaTampil} (Sisa: ${m.sisa_sesi})</option>`;
     });
@@ -149,22 +199,29 @@ export async function simpanJadwalCoach() {
         nama_murid: listNama 
     };
 
-    if (!dataObj.nama_coach || !dataObj.lokasi || !listNama) return alert("Lengkapi Form!");
+    if (!dataObj.nama_coach || !dataObj.lokasi || !listNama) {
+        return alert("Pilih Coach, Isi Lokasi, & Masukkan minimal 1 Murid ke list!");
+    }
 
     document.getElementById('btn-coach').innerHTML = "⏳ Memproses...";
 
     if (id) { 
         await sb.from('jadwal_coach').update(dataObj).eq('id', id);
-        alert("Data jadwal diupdate!");
+        alert("Data jadwal berhasil diupdate!");
     } else { 
         await sb.from('jadwal_coach').insert([dataObj]);
-        alert("Jadwal penugasan berhasil dibuat!");
+        alert("Jadwal penugasan berhasil dibuat! (Sesi baru terpotong jika tombol Selesai diklik)");
     }
 
     document.getElementById('coach-edit-id').value = '';
     document.getElementById('btn-coach').innerHTML = "⚡ Simpan Penugasan";
+    document.getElementById('coach-lokasi').value = '';
+    document.getElementById('coach-jam').value = '';
     resetListCoach(); 
-    if (typeof loadCoachAdmin === 'function') loadCoachAdmin();
+    document.getElementById('coach-murid').value = '';
+    
+    loadCoachAdmin();
+    loadDropdownMuridCoach(); 
 }
 
 export function editJadwalCoach(id, nama, hari, lokasi, jam, tipe, murid) {
@@ -174,8 +231,10 @@ export function editJadwalCoach(id, nama, hari, lokasi, jam, tipe, murid) {
     document.getElementById('coach-lokasi').value = lokasi;
     document.getElementById('coach-jam').value = jam;
     document.getElementById('coach-tipe').value = tipe;
+    
     document.getElementById('coach-list-nama').value = murid;
     document.getElementById('coach-list-id').value = ""; 
+    
     document.getElementById('btn-coach').innerText = "💾 Update Jadwal";
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -188,27 +247,33 @@ export async function loadCoachAdmin() {
         loadDropdownMuridCoach();
     }
     
-    const { data } = await sb.from('jadwal_coach').select('*').order('id', { ascending: true });
-    let html = '';
-    data?.forEach(c => {
-        html += `<div class="list-item-admin" style="display:flex; flex-direction:column; gap:10px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-bottom:12px;">
-            <div>
-                <strong style="color:#0284c7; font-size:14px;">${c.nama_coach}</strong> <span style="font-size:12px; color:#64748b;">(${c.hari})</span><br>
-                📍 ${c.lokasi} | ⏰ ${c.jam}<br>
-                👤 ${c.nama_murid} <span style="font-size:11px; color:#f59e0b; font-weight:bold;">(${c.tipe_class})</span>
-            </div>
-            <div style="display:flex; gap:6px; width:100%;">
-                <button style="flex:1; background:#f59e0b; color:white; border:none; padding:8px 0; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;" onclick="editJadwalCoach(${c.id}, '${c.nama_coach}', '${c.hari}', '${c.lokasi}', '${c.jam}', '${c.tipe_class}', '${c.nama_murid}')">✏️ Edit</button>
-                <button style="flex:1.5; background:#10b981; color:white; border:none; padding:8px 0; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;" onclick="selesaiTugasJadwal(${c.id}, '${c.nama_murid}', 'admin')">✅ Selesai</button>
-                <button style="flex:1; background:#ef4444; color:white; border:none; padding:8px 0; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;" onclick="batalTugasJadwal(${c.id}, 'admin')">❌ Hapus</button>
-            </div>
-        </div>`;
-    });
-    list.innerHTML = html;
+    try {
+        const { data, error } = await sb.from('jadwal_coach').select('*').order('id', { ascending: true });
+        if (error) throw error;
+        let html = '';
+        data.forEach(c => {
+            html += `<div class="list-item-admin" style="display:flex; flex-direction:column; gap:10px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-bottom:12px;">
+                <div>
+                    <strong style="color:#0284c7; font-size:14px;">${c.nama_coach}</strong> <span style="font-size:12px; color:#64748b;">(${c.hari})</span><br>
+                    📍 ${c.lokasi} | ⏰ ${c.jam}<br>
+                    👤 ${c.nama_murid} <span style="font-size:11px; color:#f59e0b; font-weight:bold;">(${c.tipe_class})</span>
+                </div>
+                
+                <div style="display:flex; gap:6px; width:100%;">
+                    <button style="flex:1; background:#f59e0b; color:white; border:none; padding:8px 0; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;" onclick="editJadwalCoach(${c.id}, '${c.nama_coach}', '${c.hari}', '${c.lokasi}', '${c.jam}', '${c.tipe_class}', '${c.nama_murid}')">✏️ Edit</button>
+                    
+                    <button style="flex:1.5; background:#10b981; color:white; border:none; padding:8px 0; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;" onclick="selesaiTugasJadwal(${c.id}, '${c.nama_murid}', 'admin')">✅ Selesai</button>
+                    
+                    <button style="flex:1; background:#ef4444; color:white; border:none; padding:8px 0; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;" onclick="batalTugasJadwal(${c.id}, 'admin')">❌ Hapus</button>
+                </div>
+            </div>`;
+        });
+        list.innerHTML = html;
+    } catch (err) { list.innerHTML = 'Gagal memuat data.'; }
 }
 
 /* =========================================================
-   MODUL COACH (DASHBOARD PELATIH) - FIXED IDENTITAS
+   MODUL COACH (DASHBOARD PELATIH)
 ========================================================= */
 export async function loadCoachJadwal() {
     const userSesi = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
@@ -232,20 +297,26 @@ export async function loadCoachJadwal() {
     }
     document.getElementById('coach-jadwal-penugasan').innerHTML = htmlTugas;
 
-    const { data: jadwal } = await sb.from('jadwal_kelas').select('*').order('id', { ascending: true });
-    let htmlBeginner = '';
-    let optJadwal = '<option value="">-- Pilih Slot Jadwal --</option>';
-    if (jadwal && jadwal.length > 0) {
-        jadwal.forEach(j => {
-            htmlBeginner += `<div style="margin-bottom:8px; border-bottom:1px solid #bae6fd; padding-bottom:8px;">
-                <b style="color:#0284c7;">${j.hari}, ${j.jam}</b> - 📍 ${j.lokasi}<br>
-                <small>👥 Peserta: ${j.peserta || 'Kosong'}</small>
-            </div>`;
-            optJadwal += `<option value="${j.id}" data-peserta="${j.peserta || ''}">${j.hari} | ${j.jam} | ${j.lokasi}</option>`;
-        });
+    const { data: jadwal, error: errJadwal } = await sb.from('jadwal_kelas').select('*').order('id', { ascending: true });
+    if (errJadwal) {
+        document.getElementById('coach-jadwal-beginner').innerHTML = '<p style="color:red;">Gagal memuat jadwal beginner.</p>';
+    } else {
+        let htmlBeginner = '';
+        let optJadwal = '<option value="">-- Pilih Slot Jadwal --</option>';
+        if (jadwal && jadwal.length > 0) {
+            jadwal.forEach(j => {
+                htmlBeginner += `<div style="margin-bottom:8px; border-bottom:1px solid #bae6fd; padding-bottom:8px;">
+                    <b style="color:#0284c7;">${j.hari}, ${j.jam}</b> - 📍 ${j.lokasi}<br>
+                    <small>👥 Peserta: ${j.peserta || 'Kosong'}</small>
+                </div>`;
+                optJadwal += `<option value="${j.id}" data-peserta="${j.peserta || ''}">${j.hari} | ${j.jam} | ${j.lokasi}</option>`;
+            });
+        } else {
+            htmlBeginner = '<p>Belum ada jadwal kelas beginner aktif.</p>';
+        }
+        document.getElementById('coach-jadwal-beginner').innerHTML = htmlBeginner;
+        document.getElementById('coach-pilih-jadwal').innerHTML = optJadwal;
     }
-    document.getElementById('coach-jadwal-beginner').innerHTML = htmlBeginner;
-    document.getElementById('coach-pilih-jadwal').innerHTML = optJadwal;
 
     const { data: murid } = await sb.from('murid').select('id_murid, nama_murid, nama_panggilan, sisa_sesi').gt('sisa_sesi', 0);
     let optMurid = '<option value="">-- Pilih Murid Aktif --</option>';
@@ -256,6 +327,9 @@ export async function loadCoachJadwal() {
     document.getElementById('coach-pilih-murid').innerHTML = optMurid;
 }
 
+/* =========================================================
+   🔥 SUNTIKAN HISTORI LATIHAN (FIX TIPE BIGINT) 🔥
+========================================================= */
 export async function coachInsertMurid(event) {
     const btn = event ? event.target : document.querySelector('button[onclick*="coachInsertMurid"]');
     const selectJadwal = document.getElementById('coach-pilih-jadwal');
@@ -265,6 +339,7 @@ export async function coachInsertMurid(event) {
     const idMurid = selectMurid.value;
 
     if (!idJadwal || !idMurid) return alert("Pilih jadwal dan murid terlebih dahulu, Coach!");
+
     if(btn) { btn.innerText = "⏳ Memproses..."; btn.disabled = true; }
 
     const namaMurid = selectMurid.options[selectMurid.selectedIndex].getAttribute('data-nama');
@@ -289,10 +364,15 @@ export async function coachInsertMurid(event) {
 
     try {
         await sb.from('jadwal_kelas').update({ peserta: pesertaSaatIni }).eq('id', idJadwal);
+        
         const { data: dataMurid } = await sb.from('murid').select('sisa_sesi').eq('id_murid', idMurid).single();
-        if (dataMurid.sisa_sesi > 0) await sb.from('murid').update({ sisa_sesi: dataMurid.sisa_sesi - 1 }).eq('id_murid', idMurid);
+        if (dataMurid.sisa_sesi > 0) {
+            await sb.from('murid').update({ sisa_sesi: dataMurid.sisa_sesi - 1 }).eq('id_murid', idMurid);
+        }
 
         const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+        
+        // 1. Antrean Gaji Coach
         await sb.from('antrean_fee').insert([{
             nama_coach: namaAsliCoach,
             nama_murid: namaMurid,
@@ -301,10 +381,23 @@ export async function coachInsertMurid(event) {
             tanggal_selesai: today
         }]);
 
-        alert("✅ Sukses! Laporan Fee masuk ke Inbox Admin.");
+        // 2. 🔥 KIRIM NOTA LATIHAN KE HP ORANG TUA (Pake parseInt biar jadi angka)
+        const { error: errHistori } = await sb.from('histori_latihan').insert([{
+            id_murid: parseInt(idMurid),
+            nama_coach: namaAsliCoach,
+            tanggal: today,
+            lokasi: lokasiKelas,
+            program: 'Beginner'
+        }]);
+
+        if (errHistori) throw errHistori;
+
+        alert("✅ Sukses! Sesi terpotong, Fee dikirim ke Admin, dan Histori Latihan masuk ke HP Orang Tua.");
         if (typeof loadCoachJadwal === "function") loadCoachJadwal(); 
+        
     } catch (error) {
-        alert("Terjadi kesalahan sistem saat memproses data.");
+        console.error("Gagal insert:", error);
+        alert("Terjadi kesalahan sistem: " + error.message);
     } finally {
         if(btn) { btn.innerText = "⚡ Masukkan Murid & Kurangi Sesi"; btn.disabled = false; }
     }
@@ -314,6 +407,9 @@ export async function selesaiTugasJadwal(idJadwal, namaMuridStr, source) {
     if (!confirm(`🚀 Tandai kelas ini SELESAI?`)) return;
 
     try {
+        const { data: jadwal } = await sb.from('jadwal_coach').select('*').eq('id', idJadwal).single();
+        const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+
         const arrNama = namaMuridStr.split(',').map(n => n.trim());
         for (let nama of arrNama) {
             const { data: muridMatch } = await sb.from('murid')
@@ -322,14 +418,25 @@ export async function selesaiTugasJadwal(idJadwal, namaMuridStr, source) {
             
             if (muridMatch && muridMatch.length > 0) {
                 const target = muridMatch[0];
-                if (target.sisa_sesi > 0) await sb.from('murid').update({ sisa_sesi: target.sisa_sesi - 1 }).eq('id_murid', target.id_murid);
+                if (target.sisa_sesi > 0) {
+                    await sb.from('murid').update({ sisa_sesi: target.sisa_sesi - 1 }).eq('id_murid', target.id_murid);
+                    
+                    // 🔥 KIRIM NOTA LATIHAN KE HP ORANG TUA (Pake parseInt)
+                    if (jadwal) {
+                        const { error: errHis } = await sb.from('histori_latihan').insert([{
+                            id_murid: parseInt(target.id_murid),
+                            nama_coach: jadwal.nama_coach,
+                            tanggal: today,
+                            lokasi: jadwal.lokasi,
+                            program: jadwal.tipe_class
+                        }]);
+                        if(errHis) console.error("Gagal simpan histori parent:", errHis);
+                    }
+                }
             }
         }
 
-        const { data: jadwal } = await sb.from('jadwal_coach').select('*').eq('id', idJadwal).single();
-
         if (jadwal) {
-            const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
             await sb.from('antrean_fee').insert([{
                 nama_coach: jadwal.nama_coach,
                 nama_murid: jadwal.nama_murid,
@@ -340,18 +447,19 @@ export async function selesaiTugasJadwal(idJadwal, namaMuridStr, source) {
         }
 
         await sb.from('jadwal_coach').delete().eq('id', idJadwal);
-        alert("✅ Kelas Selesai! Laporan dikirim ke Admin untuk pencairan Fee.");
+        alert("✅ Kelas Selesai! Histori masuk ke HP Wali Murid & Laporan Fee dikirim ke Admin.");
 
         if (source === 'coach' && typeof loadCoachJadwal === 'function') loadCoachJadwal();
         if (source === 'admin' && typeof loadCoachAdmin === 'function') loadCoachAdmin();
 
     } catch (error) {
-        alert("Terjadi kesalahan saat memproses submit selesai.");
+        console.error("Gagal Selesai Tugas:", error);
+        alert("Terjadi kesalahan sistem: " + error.message);
     }
 }
 
 export async function batalTugasJadwal(idJadwal, source) {
-    if (!confirm("❌ Yakin ingin MEMBATALKAN jadwal ini?")) return;
+    if (!confirm("❌ Yakin ingin MEMBATALKAN jadwal ini?\nJadwal akan dihapus dan sesi murid TIDAK akan dipotong.")) return;
     try {
         await sb.from('jadwal_coach').delete().eq('id', idJadwal);
         if (source === 'coach' && typeof loadCoachJadwal === 'function') loadCoachJadwal();
@@ -359,6 +467,9 @@ export async function batalTugasJadwal(idJadwal, source) {
     } catch (error) {}
 }
 
+/* =========================================================
+   SISA FUNGSI COACH (TIDAK ADA YANG DIHAPUS)
+========================================================= */
 let debounceTimerMurid;
 
 export function debounceSearchMurid() {
@@ -752,9 +863,6 @@ export async function downloadRaporPDF(idAssessment, namaSiswa) {
     }
 }
 
-/* =========================================================
-   FUNGSI LOAD FEE COACH (DENGAN FILTER TANGGAL KOSONG)
-========================================================= */
 export async function loadCoachFee() {
     const totalEl = document.getElementById('coach-total-fee');
     const listEl = document.getElementById('coach-fee-list');
@@ -772,23 +880,14 @@ export async function loadCoachFee() {
     listEl.innerHTML = '<p class="text-center text-xs text-slate-400 italic">Mencari data rekapan...</p>';
 
     try {
-        const { data: masterCoach } = await sb.from('coach')
-            .select('nama_coach')
-            .eq('username', userSesi)
-            .maybeSingle();
-
+        const { data: masterCoach } = await sb.from('coach').select('nama_coach').eq('username', userSesi).maybeSingle();
         const namaAsli = masterCoach ? masterCoach.nama_coach : userSesi;
 
         let query = sb.from("fee_coach").select("*").eq("nama_coach", namaAsli).order("tanggal", { ascending: false });
 
-        // Filter berdasarkan tanggal jika Coach nge-set kalendernya
-        if (startDateStr && endDateStr) {
-            query = query.gte("tanggal", startDateStr).lte("tanggal", endDateStr);
-        } else if (startDateStr) {
-            query = query.gte("tanggal", startDateStr);
-        } else if (endDateStr) {
-            query = query.lte("tanggal", endDateStr);
-        }
+        if (startDateStr && endDateStr) query = query.gte("tanggal", startDateStr).lte("tanggal", endDateStr);
+        else if (startDateStr) query = query.gte("tanggal", startDateStr);
+        else if (endDateStr) query = query.lte("tanggal", endDateStr);
 
         const { data, error } = await query;
         if (error) return listEl.innerHTML = "Gagal memuat data.";
@@ -820,7 +919,6 @@ export async function loadCoachFee() {
         listEl.innerHTML = html || "<p style='color:#64748b; text-align:center; font-size:12px;'>Belum ada data mengajar di periode ini.</p>";
 
     } catch (err) {
-        console.error(err);
         listEl.innerHTML = "Terjadi kesalahan sistem.";
     }
 }
