@@ -509,6 +509,99 @@ export async function bukaHistoriLatihan() {
         list.innerHTML = '<p class="text-center text-xs text-red-500">Gagal memuat histori.</p>';
     }
 }
+// ---------------------------------------------------
+// 9. FITUR BOOKING MANDIRI (JADWAL MINGGUAN JSONB)
+// ---------------------------------------------------
+window.bukaModalBookingMandiri = async function() {
+    const modal = document.getElementById('modal-booking-mandiri');
+    const container = document.getElementById('container-pilihan-jadwal');
+
+    if (!modal || !container) return;
+    if (!idAnakAktif) return alert("Pilih jagoan (anak) terlebih dahulu di atas, Bunda!");
+
+    modal.classList.remove('hidden');
+    container.innerHTML = '<p class="text-center text-xs text-slate-400 italic">Menarik data slot kolam...</p>';
+
+    try {
+        // 1. Ambil data slot aktif yang disiapin Admin dari tabel 'jadwal_kelas'
+        const { data: listJadwal, error } = await sb.from('jadwal_kelas').select('*');
+        if (error) throw error;
+
+        // 2. Ambil data jadwal yang sebelumnya sudah pernah dibooking anak ini
+        const { data: muridData } = await sb.from('murid').select('jadwal_mingguan').eq('id_murid', idAnakAktif).single();
+        let bookedSlots = muridData?.jadwal_mingguan || [];
+
+        if (!listJadwal || listJadwal.length === 0) {
+            container.innerHTML = '<p class="text-center text-xs text-slate-500 font-bold mt-4">Belum ada slot jadwal yang dibuka oleh Admin.</p>';
+            return;
+        }
+
+        let html = '';
+        listJadwal.forEach(j => {
+            // Cek apakah slot ini sudah pernah dipilih sebelumnya oleh anak ini
+            let isChecked = bookedSlots.some(b => b.id === j.id) ? 'checked' : '';
+
+            html += `
+            <label class="flex items-start gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:border-emerald-400 transition">
+                <input type="checkbox" name="slot-pilihan" value="${j.id}" data-hari="${j.hari}" data-jam="${j.jam}" data-lokasi="${j.lokasi}" ${isChecked} class="mt-1 w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
+                <div class="flex-1">
+                    <span class="bg-sky-100 text-sky-800 text-[10px] font-bold px-2 py-0.5 rounded">${j.hari}, ${j.jam}</span>
+                    <strong class="text-slate-700 text-xs block mt-1">📍 ${j.lokasi}</strong>
+                    <span class="text-[10px] text-slate-400 block">Peserta saat ini: ${j.peserta || 'Kosong'}</span>
+                </div>
+            </label>`;
+        });
+
+        container.innerHTML = html;
+
+    } catch (err) {
+        console.error(err);
+        container.innerHTML = '<p class="text-center text-xs text-red-500">Gagal memuat slot jadwal.</p>';
+    }
+};
+
+window.simpanBookingMandiri = async function() {
+    if (!idAnakAktif) return alert("Pilih anak terlebih dahulu!");
+
+    const checkboxes = document.querySelectorAll('input[name="slot-pilihan"]:checked');
+    let selectedSlots = [];
+
+    checkboxes.forEach(cb => {
+        selectedSlots.push({
+            id: cb.value,
+            hari: cb.getAttribute('data-hari'),
+            jam: cb.getAttribute('data-jam'),
+            lokasi: cb.getAttribute('data-lokasi')
+        });
+    });
+
+    const btn = event.target;
+    btn.innerText = "⏳ Menyimpan...";
+    btn.disabled = true;
+
+    try {
+        // Simpan array JSONB ke dalam kolom `jadwal_mingguan` di tabel `murid`
+        const { error } = await sb.from('murid')
+            .update({ jadwal_mingguan: selectedSlots })
+            .eq('id_murid', idAnakAktif);
+
+        if (error) throw error;
+
+        alert("✅ Berhasil! Jadwal pilihan ananda telah disimpan ke sistem.");
+        document.getElementById('modal-booking-mandiri').classList.add('hidden');
+
+    } catch (err) {
+        console.error(err);
+        alert("Gagal menyimpan jadwal: " + err.message);
+    } finally {
+        btn.innerText = "💾 Konfirmasi & Simpan Jadwal";
+        btn.disabled = false;
+    }
+};
+
+// Jangan lupa daftarkan ke window di bawah file parents.js:
+window.bukaModalBookingMandiri = bukaModalBookingMandiri;
+window.simpanBookingMandiri = simpanBookingMandiri;
 
 // REGISTER TO WINDOW
 window.initParentDashboard = initParentDashboard;
