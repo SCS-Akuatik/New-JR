@@ -139,18 +139,22 @@ window.loadLeadsInbox = async function() {
     }
 };
 
-window.triggerInvoiceDariAdmin2 = function(id_murid, nama_murid, paket) {
-    const modal = document.getElementById('modal-invoice');
-    if(modal) {
-        modal.classList.remove('hidden'); 
-        document.getElementById('hidden-inv-murid-id').value = id_murid;
-        document.getElementById('inv-input-nama').value = nama_murid;
-        document.getElementById('inv-input-paket').value = paket;
+/* =========================================================
+   🔥 FITUR DEWA: BIKIN INVOICE URUT 51+ (NUMPANG KE SISWA.JS)
+========================================================= */
+window.triggerInvoiceDariAdmin2 = async function(id_murid, nama_murid, paket) {
+    // Kita arahkan tombol ini untuk "numpang" pakai fungsi master milik siswa.js
+    if (typeof window.generateInvoice === 'function') {
         
-        document.getElementById('inv-nomor').innerText = "INV/JR/" + Math.floor(1000 + Math.random() * 9000);
-        document.getElementById('inv-tanggal').innerText = new Date().toLocaleDateString('id-ID');
+        // Tarik nomor WA dari database sebentar biar tombol WA di pop-up nanti otomatis terisi
+        const { data } = await sb.from('murid').select('no_wa').eq('id_murid', id_murid).maybeSingle();
+        const wa = data ? (data.no_wa || '') : '';
+        
+        // Tembak langsung ke fungsi master pencetak Invoice (Urut Bulan & Start 51)
+        window.generateInvoice(id_murid, nama_murid, paket, wa);
+        
     } else {
-        alert("Modal Invoice tidak ditemukan!");
+        alert("Fungsi Modal Invoice gagal dimuat. Coba refresh halaman!");
     }
 };
 
@@ -355,29 +359,23 @@ window.loadProfilAdmin = async function() {
     const elRole = document.getElementById('admin-role-label');
     const elFoto = document.getElementById('admin-avatar-img');
 
-    // Default: Jadikan awalan username huruf besar sebagai nama
     let callName = currentUser.charAt(0).toUpperCase() + currentUser.slice(1);
     
-    // Terapkan default ke layar langsung agar cepat tampil
     if (elNama) elNama.innerText = callName;
     
-    // Default Role Otomatis "Coach Manajerial" untuk semua yang buka halaman ini
     if (elRole) elRole.innerText = 'Coach Manajerial';
     
-    // Set default foto
     if (elFoto) elFoto.src = `https://ui-avatars.com/api/?name=${callName}&background=0D8ABC&color=fff`;
 
     try {
         const { data, error } = await sb.from('users').select('*').eq('username', currentUser).maybeSingle();
         
         if (data) {
-            // Jika call_name tidak kosong, pakai dari database. Jika kosong, pertahankan username
             if (elNama && data.call_name) {
                 elNama.innerText = data.call_name;
                 if(elFoto && !data.avatar_url) elFoto.src = `https://ui-avatars.com/api/?name=${data.call_name}&background=0D8ABC&color=fff`;
             }
             
-            // Jika role_label ada dari DB, pakai itu. Jika kosong (null), biarkan tetap 'Coach Manajerial'
             if (elRole && data.role_label) elRole.innerText = data.role_label;
             
             if (elFoto && data.avatar_url) {
@@ -572,5 +570,4 @@ window.copyLinkMarketing = function() {
         alert("Gagal otomatis. Silakan blok manual teks di kotak lalu copy.");
     });
 };
-// Daftarkan agar bisa diakses oleh tombol HTML
 window.initDashboardAdmin2 = initDashboardAdmin2;

@@ -165,14 +165,12 @@ export async function simpanSiswa() {
     const tglLahir = document.getElementById('sis-tgl-lahir').value;
     const status = document.getElementById('sis-status').value;
     
-    // TARIK TIPE KELAS AJA
     const tipeKelas = document.getElementById('sis-tipe-kelas').value;
     const sesi = document.getElementById('sis-sesi').value;
     const exp = document.getElementById('sis-expired').value;
 
     if(!nama) return alert("Nama lengkap wajib diisi ya Bos!");
 
-    // PAYLOAD BERSIH TANPA JENIS_PAKET
     const payload = {
         nama_murid: nama,
         nama_panggilan: panggilan || null,
@@ -259,7 +257,7 @@ export async function simpanPrestasiAdmin() {
 }
 
 /* =========================================================
-   6. INVOICE MANUAL (UNTUK ORTU GAPTEK)
+   6. INVOICE MANUAL (UNTUK ORTU GAPTEK) - FIX URUT 51+
 ========================================================= */
 export async function createInvoiceManual() {
     const nama = prompt("📝 BUAT TAGIHAN MANUAL\n\nMasukkan Nama Customer/Murid:");
@@ -270,18 +268,46 @@ export async function createInvoiceManual() {
     if(!nominal) return;
     const wa = prompt("Masukkan No WhatsApp Ortu (Cth: 08123...):");
 
-    const noInv = "INV/JR/M" + Math.floor(1000 + Math.random() * 9000);
     const currentUser = localStorage.getItem('loggedInUser') || 'Admin Master';
 
+    // --- 1. LOGIKA GENERATOR NOMOR URUT (SAMA SEPERTI MASTER) ---
+    const now = new Date();
+    const bulan = String(now.getMonth() + 1).padStart(2, '0');
+    const tahun = String(now.getFullYear()).slice(-2);
+    let noInv = `INV-${bulan}-9999-${tahun}`; // Default jika gagal baca DB
+
+    try {
+        const { data, error } = await sb.from('invoices')
+            .select('no_invoice')
+            .like('no_invoice', `INV-${bulan}-%-${tahun}`)
+            .order('id', { ascending: false })
+            .limit(1);
+            
+        let urut = 51; 
+        if (data && data.length > 0 && data[0].no_invoice) {
+            const parts = data[0].no_invoice.split('-');
+            if(parts.length === 4) {
+                urut = parseInt(parts[2]) + 1; 
+            }
+        }
+        noInv = `INV-${bulan}-${String(urut).padStart(4, '0')}-${tahun}`;
+    } catch (err) {
+        console.error("Gagal get invoice ID manual:", err);
+    }
+    // -------------------------------------------------------------
+
+    // 2. SIMPAN KE DATABASE
     try {
         const { error } = await sb.from('invoices').insert([{
-            nomor_invoice: noInv,
+            no_invoice: noInv, // Disamakan kuncinya pakai no_invoice
             nama_murid: nama,
             paket: paket,
             biaya: parseInt(nominal),
+            total: parseInt(nominal), // Disimpan ke total juga agar aman saat direkap akunting
             status: 'Unpaid',
             admin_id: currentUser,
-            no_wa: wa || ''
+            no_wa: wa || '',
+            tanggal_terbit: now.toISOString().split('T')[0] // Tgl terbit otomatis hari ini
         }]);
         if(error) throw error;
         
