@@ -591,7 +591,7 @@ export async function simpanAssessment() {
 }
 
 /* =========================================================
-   RIWAYAT ASSESSMENT & FITUR KIRIM WA KE ORANG TUA
+   RIWAYAT ASSESSMENT & FITUR PENCARIAN
 ========================================================= */
 export async function loadRiwayatAssessment() {
     const listEl = document.getElementById('coach-assessment-list');
@@ -607,13 +607,14 @@ export async function loadRiwayatAssessment() {
         const nama = murid ? murid.nama_murid : `Siswa (ID: ${item.id_murid})`; 
         const safeNama = nama.replace(/'/g, "\\'");
 
+        // 🔥 TAMBAH CLASS "history-item" & "history-nama" UNTUK FILTER PENCARIAN 🔥
         html += `
-        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative;">
+        <div class="history-item" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative;">
             <button onclick="editAssessmentLog(${item.id_assessment}, ${item.id_murid})" style="position: absolute; top: 12px; right: 12px; width: max-content !important; min-width: 50px; background:#f59e0b; color:white; border:none; border-radius:4px; padding:6px 10px; font-size:11px; cursor:pointer; font-weight:bold; display: inline-block;">✏️ Edit</button>
             <button onclick="kirimAssessmentOrtu(${item.id_assessment}, ${item.id_murid}, '${safeNama}')" style="position: absolute; top: 12px; right: 75px; width: max-content !important; min-width: 50px; background:#10b981; color:white; border:none; border-radius:4px; padding:6px 10px; font-size:11px; cursor:pointer; font-weight:bold; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">💬 Kirim WA</button>
 
             <div style="padding-right: 155px; margin-bottom: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 8px;">
-                <strong style="color:#0369a1; font-size:14px; display:block; margin-bottom:4px;">${nama}</strong>
+                <strong class="history-nama" style="color:#0369a1; font-size:14px; display:block; margin-bottom:4px;">${nama}</strong>
                 <span style="font-size:11px; color:#64748b; font-weight:bold;">📅 ${item.tanggal_assessment}</span>
             </div>
             
@@ -634,7 +635,16 @@ export async function loadRiwayatAssessment() {
     listEl.innerHTML = html || '<p style="text-align:center; font-size:12px; color:#64748b;">Belum ada riwayat assessment.</p>';
 }
 
-/* 🔥 FUNGSI BARU: KIRIM CATATAN ASSESSMENT LANGSUNG KE WA ORANG TUA 🔥 */
+// 🔥 FUNGSI BARU: FILTER DAFTAR RIWAYAT ASSESSMENT 🔥
+export function filterRiwayatAssessment() {
+    const input = document.getElementById('search-riwayat-assessment').value.toLowerCase();
+    const items = document.querySelectorAll('.history-item');
+    items.forEach(item => {
+        const nama = item.querySelector('.history-nama').innerText.toLowerCase();
+        item.style.display = nama.includes(input) ? "block" : "none";
+    });
+}
+
 export async function kirimAssessmentOrtu(idAssessment, idMurid, namaSiswa) {
     try {
         const { data: assData, error: errAss } = await sb.from('assessment_log')
@@ -663,7 +673,6 @@ export async function kirimAssessmentOrtu(idAssessment, idMurid, namaSiswa) {
         const namaCoach = userSesi.charAt(0).toUpperCase() + userSesi.slice(1);
         const catatan = assData.catatan_coach || 'Alhamdulillah latihan hari ini berjalan dengan baik!';
 
-        // Format Pesan Sesuai Permintaan
         const teksWA = `Hari : ${namaHari}%0ATanggal : ${tanggalFormatted}%0ACoach : ${namaCoach}%0ACatatan Assesment : ${encodeURIComponent(catatan)}`;
 
         let urlWA = `https://wa.me/?text=${teksWA}`;
@@ -771,8 +780,8 @@ window.loadAssessmentDetail = loadAssessmentDetail;
 window.editAssessmentLog = editAssessmentLog;
 window.simpanAssessment = simpanAssessment;
 window.loadRiwayatAssessment = loadRiwayatAssessment;
+window.filterRiwayatAssessment = filterRiwayatAssessment;
 window.kirimAssessmentOrtu = kirimAssessmentOrtu;
-window.downloadRaporPDF = kirimAssessmentOrtu; 
 window.loadCoachFee = loadCoachFee;
 window.loadProfilCoach = loadProfilCoach;
 window.simpanProfilCoach = simpanProfilCoach;
