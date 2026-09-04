@@ -590,47 +590,95 @@ export async function simpanAssessment() {
     } catch (err) { alert("Gagal memproses data: " + err.message); } finally { if(btn) { btn.innerHTML = "💾 Simpan Assessment"; btn.disabled = false; } }
 }
 
+/* =========================================================
+   RIWAYAT ASSESSMENT & FITUR KIRIM WA KE ORANG TUA
+========================================================= */
 export async function loadRiwayatAssessment() {
     const listEl = document.getElementById('coach-assessment-list');
     if (!listEl) return;
     listEl.innerHTML = '<p style="text-align:center; font-size:12px;">Memuat riwayat...</p>';
-    const { data: logData } = await sb.from('assessment_log').select('*').order('tanggal_assessment', { ascending: false });
+
+    const { data: logData } = await sb.from('assessment_log').select('*').order('tanggal_assessment', { ascending: false }).order('id_assessment', { ascending: false });
     const { data: muridData } = await sb.from('murid').select('id_murid, nama_murid');
+
     let html = '';
     logData?.forEach(item => {
         const murid = muridData ? muridData.find(m => m.id_murid === item.id_murid) : null;
         const nama = murid ? murid.nama_murid : `Siswa (ID: ${item.id_murid})`; 
         const safeNama = nama.replace(/'/g, "\\'");
-        html += `<div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative;"><button onclick="editAssessmentLog(${item.id_assessment}, ${item.id_murid})" style="position: absolute; top: 12px; right: 12px; width: max-content !important; min-width: 50px; background:#f59e0b; color:white; border:none; border-radius:4px; padding:6px 10px; font-size:11px; cursor:pointer; font-weight:bold; display: inline-block;">✏️ Edit</button><button onclick="downloadRaporPDF(${item.id_assessment}, '${safeNama}')" style="position: absolute; top: 12px; right: 75px; width: max-content !important; min-width: 50px; background:#4f46e5; color:white; border:none; border-radius:4px; padding:6px 10px; font-size:11px; cursor:pointer; font-weight:bold; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">📥 PDF</button><div style="padding-right: 140px; margin-bottom: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 8px;"><strong style="color:#0369a1; font-size:14px; display:block; margin-bottom:4px;">${nama}</strong><span style="font-size:11px; color:#64748b; font-weight:bold;">📅 ${item.tanggal_assessment}</span></div><div style="font-size:11px; color:#334155; display:grid; grid-template-columns: 1fr 1fr; gap:6px;"><span>Float: <b style="color:#0284c7;">${item.floating_streamline || 0}%</b></span><span>Breath: <b style="color:#0284c7;">${item.breathing_control || 0}%</b></span><span>Free Kick: <b style="color:#0284c7;">${item.freestyle_kicking || 0}%</b></span><span>Free Stroke: <b style="color:#0284c7;">${item.freestyle_stroke || 0}%</b></span><span>Breaststroke: <b style="color:#0284c7;">${item.breaststroke || 0}%</b></span><span>Backstroke: <b style="color:#0284c7;">${item.backstroke || 0}%</b></span><span>Butterfly: <b style="color:#0284c7;">${item.butterfly_stroke || 0}%</b></span></div>${item.catatan_coach ? `<div style="margin-top:10px; font-size:11px; font-style:italic; color:#b45309; background:#fffbeb; padding:8px; border-radius:6px; border:1px dashed #fde68a;">💬 "${item.catatan_coach}"</div>` : ''}</div>`;
+
+        html += `
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative;">
+            <button onclick="editAssessmentLog(${item.id_assessment}, ${item.id_murid})" style="position: absolute; top: 12px; right: 12px; width: max-content !important; min-width: 50px; background:#f59e0b; color:white; border:none; border-radius:4px; padding:6px 10px; font-size:11px; cursor:pointer; font-weight:bold; display: inline-block;">✏️ Edit</button>
+            <button onclick="kirimAssessmentOrtu(${item.id_assessment}, ${item.id_murid}, '${safeNama}')" style="position: absolute; top: 12px; right: 75px; width: max-content !important; min-width: 50px; background:#10b981; color:white; border:none; border-radius:4px; padding:6px 10px; font-size:11px; cursor:pointer; font-weight:bold; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">💬 Kirim WA</button>
+
+            <div style="padding-right: 155px; margin-bottom: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 8px;">
+                <strong style="color:#0369a1; font-size:14px; display:block; margin-bottom:4px;">${nama}</strong>
+                <span style="font-size:11px; color:#64748b; font-weight:bold;">📅 ${item.tanggal_assessment}</span>
+            </div>
+            
+            <div style="font-size:11px; color:#334155; display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+                <span>Float: <b style="color:#0284c7;">${item.floating_streamline || 0}%</b></span>
+                <span>Breath: <b style="color:#0284c7;">${item.breathing_control || 0}%</b></span>
+                <span>Free Kick: <b style="color:#0284c7;">${item.freestyle_kicking || 0}%</b></span>
+                <span>Free Stroke: <b style="color:#0284c7;">${item.freestyle_stroke || 0}%</b></span>
+                <span>Breaststroke: <b style="color:#0284c7;">${item.breaststroke || 0}%</b></span>
+                <span>Backstroke: <b style="color:#0284c7;">${item.backstroke || 0}%</b></span>
+                <span>Butterfly: <b style="color:#0284c7;">${item.butterfly_stroke || 0}%</b></span>
+            </div>
+            
+            ${item.catatan_coach ? `<div style="margin-top:10px; font-size:11px; font-style:italic; color:#b45309; background:#fffbeb; padding:8px; border-radius:6px; border:1px dashed #fde68a;">💬 "${item.catatan_coach}"</div>` : ''}
+        </div>`;
     });
+
     listEl.innerHTML = html || '<p style="text-align:center; font-size:12px; color:#64748b;">Belum ada riwayat assessment.</p>';
 }
 
-export async function downloadRaporPDF(idAssessment, namaSiswa) {
+/* 🔥 FUNGSI BARU: KIRIM CATATAN ASSESSMENT LANGSUNG KE WA ORANG TUA 🔥 */
+export async function kirimAssessmentOrtu(idAssessment, idMurid, namaSiswa) {
     try {
-        const { data, error } = await sb.from('assessment_log').select('*').eq('id_assessment', idAssessment).single();
-        if(error || !data) throw error;
-        const isLulus = (data.freestyle_stroke >= 95 && data.breaststroke >= 100);
-        const statusText = isLulus ? "LULUS LEVEL 1 (GRADUATED)" : "DALAM PROSES (IN PROGRESS)";
-        const statusColor = isLulus ? "#059669" : "#d97706"; 
-        const pdfContainer = document.createElement('div');
-        pdfContainer.id = "temp-pdf-rapor";
-        pdfContainer.style.position = 'fixed';
-        pdfContainer.style.top = '0';
-        pdfContainer.style.left = '0';
-        pdfContainer.style.width = '800px';
-        pdfContainer.style.backgroundColor = '#ffffff';
-        pdfContainer.style.zIndex = '-9999';
-        pdfContainer.style.padding = '40px';
-        pdfContainer.style.boxSizing = 'border-box';
-        pdfContainer.innerHTML = `<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #000000;"><div style="text-align: center; border-bottom: 3px solid #0284c7; padding-bottom: 15px; margin-bottom: 30px;"><h1 style="color: #0284c7; margin: 0; font-size: 26px; font-weight: 900; letter-spacing: 1px;">JAGO RENANG ACADEMY</h1><p style="margin: 5px 0 0 0; color: #64748b; font-size: 13px; font-weight: bold; letter-spacing: 2px;">STUDENT PROGRESS REPORT</p></div><div style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end;"><div><p style="margin: 0 0 4px 0; color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: bold;">Nama Atlet / Siswa:</p><h2 style="margin: 0; color: #1e293b; font-size: 20px;">${namaSiswa}</h2></div><div style="text-align: right;"><p style="margin: 0 0 4px 0; color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: bold;">Tanggal Evaluasi:</p><h2 style="margin: 0; color: #1e293b; font-size: 16px;">${data.tanggal_assessment}</h2></div></div><table style="width: 100%; border-collapse: collapse; margin-bottom: 35px;"><thead><tr style="background-color: #f0f9ff; border-top: 2px solid #bae6fd; border-bottom: 2px solid #bae6fd;"><th style="padding: 12px; text-align: left; font-size: 13px; color: #0369a1; width: 75%;">MATERI EVALUASI KETERAMPILAN</th><th style="padding: 12px; text-align: center; font-size: 13px; color: #0369a1; width: 25%;">PENCAPAIAN</th></tr></thead><tbody><tr style="border-bottom: 1px solid #e0f2fe;"><td style="padding: 10px 12px; font-size: 13px; color: #334155;">1. Floating & Streamline (Mengapung)</td><td style="padding: 10px 12px; text-align: center; font-size: 14px; font-weight: bold; color: #0284c7;">${data.floating_streamline || 0}%</td></tr><tr style="border-bottom: 1px solid #e0f2fe;"><td style="padding: 10px 12px; font-size: 13px; color: #334155;">2. Breathing Control (Pernapasan)</td><td style="padding: 10px 12px; text-align: center; font-size: 14px; font-weight: bold; color: #0284c7;">${data.breathing_control || 0}%</td></tr><tr style="border-bottom: 1px solid #e0f2fe;"><td style="padding: 10px 12px; font-size: 13px; color: #334155;">3. Freestyle Kicking (Kaki Bebas)</td><td style="padding: 10px 12px; text-align: center; font-size: 14px; font-weight: bold; color: #0284c7;">${data.freestyle_kicking || 0}%</td></tr><tr style="border-bottom: 1px solid #e0f2fe;"><td style="padding: 10px 12px; font-size: 13px; color: #334155;">4. Freestyle Stroke (Tangan Bebas)</td><td style="padding: 10px 12px; text-align: center; font-size: 14px; font-weight: bold; color: #0284c7;">${data.freestyle_stroke || 0}%</td></tr><tr style="border-bottom: 1px solid #e0f2fe;"><td style="padding: 10px 12px; font-size: 13px; color: #334155;">5. Breaststroke (Gaya Dada)</td><td style="padding: 10px 12px; text-align: center; font-size: 14px; font-weight: bold; color: #0284c7;">${data.breaststroke || 0}%</td></tr><tr style="border-bottom: 1px solid #e0f2fe;"><td style="padding: 10px 12px; font-size: 13px; color: #334155;">6. Backstroke (Gaya Punggung)</td><td style="padding: 10px 12px; text-align: center; font-size: 14px; font-weight: bold; color: #0284c7;">${data.backstroke || 0}%</td></tr><tr style="border-bottom: 1px solid #e0f2fe;"><td style="padding: 10px 12px; font-size: 13px; color: #334155;">7. Butterfly Stroke (Gaya Kupu-kupu)</td><td style="padding: 10px 12px; text-align: center; font-size: 14px; font-weight: bold; color: #0284c7;">${data.butterfly_stroke || 0}%</td></tr></tbody></table><div style="margin-bottom: 40px; display: flex; flex-direction: column; gap: 15px;"><div><span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: bold; display: block; margin-bottom: 6px;">Status Program:</span><span style="background-color: ${statusColor}15; color: ${statusColor}; padding: 8px 16px; border-radius: 6px; font-weight: 900; font-size: 15px; border: 1px solid ${statusColor}40; display: inline-block;">${statusText}</span></div><div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; padding: 16px; border-radius: 8px;"><span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: bold; display: block; margin-bottom: 6px;">Catatan & Evaluasi Pelatih:</span><p style="margin: 0; font-size: 13px; color: #334155; font-style: italic; line-height: 1.6;">"${data.catatan_coach || 'Terus semangat berlatih dan pertahankan konsistensi!'}"</p></div></div><div style="margin-top: 60px; text-align: right; color: #334155;"><p style="margin: 0 0 70px 0; font-size: 13px;">Disahkan oleh,</p><p style="margin: 0; font-weight: bold; text-decoration: underline; font-size: 15px;">Coach ${localStorage.getItem('loggedInUser') || 'Instruktur JR'}</p><p style="margin: 4px 0 0 0; color: #64748b; font-size: 12px;">Instruktur Penilai</p></div></div>`;
-        document.body.appendChild(pdfContainer);
-        alert("⏳ Menggambar PDF... Tunggu 1 Detik ya!");
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const opt = { margin: 0, filename: `Rapor_${namaSiswa.replace(/\s+/g, '_')}_${data.tanggal_assessment}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true, windowWidth: 800 }, jsPDF: { unit: 'px', format: [800, 1131], orientation: 'portrait' } };
-        await html2pdf().set(opt).from(pdfContainer).save();
-        document.body.removeChild(pdfContainer);
-    } catch(e) { alert("Gagal mencetak Rapor: " + e.message); const temp = document.getElementById('temp-pdf-rapor'); if(temp) document.body.removeChild(temp); }
+        const { data: assData, error: errAss } = await sb.from('assessment_log')
+            .select('*')
+            .eq('id_assessment', idAssessment)
+            .single();
+
+        if (errAss || !assData) throw new Error("Data assessment tidak ditemukan.");
+
+        let noWaOrtu = "";
+        const { data: muridData } = await sb.from('murid')
+            .select('nama_murid, nama_panggilan, no_wa')
+            .eq('id_murid', idMurid)
+            .maybeSingle();
+
+        if (muridData && muridData.no_wa) {
+            noWaOrtu = muridData.no_wa.toString().trim();
+        }
+
+        const hariList = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const now = new Date();
+        const namaHari = hariList[now.getDay()];
+        const tanggalFormatted = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+        const userSesi = localStorage.getItem('loggedInUser') || localStorage.getItem('username') || 'Pelatih';
+        const namaCoach = userSesi.charAt(0).toUpperCase() + userSesi.slice(1);
+        const catatan = assData.catatan_coach || 'Alhamdulillah latihan hari ini berjalan dengan baik!';
+
+        // Format Pesan Sesuai Permintaan
+        const teksWA = `Hari : ${namaHari}%0ATanggal : ${tanggalFormatted}%0ACoach : ${namaCoach}%0ACatatan Assesment : ${encodeURIComponent(catatan)}`;
+
+        let urlWA = `https://wa.me/?text=${teksWA}`;
+        if (noWaOrtu) {
+            let waClean = noWaOrtu.replace(/\D/g, '');
+            if (waClean.startsWith('0')) waClean = '62' + waClean.substring(1);
+            urlWA = `https://wa.me/${waClean}?text=${teksWA}`;
+        }
+
+        window.open(urlWA, '_blank');
+
+    } catch (e) {
+        console.error("Gagal kirim assessment:", e);
+        alert("Gagal menyiapkan pesan WA: " + e.message);
+    }
 }
 
 export async function loadCoachFee() {
@@ -723,7 +771,8 @@ window.loadAssessmentDetail = loadAssessmentDetail;
 window.editAssessmentLog = editAssessmentLog;
 window.simpanAssessment = simpanAssessment;
 window.loadRiwayatAssessment = loadRiwayatAssessment;
-window.downloadRaporPDF = downloadRaporPDF; 
+window.kirimAssessmentOrtu = kirimAssessmentOrtu;
+window.downloadRaporPDF = kirimAssessmentOrtu; 
 window.loadCoachFee = loadCoachFee;
 window.loadProfilCoach = loadProfilCoach;
 window.simpanProfilCoach = simpanProfilCoach;
