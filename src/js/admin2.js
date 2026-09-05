@@ -143,21 +143,16 @@ window.loadLeadsInbox = async function() {
    🔥 FITUR DEWA: BIKIN INVOICE URUT 51+ (NUMPANG KE SISWA.JS)
 ========================================================= */
 window.triggerInvoiceDariAdmin2 = async function(id_murid, nama_murid, paket) {
-    // Kita arahkan tombol ini untuk "numpang" pakai fungsi master milik siswa.js
     if (typeof window.generateInvoice === 'function') {
-        
-        // Tarik nomor WA dari database sebentar biar tombol WA di pop-up nanti otomatis terisi
         const { data } = await sb.from('murid').select('no_wa').eq('id_murid', id_murid).maybeSingle();
         const wa = data ? (data.no_wa || '') : '';
-        
-        // Tembak langsung ke fungsi master pencetak Invoice (Urut Bulan & Start 51)
         window.generateInvoice(id_murid, nama_murid, paket, wa);
-        
     } else {
         alert("Fungsi Modal Invoice gagal dimuat. Coba refresh halaman!");
     }
 };
 
+// 🔥 FIX TANGGAL 31 DI BULAN SEPTEMBER/FEBRUARI 🔥
 window.hitungMyBonus = async function() {
     try {
         const currentUser = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
@@ -166,8 +161,12 @@ window.hitungMyBonus = async function() {
         const now = new Date();
         const currentYear = now.getFullYear();
         const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+        
+        // Deteksi hari terakhir dalam bulan ini (28, 29, 30, atau 31)
+        const lastDay = new Date(currentYear, now.getMonth() + 1, 0).getDate();
+        
         const startDate = `${currentYear}-${currentMonth}-01`;
-        const endDate = `${currentYear}-${currentMonth}-31`;
+        const endDate = `${currentYear}-${currentMonth}-${lastDay}`;
 
         const namaBulanMap = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
         const textBulan = namaBulanMap[now.getMonth()];
@@ -442,6 +441,7 @@ window.uploadAvatarAdmin = async function(event) {
     }
 };
 
+// 🔥 FIX TANGGAL 31 DI BULAN SEPTEMBER/FEBRUARI 🔥
 window.bukaHistoriBonus = async function() {
     const modal = document.getElementById('modal-histori-bonus');
     if (!modal) return alert("Elemen modal histori belum dipasang di HTML!");
@@ -457,8 +457,12 @@ window.bukaHistoriBonus = async function() {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+    
+    // Deteksi hari terakhir dalam bulan ini (28, 29, 30, atau 31)
+    const lastDay = new Date(currentYear, now.getMonth() + 1, 0).getDate();
+    
     const startDate = `${currentYear}-${currentMonth}-01`;
-    const endDate = `${currentYear}-${currentMonth}-31`;
+    const endDate = `${currentYear}-${currentMonth}-${lastDay}`;
 
     const namaBulanMap = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
     const labelHistoriTotal = document.getElementById('label-histori-total');
