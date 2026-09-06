@@ -15,6 +15,35 @@ function getDefaultEndDate() {
 }
 
 /* =========================================================
+   LOGIKA PENGUNCI ASSESSMENT (LOCAL STORAGE) 🔥 BARU 🔥
+========================================================= */
+function getPendingAssessments() {
+    const user = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
+    const key = `pending_assess_${user}`;
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : [];
+}
+
+function addPendingAssessment(id, nama) {
+    const user = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
+    const key = `pending_assess_${user}`;
+    let pending = getPendingAssessments();
+    if (!pending.find(p => p.id == id)) {
+        pending.push({ id: id, nama: nama });
+        localStorage.setItem(key, JSON.stringify(pending));
+    }
+}
+
+function removePendingAssessment(id) {
+    const user = localStorage.getItem('loggedInUser') || localStorage.getItem('username');
+    const key = `pending_assess_${user}`;
+    let pending = getPendingAssessments();
+    pending = pending.filter(p => p.id != id);
+    localStorage.setItem(key, JSON.stringify(pending));
+}
+
+
+/* =========================================================
    HEADER DYNAMIC: JAM, NAMA (USERS), DAN UPLOAD FOTO
 ========================================================= */
 window.bukaModalFeeCoach = function() {
@@ -281,9 +310,12 @@ export async function loadCoachJadwal() {
 }
 
 /* =========================================================
-   🔥 SUNTIKAN HISTORI LATIHAN (FIX TIPE BIGINT) 🔥
+   🔥 SUNTIKAN HISTORI LATIHAN & KUNCI ASSESSMENT 🔥
 ========================================================= */
 export async function coachInsertMurid(event) {
+    // BLOKIR JIKA ADA TANGGUNGAN
+    if (window.hasPendingAssessment) return alert("🛑 STOP! Kamu punya tanggungan Assessment murid sebelumnya.\n\nSelesaikan dulu Rapor murid yang ada di KOTAK MERAH modul Assessment!");
+
     const btn = event ? event.target : document.querySelector('button[onclick*="coachInsertMurid"]');
     const selectJadwal = document.getElementById('coach-pilih-jadwal');
     const selectMurid = document.getElementById('coach-pilih-murid');
@@ -343,8 +375,12 @@ export async function coachInsertMurid(event) {
 
         if (errHistori) throw errHistori;
 
+        // 🔥 TAMBAH KE ANTREAN MERAH 🔥
+        addPendingAssessment(idMurid, namaMurid);
+
         alert("✅ Sukses! Sesi terpotong, Fee dikirim ke Admin, dan Histori Latihan masuk ke HP Orang Tua.");
         if (typeof loadCoachJadwal === "function") loadCoachJadwal(); 
+        if (typeof loadBelumAssessment === "function") loadBelumAssessment(); 
         
     } catch (error) {
         console.error("Gagal insert:", error);
@@ -355,6 +391,9 @@ export async function coachInsertMurid(event) {
 }
 
 export async function selesaiTugasJadwal(idJadwal, namaMuridStr, source) {
+    // BLOKIR JIKA ADA TANGGUNGAN
+    if (source === 'coach' && window.hasPendingAssessment) return alert("🛑 STOP! Kamu punya tanggungan Assessment murid sebelumnya.\n\nSelesaikan dulu Rapor murid yang ada di KOTAK MERAH modul Assessment!");
+
     if (!confirm(`🚀 Tandai kelas ini SELESAI?`)) return;
 
     try {
@@ -378,6 +417,10 @@ export async function selesaiTugasJadwal(idJadwal, namaMuridStr, source) {
                             program: jadwal.tipe_class
                         }]);
                     }
+                    // 🔥 TAMBAH KE ANTREAN MERAH JIKA COACH YANG KLIK 🔥
+                    if (source === 'coach') {
+                        addPendingAssessment(target.id_murid, nama);
+                    }
                 }
             }
         }
@@ -395,7 +438,10 @@ export async function selesaiTugasJadwal(idJadwal, namaMuridStr, source) {
         await sb.from('jadwal_coach').delete().eq('id', idJadwal);
         alert("✅ Kelas Selesai! Histori masuk ke HP Wali Murid & Laporan Fee dikirim ke Admin.");
 
-        if (source === 'coach' && typeof loadCoachJadwal === 'function') loadCoachJadwal();
+        if (source === 'coach') {
+            if (typeof loadCoachJadwal === 'function') loadCoachJadwal();
+            if (typeof loadBelumAssessment === 'function') loadBelumAssessment();
+        }
         if (source === 'admin' && typeof loadCoachAdmin === 'function') loadCoachAdmin();
 
     } catch (error) {
@@ -414,7 +460,7 @@ export async function batalTugasJadwal(idJadwal, source) {
 }
 
 /* =========================================================
-   SISA FUNGSI COACH LAINNYA
+   MODUL ASSESSMENT (REVISI LOGIKA KOTAK MERAH)
 ========================================================= */
 let debounceTimerMurid;
 export function debounceSearchMurid() {
@@ -467,16 +513,21 @@ export async function loadCoachAssessment() { loadRiwayatAssessment(); loadBelum
 export async function loadBelumAssessment() {
     const container = document.getElementById('list-belum-assessment');
     if (!container) return;
-    try {
-        const { data: muridAktif } = await sb.from('murid').select('id_murid, nama_murid').gt('sisa_sesi', 0);
-        const { data: logAssessment } = await sb.from('assessment_log').select('id_murid');
-        const idSudahDinilai = [...new Set(logAssessment.map(item => item.id_murid))];
-        const muridBelumDinilai = muridAktif.filter(m => !idSudahDinilai.includes(m.id_murid));
-        if (muridBelumDinilai.length === 0) return container.innerHTML = '<span style="font-size:11px; background:#10b981; color:white; padding:4px 10px; border-radius:12px; font-weight:bold;">✨ Mantap! Semua murid aktif sudah memiliki rapor.</span>';
-        let html = '';
-        muridBelumDinilai.forEach(m => { html += `<button onclick="pilihAnakBelumDinilai(${m.id_murid})" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:bold; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.05); transition:0.2s;">+ ${m.nama_murid}</button>`; });
-        container.innerHTML = html;
-    } catch (error) { container.innerHTML = '<span style="color:red; font-size:11px;">Gagal memuat data.</span>'; }
+    
+    const pendingList = getPendingAssessments();
+
+    if (pendingList.length === 0) {
+        window.hasPendingAssessment = false;
+        container.innerHTML = '<span style="font-size:11px; background:#10b981; color:white; padding:4px 10px; border-radius:12px; font-weight:bold;">✨ Mantap! Tidak ada tanggungan Rapor tertunda.</span>';
+        return;
+    }
+
+    window.hasPendingAssessment = true;
+    let html = '';
+    pendingList.forEach(m => { 
+        html += `<button onclick="pilihAnakBelumDinilai(${m.id})" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:bold; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.05); transition:0.2s;">⚠️ Selesaikan Rapor: ${m.nama}</button>`; 
+    });
+    container.innerHTML = html;
 }
 
 export async function pilihAnakBelumDinilai(idMurid) {
@@ -505,7 +556,7 @@ export async function loadAssessmentDetail() {
         document.getElementById('ass-breast').value = data.breaststroke || '';
         document.getElementById('ass-back').value = data.backstroke || '';
         document.getElementById('ass-fly').value = data.butterfly_stroke || '';
-        document.getElementById('ass-catatan').value = data.catatan_coach || '';
+        document.getElementById('ass-catatan').value = ''; // KOSONGKAN CATATAN
     } else {
         document.getElementById('ass-float').value = '';
         document.getElementById('ass-breath').value = '';
@@ -517,7 +568,7 @@ export async function loadAssessmentDetail() {
         document.getElementById('ass-catatan').value = '';
     }
     const btn = document.querySelector('button[onclick*="simpanAssessment"]');
-    if (btn) btn.innerHTML = "💾 Simpan Assessment";
+    if (btn) btn.innerHTML = "💾 Simpan Assessment Baru";
 }
 
 export async function editAssessmentLog(idAssessment, idMurid) {
@@ -581,6 +632,10 @@ export async function simpanAssessment() {
             } else pesanSesi = "Peringatan: Sisa sesi murid sudah habis!";
             checkboxPotong.checked = false;
         }
+        
+        // 🔥 HAPUS DARI ANTREAN MERAH 🔥
+        removePendingAssessment(idMurid);
+
         alert(`Mantap Coach! Rapor tersimpan.\n${pesanSesi}${pesanKelulusan}`);
         if (hiddenId) hiddenId.value = ""; 
         document.getElementById('ass-catatan').value = ""; 
@@ -607,7 +662,6 @@ export async function loadRiwayatAssessment() {
         const nama = murid ? murid.nama_murid : `Siswa (ID: ${item.id_murid})`; 
         const safeNama = nama.replace(/'/g, "\\'");
 
-        // 🔥 TAMBAH CLASS "history-item" & "history-nama" UNTUK FILTER PENCARIAN 🔥
         html += `
         <div class="history-item" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative;">
             <button onclick="editAssessmentLog(${item.id_assessment}, ${item.id_murid})" style="position: absolute; top: 12px; right: 12px; width: max-content !important; min-width: 50px; background:#f59e0b; color:white; border:none; border-radius:4px; padding:6px 10px; font-size:11px; cursor:pointer; font-weight:bold; display: inline-block;">✏️ Edit</button>
@@ -635,7 +689,6 @@ export async function loadRiwayatAssessment() {
     listEl.innerHTML = html || '<p style="text-align:center; font-size:12px; color:#64748b;">Belum ada riwayat assessment.</p>';
 }
 
-// 🔥 FUNGSI BARU: FILTER DAFTAR RIWAYAT ASSESSMENT 🔥
 export function filterRiwayatAssessment() {
     const input = document.getElementById('search-riwayat-assessment').value.toLowerCase();
     const items = document.querySelectorAll('.history-item');
